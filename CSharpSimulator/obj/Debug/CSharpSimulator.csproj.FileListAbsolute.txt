@@ -1,0 +1,9 @@
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\bin\Debug\CSharpSimulator.exe.config
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.csprojResolveAssemblyReference.cache
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\bin\Debug\CSharpSimulator.exe
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\bin\Debug\CSharpSimulator.pdb
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.exe
+C:\Users\iselih\Desktop\CSharpSimulator\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.pdb
+C:\Users\Li Haobin\Source\Repos\CSharpSimulator\CSharpSimulator\bin\Debug\CSharpSimulator.exe.config
+C:\Users\Li Haobin\Source\Repos\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.exe
+C:\Users\Li Haobin\Source\Repos\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.pdb
