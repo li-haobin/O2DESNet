@@ -1,0 +1,22 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Kelton, Sadowski, and Sadowski}{Kelton
+  et~al.}{1998}]{Kelton1998}
+Kelton, W.~D., R.~P. Sadowski, and D.~A. Sadowski. 1998.
+\newblock {\em Simulation with ARENA}, Volume~47.
+\newblock WCB/McGraw-Hill New York.
+
+
+\bibitem[\protect\citeauthoryear{Muller}{Muller}{2011}]{Muller2011}
+Muller, D. 2011.
+\newblock ``Automod - providing simulation solutions for over 25 years''.
+\newblock In {\em Simulation Conference (WSC), Proceedings of the 2011 Winter},
+   39--51.
+
+\bibitem[\protect\citeauthoryear{Nordgren}{Nordgren}{2002}]{Nordgren2002}
+Nordgren, W. 2002.
+\newblock ``Flexsim simulation environment''.
+\newblock In {\em Simulation Conference, 2002. Proceedings of the Winter},
+  Volume~1,  250--252 vol.1.
+
+\end{thebibliography}
