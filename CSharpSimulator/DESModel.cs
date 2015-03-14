@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscreteEventSimulation
+namespace CSharpSimulator
 {
     public delegate void Event();
     
-    public class Base
+    public class DESModel
     {
         public class FutureEvent
         {
@@ -19,7 +19,7 @@ namespace DiscreteEventSimulation
         protected List<FutureEvent> FutureEventList;
         public DateTime ClockTime { get; protected set; }
         
-        public Base()
+        public DESModel()
         {
             ClockTime = DateTime.MinValue;
             FutureEventList = new List<FutureEvent>();
@@ -97,7 +97,7 @@ namespace DiscreteEventSimulation
         }
         private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(FutureEventList.First().ScheduledTime); } }
 
-        static private bool ExecuteHeadEvent_withTimeDilation(Base[] simulations)
+        static private bool ExecuteHeadEvent_withTimeDilation(DESModel[] simulations)
         {
             var toExecute = simulations.Where(s => s.FutureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
@@ -110,7 +110,7 @@ namespace DiscreteEventSimulation
             }
             return false;
         }
-        static public void Run_withTimeDilation(Base[] simulations, int eventCount)
+        static public void Run_withTimeDilation(DESModel[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
             if (true) // for debug

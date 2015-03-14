@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DiscreteEventSimulation;
-using CSharpSimulator.Model;
 
-namespace CSharpSimulator
+namespace CSharpSimulator.Demos.Workshop
 {
-    public class Simulation : Base
+    public class Simulator : DESModel
     {
         private Random _rs;
 
@@ -17,7 +15,7 @@ namespace CSharpSimulator
         public List<List<Job>> Queues;
         public int JobCount {get;private set;}
 
-        public Simulation(Cluster cluster, int seed)
+        public Simulator(Cluster cluster, int seed)
         {
             Cluster = cluster;
             _rs = new Random(seed);

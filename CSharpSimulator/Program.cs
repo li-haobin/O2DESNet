@@ -1,4 +1,4 @@
-﻿using CSharpSimulator.Model;
+﻿using CSharpSimulator.DESModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
