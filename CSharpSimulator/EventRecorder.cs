@@ -37,16 +37,16 @@ namespace CSharpSimulator
         public Dictionary<DateTime, int> Counts(string countInEventKeys, string countOutEventKeys)
         {
             _recordList = _recordList.OrderBy(r => r.ClockTime).ToList();
-            int count = 0;
+            List<T> counted = new List<T>();
             var timeSeries = new Dictionary<DateTime, int>();
             var countInIndices = countInEventKeys.Split(',').Select(s => GetIndex(s)).ToArray();
             var countOutIndices = countOutEventKeys.Split(',').Select(s => GetIndex(s)).ToArray();
             foreach (var record in _recordList)
             {
-                if (countInIndices.Contains(record.StatusIndex)) count++;
-                else if (countOutIndices.Contains(record.StatusIndex)) count--;
-                if (!timeSeries.ContainsKey(record.ClockTime)) timeSeries.Add(record.ClockTime, count);
-                else timeSeries[record.ClockTime] = count;
+                if (countInIndices.Contains(record.StatusIndex) && !counted.Contains(record.Load)) counted.Add(record.Load);
+                else if (countOutIndices.Contains(record.StatusIndex)) counted.Remove(record.Load);
+                if (!timeSeries.ContainsKey(record.ClockTime)) timeSeries.Add(record.ClockTime, counted.Count);
+                else timeSeries[record.ClockTime] = counted.Count;
             }
             return timeSeries;
         }
