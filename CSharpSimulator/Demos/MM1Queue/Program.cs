@@ -24,7 +24,7 @@ namespace CSharpSimulator.Demos.MM1Queue
                 int nReplications = Convert.ToInt32(Console.ReadLine());
 
                 Console.WriteLine("---------------------------------");
-                Console.WriteLine("Seed\tAverageCount\tExecutionTime\tAnalysisTime");
+                Console.WriteLine("Seed\tAve.Count\tAve.Duration(h)\tExecutionTime(s)\tAnalysisTime(s)");
                 Console.WriteLine("---------------------------------");
                 var timer = new Timer();
                 for (int seed = 0; seed < nReplications; seed++)
@@ -34,12 +34,15 @@ namespace CSharpSimulator.Demos.MM1Queue
                     simulation.Run(nEvents);
                     var executionTime = timer.Check();
                     var averageCount = simulation.CustomerEventRecorder.AverageCount("Arrival", "Departure");
-
-                    Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}", 
-                        seed, averageCount, executionTime.TotalSeconds, timer.Check().TotalSeconds);
+                    var averageDuration = simulation.CustomerEventRecorder.AverageDuration("Arrival", "Departure");
+                    Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}", 
+                        seed, averageCount, averageDuration.TotalHours, executionTime.TotalSeconds, timer.Check().TotalSeconds);
                 }
                 Console.WriteLine("---------------------------------");
-                Console.WriteLine("Theoretical:\t{0}", arrivalRate / (serviceRate - arrivalRate));
+                var expectedCount = arrivalRate / (serviceRate - arrivalRate);
+                var expectedDuration = expectedCount / arrivalRate;
+                Console.WriteLine("Exp.Count:\t{0:0.0000000}", expectedCount);
+                Console.WriteLine("Exp.Duration(h):\t{0:0.0000000}", expectedDuration);
                 Console.WriteLine("---------------------------------");
                 Console.Write("Press any key to continue...");
                 Console.ReadKey();

@@ -17,26 +17,26 @@ namespace CSharpSimulator
         private DESModel _desModel;
         private Dictionary<string, int> _eventIndices;
         private List<EventRecord> _recordList;
-        private HashSet<T> _loadSet;
+        private Dictionary<T, List<EventRecord>> _recordListByLoad;
         public bool Active { get; set; }
         public EventRecorder(DESModel desModel)
         {
             _desModel = desModel;
             _eventIndices = new Dictionary<string, int>();
-            _recordList = new List<EventRecord>();
-            _loadSet = new HashSet<T>();
-            Active = true;
+            _recordList = new List<EventRecord> { new EventRecord { ClockTime = _desModel.ClockTime, StatusIndex = -1 } };
+            _recordListByLoad = new Dictionary<T, List<EventRecord>>();
+            Active = true;            
         }
         public void CheckIn(T load, string eventKey, bool consoleDisplay = false)
         {
             if (!Active) return;
-            if (!_loadSet.Contains(load)) _loadSet.Add(load);
+            if (!_recordListByLoad.ContainsKey(load)) _recordListByLoad.Add(load, new List<EventRecord>());
             _recordList.Add(new EventRecord { StatusIndex = GetIndex(eventKey), Load = load, ClockTime = _desModel.ClockTime });
+            _recordListByLoad[load].Add(_recordList.Last());
             if (consoleDisplay) Console.WriteLine("{0}: {1} of {2}.", _desModel.ClockTime, eventKey, load.ToString());
         }
         public Dictionary<DateTime, int> Counts(string countInEventKeys, string countOutEventKeys)
         {
-            _recordList = _recordList.OrderBy(r => r.ClockTime).ToList();
             var counted = new HashSet<T>();
             var timeSeries = new Dictionary<DateTime, int>();
             var countInIndices = countInEventKeys.Split(',').Select(s => GetIndex(s)).ToArray();
@@ -52,9 +52,9 @@ namespace CSharpSimulator
         }
         public double AverageCount(string countInEventKeys, string countOutEventKeys, DateTime? startTime = null, DateTime? endTime = null)
         {
+            if (startTime == null) startTime = InitialClockTime;
+            if (endTime == null) endTime = LastChekInClockTime;
             var timeSeries = Counts(countInEventKeys, countOutEventKeys);
-            if (startTime == null) startTime = _recordList.First().ClockTime;
-            if (endTime == null) endTime = _recordList.Last().ClockTime;
             DateTime current = startTime.Value;
             var totalTimeSpan = endTime.Value - startTime.Value;
             double averageCount = 0;
@@ -76,11 +76,34 @@ namespace CSharpSimulator
             }
             return averageCount;
         }
+        public Dictionary<T, TimeSpan> Durations(string inEvent, string outEvent, DateTime? startTime = null, DateTime? endTime = null)
+        {
+            if (startTime == null) startTime = InitialClockTime;
+            if (endTime == null) endTime = LastChekInClockTime;
+            var inIndex = GetIndex(inEvent);
+            var outIndex = GetIndex(outEvent);
+            var durations = new Dictionary<T, TimeSpan>();
+            foreach (var item in _recordListByLoad)
+            {
+                var inRecord = item.Value.FirstOrDefault(r => r.StatusIndex == inIndex);
+                var outRecord = item.Value.FirstOrDefault(r => r.StatusIndex == outIndex);
+                if (inRecord != null && outRecord != null) durations.Add(item.Key, outRecord.ClockTime - inRecord.ClockTime);
+                else if (inRecord != null) durations.Add(item.Key, endTime.Value - inRecord.ClockTime);
+                else durations.Add(item.Key, TimeSpan.FromHours(0));
+            }
+            return durations;
+        }
+        public TimeSpan AverageDuration(string inEvent, string outEvent, DateTime? startTime = null, DateTime? endTime = null)
+        {
+            return TimeSpan.FromMinutes(Durations(inEvent, outEvent, startTime, endTime).Values.Average(ts => ts.TotalMinutes));
+        }
         private int GetIndex(string eventKey)
         {
             if (!_eventIndices.ContainsKey(eventKey)) _eventIndices.Add(eventKey, _eventIndices.Count);
             return _eventIndices[eventKey];
         }
+        public DateTime InitialClockTime { get { return _recordList.First().ClockTime; } }
+        public DateTime LastChekInClockTime { get { return _recordList.Last().ClockTime; } }
 
     }
 }
