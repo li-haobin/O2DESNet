@@ -24,7 +24,7 @@ namespace CSharpSimulator
             #endregion
         }
 
-        internal void ScheduleEvent(Event evnt, DateTime time)
+        protected void ScheduleEvent(Event evnt, DateTime time)
         {
             _futureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
             _futureEventList.Sort(delegate(FutureEvent x, FutureEvent y)

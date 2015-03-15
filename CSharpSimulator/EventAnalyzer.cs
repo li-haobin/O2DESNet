@@ -25,7 +25,7 @@ namespace CSharpSimulator
             _eventIndices = new Dictionary<string, int>();
             _recordList = new List<EventRecord> { new EventRecord { ClockTime = _desModel.ClockTime, StatusIndex = -1 } };
             _recordListByLoad = new Dictionary<T, List<EventRecord>>();
-            Active = false;            
+            Active = true;            
         }
         public void CheckIn(T load, string eventKey, bool consoleDisplay = false)
         {
