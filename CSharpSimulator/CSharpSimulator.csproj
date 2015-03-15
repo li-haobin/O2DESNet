@@ -55,7 +55,7 @@
     <Compile Include="Demos\Workshop\Machine.cs" />
     <Compile Include="Demos\Workshop\Cluster.cs" />
     <Compile Include="Demos\Workshop\Program.cs" />
-    <Compile Include="EventRecorder.cs" />
+    <Compile Include="EventAnalyzer.cs" />
     <Compile Include="RandomTime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Demos\Workshop\Simulation.cs" />

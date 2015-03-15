@@ -15,7 +15,7 @@ namespace CSharpSimulator.Demos.MM1Queue
         private Queue<Customer> _waitingQueue;
         private Customer _servingCustomer = null;
         public bool Debug = false;
-        public EventRecorder<Customer> CustomerEventRecorder { get; set; }
+        public EventAnalyzer<Customer> CustomerEventRecorder { get; set; }
         
         public Simulation(TimeSpan expectedInterArrivalTime, TimeSpan expectedServiceTime, int seed)
         {
@@ -23,7 +23,7 @@ namespace CSharpSimulator.Demos.MM1Queue
             _expectedServiceTime = expectedServiceTime;
             _waitingQueue = new Queue<Customer>();
             _rs = new Random(seed);
-            CustomerEventRecorder = new EventRecorder<Customer>(this);
+            CustomerEventRecorder = new EventAnalyzer<Customer>(this);
             // an initial event
             ScheduleCustomerArrival();
         }

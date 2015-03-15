@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSharpSimulator
 {
-    public class EventRecorder<T>
+    public class EventAnalyzer<T>
     {
         class EventRecord
         {
@@ -19,13 +19,13 @@ namespace CSharpSimulator
         private List<EventRecord> _recordList;
         private Dictionary<T, List<EventRecord>> _recordListByLoad;
         public bool Active { get; set; }
-        public EventRecorder(DESModel desModel)
+        public EventAnalyzer(DESModel desModel)
         {
             _desModel = desModel;
             _eventIndices = new Dictionary<string, int>();
             _recordList = new List<EventRecord> { new EventRecord { ClockTime = _desModel.ClockTime, StatusIndex = -1 } };
             _recordListByLoad = new Dictionary<T, List<EventRecord>>();
-            Active = true;            
+            Active = false;            
         }
         public void CheckIn(T load, string eventKey, bool consoleDisplay = false)
         {
@@ -95,7 +95,9 @@ namespace CSharpSimulator
         }
         public TimeSpan AverageDuration(string inEvent, string outEvent, DateTime? startTime = null, DateTime? endTime = null)
         {
-            return TimeSpan.FromMinutes(Durations(inEvent, outEvent, startTime, endTime).Values.Average(ts => ts.TotalMinutes));
+            var durations = Durations(inEvent, outEvent, startTime, endTime);
+            if (durations.Count < 1) return TimeSpan.FromMinutes(0);
+            return TimeSpan.FromMinutes(durations.Values.Average(ts => ts.TotalMinutes));
         }
         private int GetIndex(string eventKey)
         {
