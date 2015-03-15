@@ -9,20 +9,14 @@ namespace CSharpSimulator
     public delegate void Event();
     
     public class DESModel
-    {
-        public class FutureEvent
-        {
-            public DateTime ScheduledTime { get; set; }
-            public Event Event { get; set; }
-        }
-
-        protected List<FutureEvent> FutureEventList;
+    {      
+        private List<FutureEvent> _futureEventList;
         public DateTime ClockTime { get; protected set; }
         
         public DESModel()
         {
             ClockTime = DateTime.MinValue;
-            FutureEventList = new List<FutureEvent>();
+            _futureEventList = new List<FutureEvent>();
             
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
@@ -32,8 +26,8 @@ namespace CSharpSimulator
 
         internal void ScheduleEvent(Event evnt, DateTime time)
         {
-            FutureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
-            FutureEventList.Sort(delegate(FutureEvent x, FutureEvent y)
+            _futureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
+            _futureEventList.Sort(delegate(FutureEvent x, FutureEvent y)
             {
                 return x.ScheduledTime.CompareTo(y.ScheduledTime);
             });
@@ -42,9 +36,9 @@ namespace CSharpSimulator
         private bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
-            var head = FutureEventList.FirstOrDefault();
+            var head = _futureEventList.FirstOrDefault();
             if (head == null) return false;
-            FutureEventList.RemoveAt(0);
+            _futureEventList.RemoveAt(0);
 
             /// Execute the event
             ClockTime = head.ScheduledTime;
@@ -55,7 +49,7 @@ namespace CSharpSimulator
         public void Run(TimeSpan duration)
         {
             var TimeTerminate = ClockTime.Add(duration);
-            while (FutureEventList.First().ScheduledTime <= TimeTerminate)
+            while (_futureEventList.First().ScheduledTime <= TimeTerminate)
                 if (!ExecuteHeadEvent()) break;
         }
 
@@ -76,8 +70,7 @@ namespace CSharpSimulator
                 _dilatedTimeAtDilationScaleReset = DilatedClock;
                 _realTimeAtDilationReset = ClockTime;
                 _timeDilattionScale = value;
-
-                Console.WriteLine("Scale Reset @ RealClock:{0} DilatedClock:{1}", ClockTime, DilatedClock);
+                //Console.WriteLine("Scale Reset @ RealClock:{0} DilatedClock:{1}", ClockTime, DilatedClock);
             }
         }
         public DateTime DilatedClock
@@ -95,11 +88,11 @@ namespace CSharpSimulator
             return _realTimeAtDilationReset +
                 TimeSpan.FromSeconds((dilatedTime - _dilatedTimeAtDilationScaleReset).TotalSeconds / TimeDilationScale);
         }
-        private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(FutureEventList.First().ScheduledTime); } }
+        private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(_futureEventList.First().ScheduledTime); } }
 
         static private bool ExecuteHeadEvent_withTimeDilation(DESModel[] simulations)
         {
-            var toExecute = simulations.Where(s => s.FutureEventList.Count > 0)
+            var toExecute = simulations.Where(s => s._futureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
             if (toExecute != null)
             {
@@ -124,4 +117,9 @@ namespace CSharpSimulator
         #endregion
     }
 
+    internal class FutureEvent
+    {
+        public DateTime ScheduledTime { get; set; }
+        public Event Event { get; set; }
+    }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSharpSimulator.Demos.Workshop
 {
-    public class Simulator : DESModel
+    public class Simulation : DESModel
     {
         private Random _rs;
 
@@ -15,7 +15,7 @@ namespace CSharpSimulator.Demos.Workshop
         public List<List<Job>> Queues;
         public int JobCount {get;private set;}
 
-        public Simulator(Cluster cluster, int seed)
+        public Simulation(Cluster cluster, int seed)
         {
             Cluster = cluster;
             _rs = new Random(seed);

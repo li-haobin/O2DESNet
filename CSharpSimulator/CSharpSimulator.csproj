@@ -31,9 +31,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>CSharpSimulator.Demos.MM1Queue.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.3.5.0\lib\net40\MathNet.Numerics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,16 +48,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Demos\MM1Queue\Program.cs" />
+    <Compile Include="Demos\MM1Queue\Simulation.cs" />
     <Compile Include="DESModel.cs" />
     <Compile Include="Demos\Workshop\Job.cs" />
     <Compile Include="Demos\Workshop\Machine.cs" />
     <Compile Include="Demos\Workshop\Cluster.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Demos\Workshop\Program.cs" />
+    <Compile Include="EventRecorder.cs" />
+    <Compile Include="RandomTime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Demos\Workshop\Simulator.cs" />
+    <Compile Include="Demos\Workshop\Simulation.cs" />
+    <Compile Include="Timer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Diagrams\DESModel_ExecuteHeadEvent.sequencediagram" />
+    <None Include="Diagrams\DESModel_Basic.cd" />
+    <None Include="Diagrams\DESModel_ScheduleEvent.sequencediagram" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Diagrams\DESModel_ExecuteHeadEvent.sequencediagram.layout">
+      <DependentUpon>DESModel_ExecuteHeadEvent.sequencediagram</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Diagrams\DESModel_ScheduleEvent.sequencediagram.layout">
+      <DependentUpon>DESModel_ScheduleEvent.sequencediagram</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
