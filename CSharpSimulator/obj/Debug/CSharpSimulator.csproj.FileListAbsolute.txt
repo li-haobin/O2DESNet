@@ -10,3 +10,6 @@ C:\Users\Li Haobin\Source\Repos\CSharpSimulator\CSharpSimulator\obj\Debug\CSharp
 C:\Users\Li Haobin\Source\Repos\CSharpSimulator\source\CSharpSimulator\bin\Debug\CSharpSimulator.exe.config
 C:\Users\Li Haobin\Source\Repos\CSharpSimulator\source\CSharpSimulator\obj\Debug\CSharpSimulator.exe
 C:\Users\Li Haobin\Source\Repos\CSharpSimulator\source\CSharpSimulator\obj\Debug\CSharpSimulator.pdb
+C:\Users\as\Source\Repos\CSharpSimulator\CSharpSimulator\bin\Debug\CSharpSimulator.exe.config
+C:\Users\as\Source\Repos\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.exe
+C:\Users\as\Source\Repos\CSharpSimulator\CSharpSimulator\obj\Debug\CSharpSimulator.pdb
