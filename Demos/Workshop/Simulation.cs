@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DiscreteEventSimulation;
-using CSharpSimulator.Model;
 
-namespace CSharpSimulator
+namespace CSharpSimulator.Demos.Workshop
 {
-    public class Simulation : Base
+    public class Simulation : DESModel
     {
         private Random _rs;
 

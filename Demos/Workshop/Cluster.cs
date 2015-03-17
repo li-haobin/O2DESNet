@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Model
+namespace CSharpSimulator.Demos.Workshop
 {
     public class Cluster
     {
