@@ -99,6 +99,7 @@ namespace CSharpSimulator
             if (durations.Count < 1) return TimeSpan.FromMinutes(0);
             return TimeSpan.FromMinutes(durations.Values.Average(ts => ts.TotalMinutes));
         }
+
         private int GetIndex(string eventKey)
         {
             if (!_eventIndices.ContainsKey(eventKey)) _eventIndices.Add(eventKey, _eventIndices.Count);
