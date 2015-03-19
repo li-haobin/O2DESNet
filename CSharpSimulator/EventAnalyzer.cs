@@ -88,8 +88,6 @@ namespace CSharpSimulator
                 var inRecord = item.Value.FirstOrDefault(r => r.StatusIndex == inIndex);
                 var outRecord = item.Value.FirstOrDefault(r => r.StatusIndex == outIndex);
                 if (inRecord != null && outRecord != null) durations.Add(item.Key, outRecord.ClockTime - inRecord.ClockTime);
-                else if (inRecord != null) durations.Add(item.Key, endTime.Value - inRecord.ClockTime);
-                else durations.Add(item.Key, TimeSpan.FromHours(0));
             }
             return durations;
         }
