@@ -10,7 +10,7 @@ namespace BulkDeliver.Simulator
 {
     public class Simulation : DESModel
     {
-        internal Scenario Scenario;
+        public Scenario Scenario { get; private set; }
         private Dictionary<ItemType, Random> _randomStreams;
         public Status_Bulk Status_Bulk { get; private set; }
         public double TotalInventoryCost { get; private set; }

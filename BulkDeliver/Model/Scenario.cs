@@ -20,16 +20,5 @@ namespace BulkDeliver.Model
         public double DailyInventoryCostRatio { get; set; }
         public virtual ICollection<ItemType> ItemTypes { get; set; }
         public virtual CostProfile DeliveryCost { get; set; }
-        public Scenario Clone(TimeSpan newTimeThreshold, double newWeightThreshold)
-        {
-            return new Scenario
-            {
-                TimeThreshold = newTimeThreshold,
-                WeightThreshold = newWeightThreshold,
-                DailyInventoryCostRatio = DailyInventoryCostRatio,
-                ItemTypes = ItemTypes,
-                DeliveryCost = DeliveryCost
-            };
-        }
     }
 }
