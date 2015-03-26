@@ -13,19 +13,20 @@ namespace BulkDeliver
     {
         static void Main(string[] args)
         {
-            var baseScenario = FileReader.GetScenario();
-            var decisions = FileReader.GetDecisions();
-
-            Console.Clear();
-            Console.WriteLine("====================================");
-            Console.WriteLine("Scenario:");
-            Console.WriteLine(baseScenario);
-            Console.WriteLine("\n====================================");
-            Console.WriteLine("Decisions:");
-            foreach (var d in decisions) Console.WriteLine(d);
-            Console.WriteLine("====================================");
             while (true)
             {
+                var baseScenario = FileReader.GetScenario();
+                var decisions = FileReader.GetDecisions();
+
+                Console.Clear();
+                Console.WriteLine("====================================");
+                Console.WriteLine("Scenario:");
+                Console.WriteLine(baseScenario);
+                Console.WriteLine("\n====================================");
+                Console.WriteLine("Decisions:");
+                foreach (var d in decisions) Console.WriteLine(d);
+                Console.WriteLine("====================================");
+
                 Console.WriteLine();
                 Console.Write("# of Days to simulate for each replication: ");
                 double days = Convert.ToDouble(Console.ReadLine());
@@ -34,22 +35,21 @@ namespace BulkDeliver
                 Console.Write("Max # of total relications: ");
                 int budget = Convert.ToInt32(Console.ReadLine());
 
-                Console.Write("\nEvaluating at {0:0}% confidence interval", cl * 100);
+                Console.WriteLine("\nEvaluating at {0:0}% confidence interval...", cl * 100);
                 var selection = new Selection(baseScenario,
                     (scenario, seed) =>
                     {
                         var sim = new Simulation(scenario, seed);
-                        Console.Write(".");
                         sim.Run(TimeSpan.FromDays(days));
                         return sim.AverageAnnualCost;
                     },
                     decisions
                     );
-                selection.Evaluate(cl, budget);
+                selection.Evaluate(cl, budget, true);
                 Console.WriteLine("\n");
                 selection.Display();
 
-                Console.Write("\nEvaluate with different parameters (Y/N)? ");
+                Console.Write("\nEvaluate again (Y/N)? ");
                 if (Console.ReadLine().ToUpper() != "Y") break;
             }
         }
