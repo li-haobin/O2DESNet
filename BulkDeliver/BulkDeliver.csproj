@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileReader.cs" />
     <Compile Include="Optimizer\Decision.cs" />
     <Compile Include="Model\CostProfile.cs" />
     <Compile Include="Model\ItemType.cs" />

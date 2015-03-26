@@ -24,7 +24,7 @@ namespace BulkDeliver.Model
             cost += current.UnitCost * (weight - current.StartWeight);
             return cost;
         }
-        public static CostProfile GetCostProfile(double constan, params double[][] pieces)
+        public static CostProfile GetCostProfile(double constan, IEnumerable<double[]> pieces)
         {
             return new CostProfile
             {

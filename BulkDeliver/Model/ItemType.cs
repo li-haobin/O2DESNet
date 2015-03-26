@@ -14,5 +14,6 @@ namespace BulkDeliver.Model
         public double Weight_Offset { get; set; } //in kg
         public double Value_Mean { get; set; } // in dollar
         public double Value_Offset { get; set; } // in dollar
+        public double DailyInventoryCostRatio { get; set; }
     }
 }

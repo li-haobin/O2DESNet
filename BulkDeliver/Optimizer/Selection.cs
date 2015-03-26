@@ -40,7 +40,7 @@ namespace BulkDeliver.Optimizer
         {
             foreach (var i in _statistics)
             {
-                Console.WriteLine("{0} => {1:0.00}, {2:0.00} {3}", i.Key, i.Value.Mean, i.Value.StandardDeviation, Optima.Contains(i.Key) ? "*" : "");
+                Console.WriteLine("{0} => {1:C}, {2:C} {3}", i.Key, i.Value.Mean, i.Value.StandardDeviation, Optima.Contains(i.Key) ? "*" : "");
             }
         }
 

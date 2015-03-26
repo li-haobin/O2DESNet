@@ -24,15 +24,15 @@ namespace BulkDeliver.Simulator
             get
             {
                 return Count > 0 && (
-                    _items.Sum(i => i.Weight) >= _simulation.Scenario.WeightThreshold ||
-                    _simulation.ClockTime - _items.First().ArrivalTime >= _simulation.Scenario.TimeThreshold
+                    (_simulation.Scenario.WeightThreshold > 0 && _items.Sum(i => i.Weight) >= _simulation.Scenario.WeightThreshold) ||
+                    (_simulation.Scenario.TimeThreshold.TotalDays > 0 && _simulation.ClockTime - _items.First().ArrivalTime >= _simulation.Scenario.TimeThreshold)
                     );
             }
         }
         public void Deliver(out double deliveryCost, out double sumInventoryCost)
         {
             deliveryCost = _simulation.Scenario.DeliveryCost.Calculate(_items.Sum(i => i.Weight));
-            sumInventoryCost = _items.Sum(i => i.Value * _simulation.Scenario.DailyInventoryCostRatio * (_simulation.ClockTime - i.ArrivalTime).TotalDays);
+            sumInventoryCost = _items.Sum(i => i.Value * i.Type.DailyInventoryCostRatio * (_simulation.ClockTime - i.ArrivalTime).TotalDays);
             _items = new List<Load_Item>();
         }
     }

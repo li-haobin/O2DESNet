@@ -18,9 +18,12 @@
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>ACSEAIAAQAgAAAAIAAAQAAgAAAAAAAAACAAQAABIAAI=</HashCode>
+      <HashCode>QASEAIAAQAgAAAAIAAAQAAgAAAAAAAAACAAQAABIAAI=</HashCode>
       <FileName>DESModel.cs</FileName>
     </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_futureEventList" />
+    </ShowAsCollectionAssociation>
   </Class>
   <Class Name="CSharpSimulator.FutureEvent">
     <Position X="4" Y="0.5" Width="1.5" />

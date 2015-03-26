@@ -13,40 +13,47 @@ namespace BulkDeliver
     {
         static void Main(string[] args)
         {
-            var baseScenario = new Scenario
-            {
-                DailyInventoryCostRatio = 0.005,
-                ItemTypes = new ItemType[]{
-                    new ItemType{
-                        IAT_Expected = TimeSpan.FromDays(0.03), // 1000 items per 30 days
-                        Weight_Mean = 2.5,
-                        Weight_Offset = 0.5,
-                        Value_Mean = 120,
-                        Value_Offset = 30,
-                    }
-                },
-                DeliveryCost = CostProfile.GetCostProfile(5000, new double[] { 0, 10 }, new double[] { 1000, 9 }, new double[] { 2000, 8 }),
-            };
+            var baseScenario = FileReader.GetScenario();
+            var decisions = FileReader.GetDecisions();
 
-            double cl = 0.99;
-            Console.Write("Evaluating at {0:0}% confidence interval", cl * 100);
-            var selection = new Selection(baseScenario, 
-                (scenario, seed) => {
-                    var sim = new Simulation(scenario, seed);
-                    Console.Write(".");
-                    sim.Run(TimeSpan.FromDays(365));
-                    return sim.AverageAnnualCost;
-                }, 
-                new Decision(20, double.PositiveInfinity),
-                new Decision(25, double.PositiveInfinity),
-                new Decision(30, double.PositiveInfinity),
-                new Decision(35, double.PositiveInfinity),
-                new Decision(40, double.PositiveInfinity)
-                );            
-            selection.Evaluate(cl, 1000);
-            Console.WriteLine();
-            selection.Display();
+            Console.Clear();
+            Console.WriteLine("====================================");
+            Console.WriteLine("Scenario:");
+            Console.WriteLine(baseScenario);
+            Console.WriteLine("\n====================================");
+            Console.WriteLine("Decisions:");
+            foreach (var d in decisions) Console.WriteLine(d);
+            Console.WriteLine("====================================");
+            while (true)
+            {
+                Console.WriteLine();
+                Console.Write("# of Days to simulate for each replication: ");
+                double days = Convert.ToDouble(Console.ReadLine());
+                Console.Write("Confidence Level Required (0.01 ~ 1.00): ");
+                double cl = Convert.ToDouble(Console.ReadLine());
+                Console.Write("Max # of total relications: ");
+                int budget = Convert.ToInt32(Console.ReadLine());
+
+                Console.Write("\nEvaluating at {0:0}% confidence interval", cl * 100);
+                var selection = new Selection(baseScenario,
+                    (scenario, seed) =>
+                    {
+                        var sim = new Simulation(scenario, seed);
+                        Console.Write(".");
+                        sim.Run(TimeSpan.FromDays(days));
+                        return sim.AverageAnnualCost;
+                    },
+                    decisions
+                    );
+                selection.Evaluate(cl, budget);
+                Console.WriteLine("\n");
+                selection.Display();
+
+                Console.Write("\nEvaluate with different parameters (Y/N)? ");
+                if (Console.ReadLine().ToUpper() != "Y") break;
+            }
         }
+
 
     }
 }

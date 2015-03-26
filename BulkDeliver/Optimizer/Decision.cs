@@ -22,7 +22,6 @@ namespace BulkDeliver.Optimizer
             {
                 TimeThreshold = TimeThreshold,
                 WeightThreshold = WeightThreshold,
-                DailyInventoryCostRatio = baseScenario.DailyInventoryCostRatio,
                 ItemTypes = baseScenario.ItemTypes,
                 DeliveryCost = baseScenario.DeliveryCost
             };
