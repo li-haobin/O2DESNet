@@ -22,7 +22,7 @@ namespace BulkDeliver.Optimizer
             foreach (var decision in decisions)
             {
                 var scenario = decision.GetScenario(baseScenario);
-                _statistics.Add(decision, new RunningStatistics(new double[] { evaluate(scenario, 0), evaluate(scenario, 1) }));
+                _statistics.Add(decision, new RunningStatistics(new double[] { evaluate(scenario, 0) }));
             }
         }
         public void Evaluate(double confidenceLevel, int maxNReplications, bool showProgress)
@@ -36,14 +36,9 @@ namespace BulkDeliver.Optimizer
                 }
                 return 0;
             };
-            Decision[] results = _statistics.Keys.ToArray();
+            Optima = _statistics.Keys.ToArray();
             double z = MathNet.Numerics.Distributions.Normal.InvCDF(0, 1, confidenceLevel);
-            while (_statistics.Values.Sum(v => v.Count) < maxNReplications)
-            {                
-                results = Iterate(z);
-                if (results.Count() < 2) break;
-            }
-            Optima = results;
+            while (_statistics.Values.Sum(v => v.Count) < maxNReplications && Optima.Count() > 1) Iterate(z);
         }
         public void Display()
         {
@@ -53,14 +48,12 @@ namespace BulkDeliver.Optimizer
             }
         }
 
-        private Decision[] Iterate(double z)
+        private void Iterate(double z)
         {
-            var min = _statistics.OrderBy(s => s.Value.Mean).First().Key;            
+            Parallel.ForEach(Optima, decision => { Evaluate(decision); });
+            var min = Optima.OrderBy(d => _statistics[d].Mean).First();
             double upperbound = _statistics[min].Mean + z * _statistics[min].StandardDeviation / Math.Sqrt(1.0 * _statistics[min].Count);
-            var decisionsToEvaluate = _statistics.Where(s => s.Value.Mean - z * s.Value.StandardDeviation / Math.Sqrt(1.0 * s.Value.Count) <= upperbound).Select(i => i.Key).ToArray();
-            Parallel.ForEach(decisionsToEvaluate, decision => { Evaluate(decision); });
-            ShowProgress();
-            return decisionsToEvaluate;
+            Optima = _statistics.Where(s => s.Value.Mean - z * s.Value.StandardDeviation / Math.Sqrt(1.0 * s.Value.Count) <= upperbound).Select(i => i.Key).ToArray();
         }
 
         private void Evaluate(Decision decision)
