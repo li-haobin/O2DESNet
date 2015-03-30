@@ -24,6 +24,7 @@ namespace CSharpSimulator
             #endregion
         }
 
+        protected void ScheduleEvent(Event evnt, TimeSpan delay) { ScheduleEvent(evnt, ClockTime + delay); }
         protected void ScheduleEvent(Event evnt, DateTime time)
         {
             _futureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
@@ -33,7 +34,7 @@ namespace CSharpSimulator
             });
         }
 
-        private bool ExecuteHeadEvent()
+        protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
             var head = _futureEventList.FirstOrDefault();
@@ -46,14 +47,14 @@ namespace CSharpSimulator
             return true;
         }
 
-        public void Run(TimeSpan duration)
+        public virtual void Run(TimeSpan duration)
         {
             var TimeTerminate = ClockTime.Add(duration);
             while (_futureEventList.First().ScheduledTime <= TimeTerminate)
                 if (!ExecuteHeadEvent()) break;
         }
 
-        public void Run(int eventCount)
+        public virtual void Run(int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent()) eventCount--;
         }
