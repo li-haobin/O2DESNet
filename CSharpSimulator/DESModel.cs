@@ -106,13 +106,13 @@ namespace CSharpSimulator
         static public void Run_withTimeDilation(DESModel[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
-            if (true) // for debug
-            {
-                Console.WriteLine();
-                foreach (var sim in simulations)
-                    Console.WriteLine("Sim #{0} - Dilated Clock: {1}, Dilated Time for Head Event: {2}",
-                        simulations.ToList().IndexOf(sim), sim.DilatedClock, sim.DilatedScheduledTimeForHeadEvent);
-            }
+            //if (true) // for debug
+            //{
+            //    Console.WriteLine();
+            //    foreach (var sim in simulations)
+            //        Console.WriteLine("Sim #{0} - Dilated Clock: {1}, Dilated Time for Head Event: {2}",
+            //            simulations.ToList().IndexOf(sim), sim.DilatedClock, sim.DilatedScheduledTimeForHeadEvent);
+            //}
         }
         #endregion
     }
