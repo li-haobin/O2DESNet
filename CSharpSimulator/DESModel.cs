@@ -49,8 +49,10 @@ namespace CSharpSimulator
         public virtual bool Run(TimeSpan duration)
         {
             var TimeTerminate = ClockTime.Add(duration);
-            while (_futureEventList.First().ScheduledTime <= TimeTerminate)
+            while (_futureEventList.Count < 1 || _futureEventList.First().ScheduledTime <= TimeTerminate)
+            {
                 if (!ExecuteHeadEvent()) return false;
+            }
             return true;
         }
 
