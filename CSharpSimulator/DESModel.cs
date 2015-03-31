@@ -46,17 +46,19 @@ namespace CSharpSimulator
             head.Event();
             return true;
         }
-
-        public virtual void Run(TimeSpan duration)
+        public virtual bool Run(TimeSpan duration)
         {
             var TimeTerminate = ClockTime.Add(duration);
             while (_futureEventList.First().ScheduledTime <= TimeTerminate)
-                if (!ExecuteHeadEvent()) break;
+                if (!ExecuteHeadEvent()) return false;
+            return true;
         }
 
-        public virtual void Run(int eventCount)
+        public virtual bool Run(int eventCount)
         {
-            while (eventCount > 0 && ExecuteHeadEvent()) eventCount--;
+            while (eventCount-- > 0)
+                if (!ExecuteHeadEvent()) return false;
+            return true;
         }
 
         #region For Time Dilation
