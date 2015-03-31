@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace CSharpSimulator
 {
+    [Serializable]
     public class EventAnalyzer<T>
     {
+        [Serializable]
         class EventRecord
         {
             internal int StatusIndex;
