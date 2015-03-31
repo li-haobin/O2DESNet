@@ -33,14 +33,17 @@ namespace BulkDeliver.Simulator
             TotalInventoryCost = 0;
             TotalCycleCount = 0;
         }
-        public override void Run(TimeSpan duration)
+        public override bool Run(TimeSpan duration)
         {
             var target = ClockTime + duration;
-            while (ClockTime < target) Run(1);
+            while (ClockTime < target) if (!Run(1)) return false;
+            return true;
         }
-        public override void Run(int cycleCount){
+        public override bool Run(int cycleCount)
+        {
             var target = TotalCycleCount + cycleCount;
-            while (TotalCycleCount < target) if (!ExecuteHeadEvent()) break;
+            while (TotalCycleCount < target) if (!ExecuteHeadEvent()) return false;
+            return true;
         }
         private void ScheduleArrival(ItemType itemType)
         {
