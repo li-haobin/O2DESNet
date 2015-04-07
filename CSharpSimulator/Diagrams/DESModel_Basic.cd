@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="CSharpSimulator.DESModel">
-    <Position X="0.5" Y="0.5" Width="2" />
+    <Position X="0.5" Y="0.5" Width="2.5" />
     <Members>
       <Field Name="_dilatedTimeAtDilationScaleReset" Hidden="true" />
       <Field Name="_realTimeAtDilationReset" Hidden="true" />
@@ -18,12 +18,15 @@
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>ACSEAIAAQAgAAAAIAAAQAAgAAAAAAAAACAAQAABIAAI=</HashCode>
+      <HashCode>QASEAIAAQAgAAAAIAAAQAAgAAAAAAAAACAAQAABIAAI=</HashCode>
       <FileName>DESModel.cs</FileName>
     </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_futureEventList" />
+    </ShowAsCollectionAssociation>
   </Class>
   <Class Name="CSharpSimulator.FutureEvent">
-    <Position X="4" Y="0.5" Width="1.5" />
+    <Position X="4.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAgAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DESModel.cs</FileName>
@@ -33,7 +36,7 @@
     </ShowAsAssociation>
   </Class>
   <Delegate Name="CSharpSimulator.Event" Collapsed="true">
-    <Position X="4" Y="2" Width="1.5" />
+    <Position X="4.5" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DESModel.cs</FileName>
