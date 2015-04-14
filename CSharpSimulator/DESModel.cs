@@ -49,11 +49,12 @@ namespace CSharpSimulator
         public virtual bool Run(TimeSpan duration)
         {
             var TimeTerminate = ClockTime.Add(duration);
-            while (_futureEventList.Count < 1 || _futureEventList.First().ScheduledTime <= TimeTerminate)
+            while (true)
             {
-                if (!ExecuteHeadEvent()) return false;
+                if (_futureEventList.Count < 1) return false; // cannot continue
+                if (_futureEventList.First().ScheduledTime <= TimeTerminate) ExecuteHeadEvent();
+                else return true; // to be continued
             }
-            return true;
         }
 
         public virtual bool Run(int eventCount)
