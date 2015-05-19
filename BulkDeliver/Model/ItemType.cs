@@ -9,6 +9,7 @@ namespace BulkDeliver.Model
     public class ItemType
     {
         public int Id { get; set; }
+        public string Name { get; set; }
         public TimeSpan IAT_Expected { get; set; }
         public double Weight_Mean { get; set; } //in kg
         public double Weight_Offset { get; set; } //in kg
@@ -16,14 +17,18 @@ namespace BulkDeliver.Model
         public double Value_Offset { get; set; } // in dollar
         public double DailyInventoryCostRatio { get; set; }
         public static ItemType GetExample(bool highDemand, bool highWeight, bool highValue){
-            var itemType = new ItemType { DailyInventoryCostRatio = 0.001 };
+            var itemType = new ItemType
+            {
+                DailyInventoryCostRatio = 0.001,
+                Name = string.Format("{0}D_{1}W_{2}V", highDemand ? "H" : "L", highWeight ? "H" : "L", highValue ? "H" : "L")
+            };
             if (highDemand) itemType.IAT_Expected = TimeSpan.FromDays(30.0 / 3000);
             else itemType.IAT_Expected = TimeSpan.FromDays(30.0 / 200);
             double lb, ub;
             
             // weight
-            if (highWeight) { lb = 0.5; ub = 3.0; }
-            else { lb = 10.0; ub = 30.0; }
+            if (highWeight) { lb = 10.0; ub = 30.0; }
+            else { lb = 0.5; ub = 3.0; }
             itemType.Weight_Mean = (ub + lb) / 2;
             itemType.Weight_Offset = (ub - lb) / 2;
             

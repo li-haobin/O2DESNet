@@ -59,7 +59,7 @@ namespace BulkDeliver
                 while ((line = sr.ReadLine()) != null)
                     pieces.Add(line.Split(',').Select(d => Convert.ToDouble(d)).ToArray());
             }
-            return CostProfile.GetCostProfile(constan, pieces);
+            return CostProfile.GetCostProfile("", constan, pieces);
         }
         public static Decision[] GetDecisions()
         {

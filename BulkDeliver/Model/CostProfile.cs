@@ -9,6 +9,7 @@ namespace BulkDeliver.Model
     public class CostProfile
     {
         public int Id { get; set; }
+        public string Name { get; set; }
         public double Constan { get; set; }
         public ICollection<PieceCost> Pieces { get; set; }
         public double Calculate(double weight)
@@ -24,10 +25,11 @@ namespace BulkDeliver.Model
             cost += current.UnitCost * (weight - current.StartWeight);
             return cost;
         }
-        public static CostProfile GetCostProfile(double constan, IEnumerable<double[]> pieces)
+        public static CostProfile GetCostProfile(string name, double constan, IEnumerable<double[]> pieces)
         {
             return new CostProfile
             {
+                Name = name,
                 Constan = constan,
                 Pieces = pieces.Select(p => new PieceCost
                 {
@@ -40,7 +42,7 @@ namespace BulkDeliver.Model
         {
             get
             {
-                return GetCostProfile(1000, new List<double[]>
+                return GetCostProfile("Airfreight", 1000, new List<double[]>
                 {
                     new double[] { 200, 5 },
                     new double[] { 1000, 4 },
@@ -53,7 +55,7 @@ namespace BulkDeliver.Model
         {
             get
             {
-                return GetCostProfile(0, new List<double[]>
+                return GetCostProfile("Container", 0, new List<double[]>
                 {
                     new double[] { 0, 8000000 },
                     new double[] { 0.001, 0 },
@@ -66,7 +68,7 @@ namespace BulkDeliver.Model
         {
             get
             {
-                return GetCostProfile(2000, new List<double[]>
+                return GetCostProfile("Pallete", 2000, new List<double[]>
                 {
                     new double[] { 0, 1840000 },
                     new double[] { 0.001, 0 },

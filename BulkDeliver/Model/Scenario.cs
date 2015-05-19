@@ -31,5 +31,15 @@ namespace BulkDeliver.Model
             str += "\n================================================";
             return str;
         }
+        public string Name
+        {
+            get
+            {
+                string name = "";
+                foreach (var itemType in ItemTypes) name += string.Format("{0},", itemType.Name);
+                name += DeliveryCost.Name;
+                return name;
+            }
+        }
     }
 }
