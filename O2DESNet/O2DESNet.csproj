@@ -7,7 +7,7 @@
     <ProjectGuid>{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CSharpSimulator</RootNamespace>
+    <RootNamespace>O2DESNet</RootNamespace>
     <AssemblyName>CSharpSimulator</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -49,7 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DESModel.cs" />
+    <Compile Include="Simulator.cs" />
     <Compile Include="EventAnalyzer.cs" />
     <Compile Include="RandomTime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

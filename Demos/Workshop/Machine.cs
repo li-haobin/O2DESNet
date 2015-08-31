@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Demos.Workshop
+namespace O2DESNet.Demos.Workshop
 {
     public class Machine
     {

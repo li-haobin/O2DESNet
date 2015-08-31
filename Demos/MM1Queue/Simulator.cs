@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Demos.MM1Queue
+namespace O2DESNet.Demos.MM1Queue
 {
-    class Simulation : DESModel
+    class Simulator : O2DESNet.Simulator
     {
         private Random _rs;
         private TimeSpan _expectedInterArrivalTime;
@@ -16,7 +16,7 @@ namespace CSharpSimulator.Demos.MM1Queue
         public bool Debug = false;
         public EventAnalyzer<Customer> CustomerEventRecorder { get; set; }
         
-        public Simulation(TimeSpan expectedInterArrivalTime, TimeSpan expectedServiceTime, int seed)
+        public Simulator(TimeSpan expectedInterArrivalTime, TimeSpan expectedServiceTime, int seed)
         {
             _expectedInterArrivalTime = expectedInterArrivalTime;
             _expectedServiceTime = expectedServiceTime;

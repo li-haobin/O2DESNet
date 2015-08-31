@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator
+namespace O2DESNet
 {
     public delegate void Event();
     
-    public class DESModel
+    public class Simulator
     {      
         private List<FutureEvent> _futureEventList;
         public DateTime ClockTime { get; protected set; }
         
-        public DESModel()
+        public Simulator()
         {
             ClockTime = DateTime.MinValue;
             _futureEventList = new List<FutureEvent>();
@@ -96,7 +96,7 @@ namespace CSharpSimulator
         }
         private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(_futureEventList.First().ScheduledTime); } }
 
-        static private bool ExecuteHeadEvent_withTimeDilation(DESModel[] simulations)
+        static private bool ExecuteHeadEvent_withTimeDilation(Simulator[] simulations)
         {
             var toExecute = simulations.Where(s => s._futureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
@@ -109,7 +109,7 @@ namespace CSharpSimulator
             }
             return false;
         }
-        static public void Run_withTimeDilation(DESModel[] simulations, int eventCount)
+        static public void Run_withTimeDilation(Simulator[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
             //if (true) // for debug

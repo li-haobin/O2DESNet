@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator
+namespace O2DESNet
 {
     [Serializable]
     public class EventAnalyzer<T>
@@ -16,12 +16,12 @@ namespace CSharpSimulator
             internal T Load;
             internal DateTime ClockTime;
         }
-        private DESModel _desModel;
+        private Simulator _desModel;
         private Dictionary<string, int> _eventIndices;
         private List<EventRecord> _recordList;
         private Dictionary<T, List<EventRecord>> _recordListByLoad;
         public bool Active { get; set; }
-        public EventAnalyzer(DESModel desModel)
+        public EventAnalyzer(Simulator desModel)
         {
             _desModel = desModel;
             _eventIndices = new Dictionary<string, int>();

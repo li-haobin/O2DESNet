@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>CSharpSimulator.Demos.MM1Queue.Program</StartupObject>
+    <StartupObject>O2DESNet.Demos.Workshop.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -45,21 +45,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MM1Queue\Program.cs" />
-    <Compile Include="MM1Queue\Simulation.cs" />
+    <Compile Include="MM1Queue\Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workshop\Cluster.cs" />
     <Compile Include="Workshop\Job.cs" />
     <Compile Include="Workshop\Machine.cs" />
     <Compile Include="Workshop\Program.cs" />
-    <Compile Include="Workshop\Simulation.cs" />
+    <Compile Include="Workshop\Simulator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CSharpSimulator\CSharpSimulator.csproj">
+    <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
       <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
-      <Name>CSharpSimulator</Name>
+      <Name>O2DESNet</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

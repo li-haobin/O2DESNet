@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Demos.Workshop
+namespace O2DESNet.Demos.Workshop
 {
-    public class Simulation : DESModel
+    public class Simulator : O2DESNet.Simulator
     {
         private Random _rs;
 
@@ -15,7 +15,7 @@ namespace CSharpSimulator.Demos.Workshop
         public List<List<Job>> Queues;
         public int JobCount {get;private set;}
 
-        public Simulation(Cluster cluster, int seed)
+        public Simulator(Cluster cluster, int seed)
         {
             Cluster = cluster;
             _rs = new Random(seed);

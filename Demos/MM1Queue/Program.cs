@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Demos.MM1Queue
+namespace O2DESNet.Demos.MM1Queue
 {
     class Program
     {
@@ -29,7 +29,7 @@ namespace CSharpSimulator.Demos.MM1Queue
                 var timer = new Timer();
                 for (int seed = 0; seed < nReplications; seed++)
                 {
-                    var simulation = new Simulation(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate), seed);
+                    var simulation = new Simulator(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate), seed);
                     timer.Check();
                     simulation.Run(nEvents);
                     var executionTime = timer.Check();

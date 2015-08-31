@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSharpSimulator.Demos.Workshop
+namespace O2DESNet.Demos.Workshop
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var simulations = new Simulation[]{
-                new Simulation(Cluster.GetCluster1(), 0),
-                new Simulation(Cluster.GetCluster1(), 1),
-                new Simulation(Cluster.GetCluster1(), 2),
+            var simulations = new Simulator[]{
+                new Simulator(Cluster.GetCluster1(), 0),
+                new Simulator(Cluster.GetCluster1(), 1),
+                new Simulator(Cluster.GetCluster1(), 2),
             };
             
 
@@ -23,7 +23,7 @@ namespace CSharpSimulator.Demos.Workshop
                 int nEvents = Convert.ToInt32(Console.ReadLine());
                 if (nEvents > 0)
                 {
-                    Simulation.Run_withTimeDilation(simulations, nEvents);
+                    Simulator.Run_withTimeDilation(simulations, nEvents);
                     Console.WriteLine();
                 }
                 else if (nEvents == 0)
