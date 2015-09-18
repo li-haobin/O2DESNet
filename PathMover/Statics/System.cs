@@ -51,21 +51,54 @@ namespace O2DESNet.PathMover
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
-        public Path GetPath(ControlPoint from, ControlPoint to)
+        
+        public void Initialize()
         {
-            double minDistance = double.PositiveInfinity;
-            Path path = null;
-            foreach (var p in from.Positions.Keys) {
-                var distance = p.GetDistance(from, to);
-                if (distance < minDistance)
+            ConstructRoutingTables();
+            ConstructPathingTables();
+        }        
+        private void ConstructRoutingTables()
+        {
+            foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
+            var incompleteSet = ControlPoints.ToList();
+            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();            
+            while (incompleteSet.Count > 0)
+            {
+                ConstructRoutingTables(incompleteSet.First().Id + 1, edges);
+                incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
+            }
+        }
+        private void ConstructRoutingTables(int sourceIndex, Dijkstra.Edge[] edges)
+        {
+            var edgeList = edges.ToList();
+            edgeList.Add(new Dijkstra.Edge(0, sourceIndex, 0)); // set the source
+            var dijkstra = new Dijkstra(edgeList.ToArray());
+            var parents = dijkstra.Parents;
+            for (int target = 1; target < parents.Length; target++)
+            {
+                var current = target;
+                while (current != sourceIndex)
                 {
-                    path = p;
-                    minDistance = distance;
+                    var parent = parents[current];
+                    if (!ControlPoints[parent - 1].RoutingTable.ContainsKey(ControlPoints[target - 1]))
+                        ControlPoints[parent - 1].RoutingTable.Add(ControlPoints[target - 1], ControlPoints[current - 1]);
+                    current = parent;
                 }
             }
-            return path;
         }
-
+        private void ConstructPathingTables()
+        {
+            foreach (var cp in ControlPoints) cp.PathingTable = new Dictionary<ControlPoint, Path>();
+            foreach (var path in Paths)
+            {
+                if (path.Direction != Direction.Backward)
+                    for (int i = 0; i < path.ControlPoints.Count - 1; i++)
+                        path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i + 1], path);
+                if (path.Direction != Direction.Forward)
+                    for (int i = path.ControlPoints.Count - 1; i > 0; i--)
+                        path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i - 1], path);
+            }
+        }
         private List<Dijkstra.Edge> GetEdges(Path path)
         {
             var edges = new List<Dijkstra.Edge>();
@@ -78,35 +111,6 @@ namespace O2DESNet.PathMover
                 if (path.Direction != Direction.Forward) edges.Add(new Dijkstra.Edge(to, from, length));
             }
             return edges;
-        }
-        public void ConstructRouteTables()
-        {
-            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();
-            foreach (var cp in ControlPoints) cp.RouteTable = new Dictionary<ControlPoint, ControlPoint>();
-            var incompleteSet = ControlPoints.ToList();
-            while (incompleteSet.Count > 0)
-            {
-                ConstructRouteTables(incompleteSet.First().Id + 1, edges);
-                incompleteSet.RemoveAll(cp => cp.RouteTable.Count == ControlPoints.Count - 1);
-            }
-        }
-        private void ConstructRouteTables(int sourceIndex, Dijkstra.Edge[] edges)
-        {
-            var edgeList = edges.ToList();
-            edgeList.Add(new Dijkstra.Edge(0, sourceIndex, 0)); // set the source
-            var dijkstra = new Dijkstra(edgeList.ToArray());
-            var parents = dijkstra.Parents;
-            for (int target = 1; target < parents.Length; target++)
-            {
-                var current = target;
-                while (current != sourceIndex)
-                {
-                    var parent = parents[current];
-                    if (!ControlPoints[parent - 1].RouteTable.ContainsKey(ControlPoints[target - 1]))
-                        ControlPoints[parent - 1].RouteTable.Add(ControlPoints[target - 1], ControlPoints[current - 1]);
-                    current = parent;
-                }
-            }
         }
     }
 }

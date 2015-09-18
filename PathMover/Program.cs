@@ -22,7 +22,7 @@ namespace PathMover_Test
 
             pm.CreateControlPoint(paths[0], 30);
 
-            pm.ConstructRouteTables();
+            pm.Initialize();
             //DisplayRouteTable(pm);
 
         }
@@ -32,7 +32,7 @@ namespace PathMover_Test
             foreach (var cp in pm.ControlPoints)
             {
                 Console.WriteLine("Route Table at CP_{0}:", cp.Id);
-                foreach (var item in cp.RouteTable)
+                foreach (var item in cp.RoutingTable)
                     Console.WriteLine("{0}:{1}", item.Key.Id, item.Value.Id);
                 Console.WriteLine();
             }
