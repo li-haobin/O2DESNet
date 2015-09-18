@@ -72,20 +72,20 @@ namespace O2DESNet.PathMover
             var incompleteSet = ControlPoints.ToList();
             while (incompleteSet.Count > 0)
             {
-                ConstructRouteTables(incompleteSet.First().Id, edges);
+                ConstructRouteTables(incompleteSet.First().Id + 1, edges);
                 incompleteSet.RemoveAll(cp => cp.RouteTable.Count == ControlPoints.Count - 1);
             }
         }
-        private void ConstructRouteTables(int sourceId, Dijkstra.Edge[] edges)
+        private void ConstructRouteTables(int sourceIndex, Dijkstra.Edge[] edges)
         {
             var edgeList = edges.ToList();
-            edgeList.Add(new Dijkstra.Edge(0, sourceId + 1, 0)); // set the source
+            edgeList.Add(new Dijkstra.Edge(0, sourceIndex, 0)); // set the source
             var dijkstra = new Dijkstra(edgeList.ToArray());
             var parents = dijkstra.Parents;
             for (int target = 1; target < parents.Length; target++)
             {
                 var current = target;
-                while (current - 1 != sourceId)
+                while (current != sourceIndex)
                 {
                     var parent = parents[current];
                     if (!ControlPoints[parent - 1].RouteTable.ContainsKey(ControlPoints[target - 1]))
