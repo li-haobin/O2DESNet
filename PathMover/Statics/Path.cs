@@ -32,6 +32,17 @@ namespace O2DESNet.PathMover
                 throw new PathPositionOutOfRangeException();
             ControlPoints.Sort((t0, t1) => t0.Positions[this].CompareTo(t1.Positions[this]));
         }
+        public double GetDistance(ControlPoint from, ControlPoint to)
+        {
+            if (from.Positions.ContainsKey(this) && to.Positions.ContainsKey(this))
+            {
+                double distance = to.Positions[this] - from.Positions[this];
+                if (Direction == Direction.Backward) distance = -distance;
+                else if (Direction == Direction.TwoWay) distance = Math.Abs(distance);
+                if (distance >= 0) return distance;
+            }
+            return double.PositiveInfinity;
+        }
     }
 
     enum Direction { Forward, Backward, TwoWay }

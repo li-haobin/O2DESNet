@@ -51,6 +51,20 @@ namespace O2DESNet.PathMover
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
+        public Path GetPath(ControlPoint from, ControlPoint to)
+        {
+            double minDistance = double.PositiveInfinity;
+            Path path = null;
+            foreach (var p in from.Positions.Keys) {
+                var distance = p.GetDistance(from, to);
+                if (distance < minDistance)
+                {
+                    path = p;
+                    minDistance = distance;
+                }
+            }
+            return path;
+        }
 
         private List<Dijkstra.Edge> GetEdges(Path path)
         {
