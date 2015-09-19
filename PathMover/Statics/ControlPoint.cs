@@ -22,6 +22,17 @@ namespace O2DESNet.PathMover
         /// </summary>
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
         internal ControlPoint(int id) { Id = id; Positions = new Dictionary<Path, double>(); }
-        
+        /// <summary>
+        /// Get distance to an adjacent control point
+        /// </summary>
+        public double GetDistanceTo(ControlPoint next)
+        {
+            if (!PathingTable.ContainsKey(next))
+                throw new Exceptions.InfeasibleTravelling(
+                    "Make sure the next control point is in pathing table.");
+            var path = PathingTable[next];
+            return Math.Abs(next.Positions[path] - Positions[path]);
+        }
+
     }
 }

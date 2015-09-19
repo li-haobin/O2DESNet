@@ -1,0 +1,113 @@
+\documentclass[11pt,a4paper]{article}
+
+%===================Package Area==================%
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+
+\usepackage[sort]{natbib}
+
+
+\usepackage{authblk}
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{dsfont}
+\usepackage{amsfonts}
+\usepackage{multirow}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage{color}
+
+\usepackage[hidelinks]{hyperref}
+
+
+
+\bibliographystyle{apalike}
+
+%opening
+\title{Formulas as in Path Mover System}
+\author{Haobin Li}
+
+\begin{document}
+
+\maketitle
+
+\section{Shortest Traveling Time}
+
+Given:
+
+\begin{itemize}
+	\item $v_0, v_1$: starting and ending speed
+	\item $v_\text{m}$: speed limit
+	\item $a_0, a_1$: acceleration and deceleration
+	\item $s$: total distance
+\end{itemize}
+
+Look for $t$: the total time spend
+
+Let $v^* \leq v_\text{m}$ be the max speed achieved in the journey, and $t^*$ be the time of traveling with the speed $v^*$. Then we have the time on acceleration $$ t_0 = \frac{v^* - v_0}{a_0},$$ and the time on deceleration $$ t_1 = \frac{v^* - v_1}{a_1},$$ therefore $$ t = t_0 + t_1 + t^*.$$
+
+Meanwhile, we have the equation for traveling distance:
+$$ v_0 \cdot t_0 + \frac{1}{2} a_0 \cdot t_0 ^2  + v^* \cdot t^* + v_1 \cdot t_1 + \frac{1}{2} a_1 \cdot t_1 ^2 = s$$
+$$ \implies  v_0 \cdot \frac{v^* - v_0}{a_0} + \frac{1}{2} a_0 \cdot \left(\frac{v^* - v_0}{a_0}\right) ^2  + v^* \cdot t^* + v_1 \cdot \frac{v^* - v_1}{a_1} + \frac{1}{2} a_1 \cdot \left(\frac{v^* - v_1}{a_1}\right) ^2 = s$$
+$$ \implies \frac{v_0}{a_0} \cdot \left(v^* - v_0\right) + \frac{\left(v^* - v_0\right)^2}{2 a_0}  + v^* \cdot t^* + \frac{v_1}{a_1} \cdot \left(v^* - v_1\right) + \frac{\left(v^* - v_1\right)^2}{2 a_1} = s$$
+$$ \implies   
+\frac{1}{2 a_0} \cdot {v^*}^2 - \frac{v_0^2}{2 a_0}
++ v^* \cdot t^* + 
+\frac{1}{2 a_1} \cdot {v^*}^2 - \frac{v_1^2}{2 a_1}
+= s$$
+$$ \implies   
+\left(\frac{1}{2 a_0} + \frac{1}{2 a_1}\right) \cdot {v^*}^2 
++ t^* \cdot v^* 
+- \left(s + \frac{v_0^2}{2 a_0} + \frac{v_1^2}{2 a_1}\right) 
+= 0$$
+
+$$ \implies   
+v^* = \frac{\sqrt{{t^*}^2 + \left(\frac{1}{a_0} + \frac{1}{a_1}\right) \left(2s + \frac{v_0^2}{a_0} + \frac{v_1^2}{a_1}\right)} - t^*}{\frac{1}{a_0} + \frac{1}{a_1}}
+$$
+
+
+When $v_\text{m}$ is large enough, to reach the minimum $t$, $t^* = 0$. Therefore, 
+$$ v^* = \frac{\sqrt{\left(\frac{1}{a_0} + \frac{1}{a_1}\right) \left(2s + \frac{v_0^2}{a_0} + \frac{v_1^2}{a_1}\right)}}{\frac{1}{a_0} + \frac{1}{a_1}}$$
+$$\implies v^* = \sqrt{\frac{2s a_0 a_1 + v_0^2 a_1 + v_1^2 a_0}{a_0 + a_1}}$$
+
+Consider limited $v_\text{m}$, we have 
+$$\implies v^* = \min\left(v_\text{m}, \sqrt{\frac{2s a_0 a_1 + v_0^2 a_1 + v_1^2 a_0}{a_0 + a_1}}\right) $$
+
+\section{Traveling Feasibility Check}
+
+Given the speeds at both the start and end of a distance, it happens that it is impossible for the vehicle to travel because the acceleration / deceleration is not high enough. Here we consider the acceleration case, the deceleration is the same in the reversed manner.
+
+Let $v_1$ be start speed, and $v_2$ is the end speed, and $a$ be the limit of the acceleration. So, the shortest distance to achieve the speed difference is
+\begin{equation}
+\label{eq:tfc1}
+s = v_1 t + \frac{1}{2} a t^2
+\end{equation}
+
+where $t$ satisfies 
+\begin{equation}
+\label{eq:tfc2}
+v_1 + at = v_2 .
+\end{equation}
+
+Bringing \eqref{eq:tfc2} into \eqref{eq:tfc1} to substitute $t$, we have
+\begin{equation}
+\label{eq:tfc3}
+s = \frac{v_2^2 - v_1^2}{2a}.
+\end{equation}
+
+Therefore, if $s$ is larger than the given distance, the traveling is not feasible (i.e., the vehicle cannot complete acceleration or deceleration within given distance).
+
+\section{Adjust for Traveling Feasibility}
+
+We adjust the infeasible traveling profile only for acceleration case, by counter-proposing a end speed which is smaller than the given one. However, in deceleration case (meaning the vehicle has to break), it is not possible as start speed is usually given as fixed.
+
+The problem becomes, given the max acceleration $a$ and starting speed $v_1$, we find what is the max $v_2$ the vehicle can achieve within distance $s$.
+
+Solving \eqref{eq:tfc3} for $v_2$, we have 
+\begin{equation}
+v_2 = \sqrt{v_1^2 + 2as}.
+\end{equation}
+
+
+\end{document}

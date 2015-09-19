@@ -46,10 +46,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Statics\Dijkstra.cs" />
+    <Compile Include="Statics\Exceptions.cs" />
     <Compile Include="Statics\Path.cs" />
     <Compile Include="Statics\System.cs" />
     <Compile Include="Statics\ControlPoint.cs" />
-    <Compile Include="Statics\Vehicle.cs" />
+    <Compile Include="Statics\VehicleType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

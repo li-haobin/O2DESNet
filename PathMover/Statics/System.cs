@@ -10,13 +10,13 @@ namespace O2DESNet.PathMover
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
-        public List<Vehicle> Vehicles { get; private set; }
+        public List<VehicleType> VehicleTypes { get; private set; }
 
         public System()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
-            Vehicles = new List<Vehicle>();
+            VehicleTypes = new List<VehicleType>();
         }
 
         /// <summary>
@@ -37,6 +37,12 @@ namespace O2DESNet.PathMover
             path.Add(controlPoint, position);
             ControlPoints.Add(controlPoint);
             return controlPoint;
+        }
+        public VehicleType CreateVehicleType(double maxSpeed, double maxAcceleration, double maxDeceleration)
+        {
+            var vehicleType = new VehicleType(VehicleTypes.Count, maxSpeed, maxAcceleration, maxDeceleration);
+            VehicleTypes.Add(vehicleType);
+            return vehicleType;
         }
 
         /// <summary>
@@ -91,6 +97,7 @@ namespace O2DESNet.PathMover
             foreach (var cp in ControlPoints) cp.PathingTable = new Dictionary<ControlPoint, Path>();
             foreach (var path in Paths)
             {
+                // assume same pair of control points are connected only by one path
                 if (path.Direction != Direction.Backward)
                     for (int i = 0; i < path.ControlPoints.Count - 1; i++)
                         path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i + 1], path);
