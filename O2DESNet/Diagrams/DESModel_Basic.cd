@@ -1,45 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="CSharpSimulator.DESModel">
-    <Position X="0.5" Y="0.5" Width="2.5" />
-    <Members>
-      <Field Name="_dilatedTimeAtDilationScaleReset" Hidden="true" />
-      <Field Name="_realTimeAtDilationReset" Hidden="true" />
-      <Field Name="_timeDilattionScale" Hidden="true" />
-      <Property Name="DilatedClock" Hidden="true" />
-      <Property Name="DilatedScheduledTimeForHeadEvent" Hidden="true" />
-      <Method Name="ExecuteHeadEvent_withTimeDilation" Hidden="true" />
-      <Method Name="GetDilatedTime" Hidden="true" />
-      <Method Name="GetRealTime" Hidden="true" />
-      <Method Name="Run_withTimeDilation" Hidden="true" />
-      <Property Name="TimeDilationScale" Hidden="true" />
-    </Members>
-    <Compartments>
-      <Compartment Name="Nested Types" Collapsed="false" />
-    </Compartments>
+  <Class Name="O2DESNet.Simulator">
+    <Position X="0.5" Y="0.5" Width="3" />
     <TypeIdentifier>
       <HashCode>QASEAIAAQAgAAAAIAAAQAAgAAAAAAAAACAAQAABIAAI=</HashCode>
-      <FileName>DESModel.cs</FileName>
+      <FileName>Simulator.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
       <Field Name="_futureEventList" />
     </ShowAsCollectionAssociation>
   </Class>
-  <Class Name="CSharpSimulator.FutureEvent">
-    <Position X="4.5" Y="0.5" Width="1.5" />
+  <Class Name="O2DESNet.FutureEvent">
+    <Position X="5.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAgAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>DESModel.cs</FileName>
+      <FileName>Simulator.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="Event" />
     </ShowAsAssociation>
   </Class>
-  <Delegate Name="CSharpSimulator.Event" Collapsed="true">
-    <Position X="4.5" Y="2" Width="1.5" />
+  <Delegate Name="O2DESNet.Event">
+    <Position X="5.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>DESModel.cs</FileName>
+      <FileName>Simulator.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Font Name="Microsoft YaHei" Size="9" />
