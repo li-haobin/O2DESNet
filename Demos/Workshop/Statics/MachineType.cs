@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Demos.Workshop
 {
-    public class Machine
+    public class MachineType
     {
-        public int Type { get; set; }
-        public Job Processing { get; set; }
+        public int Id { get; internal set; }
+        public int Count { get; internal set; }
     }
 }

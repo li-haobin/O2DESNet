@@ -10,83 +10,58 @@ namespace O2DESNet.Demos.Workshop
     {
         private Random _rs;
 
-        public Cluster Cluster;
-        public List<Job> JobsInSystem;
-        public List<List<Job>> Queues;
-        public int JobCount {get;private set;}
+        internal Scenario Scenario { get; private set; }
+        internal Status Status { get; private set; }
 
-        public Simulator(Cluster cluster, int seed)
+        public Simulator(Scenario scenario, int seed)
         {
-            Cluster = cluster;
-            _rs = new Random(seed);
-            JobCount = 0;
+            Scenario = scenario;
+            Status = new Status(this, Scenario);
+            _rs = new Random(seed);           
 
-            JobsInSystem = new List<Job>();
-            Queues = new List<List<Job>> { }; for (int i = 0; i < 5; i++) Queues.Add(new List<Job>());
-
-            ScheduleEvent(Arrival(), ClockTime + Job.GetInterArrivalTime(_rs));
+            ScheduleEvent(Arrival(), ClockTime + Scenario.Generate_InterArrivalTime(_rs));
         }
 
-        private Event Arrival()
+        private O2DESNet.Event Arrival()
         {
             return delegate()
             {
-                var job = new Job { Id = ++JobCount, Type = Job.GetType(_rs), EnterTime = ClockTime, CurrentStage = 0 };
-                JobsInSystem.Add(job);
-                Console.WriteLine("{0}: Job #{1} (Type {2}) Arrives.", ClockTime, job.Id, job.Type);
+                var job = Status.Generate_EnteringJob(_rs);
+                //Console.WriteLine("{0}: Job #{1} (Type {2}) Arrives.", ClockTime, job.Id, job.Type);
                 Process(job)();
-                ScheduleEvent(Arrival(), ClockTime + Job.GetInterArrivalTime(_rs));                
+                ScheduleEvent(Arrival(), ClockTime + Scenario.Generate_InterArrivalTime(_rs));
             };
         }
 
-        private Event Process(Job job)
+        private O2DESNet.Event Process(Job job)
         {
             return delegate()
             {
-                var machine = Cluster.GetIdleMachine(job.CurrentMachineType);
+                var machine = Status.Get_IdleMachine(job.CurrentMachineTypeIndex);
                 if (machine != null)
                 {
-                    machine.Processing = job;
-                    job.BeingProcessed = machine;
-                    ScheduleEvent(Finish(job), ClockTime + job.GetProcessingTime(_rs));
-                    Console.WriteLine("{0}: Job #{1} (Type {2}) starts process at Machine (Type {3}).", ClockTime, job.Id, job.Type, machine.Type);
+                    Status.StartProcessing(job, machine);
+                    ScheduleEvent(Finish(job), ClockTime + Scenario.Generate_ProcessingTime(job.Type.Id, job.CurrentMachineTypeIndex, _rs));
+                    //Console.WriteLine("{0}: Job #{1} (Type {2}) starts process at Machine (Type {3}).", ClockTime, job.Id, job.Type, machine.Type);
                 }
                 else
                 {
-                    Queues[job.CurrentMachineType - 1].Add(job);
+                    Status.Enqueue(job);
                 }
             };
         }
 
-        private Event Finish(Job job)
+        private O2DESNet.Event Finish(Job job)
         {
             return delegate()
             {
-                var machine = job.BeingProcessed;
-                job.CurrentStage++;
-                job.BeingProcessed = null;
-                machine.Processing = null;
-                Console.WriteLine("{0}: Job #{1} (Type {2}) finishes process at Machine (Type {3}).", ClockTime, job.Id, job.Type, machine.Type);
-
-                if (Queues[machine.Type - 1].Count > 0)
-                {
-                    var waiting = Queues[machine.Type - 1].First();
-                    Queues[machine.Type - 1].Remove(waiting);
-                    Process(waiting)();
-                }
-                if (job.CurrentMachineType > 0) Process(job)();
-                else Depart(job)();
+                var waitingJob = Status.FinishProcessing(job);
+                if (waitingJob != null) Process(waitingJob)();   
+                             
+                if (job.CurrentMachineTypeIndex > 0) Process(job)();
+                else Status.Depart(job);                
             };
         }
-
-        private Event Depart(Job job)
-        {
-            return delegate()
-            {
-                job.ExitTime = ClockTime;
-                JobsInSystem.Remove(job);
-                Console.WriteLine("{0}: Job #{1} (Type {2}) Departs.", ClockTime, job.Id, job.Type);
-            };
-        }
+        
     }
 }

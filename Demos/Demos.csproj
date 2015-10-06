@@ -35,8 +35,13 @@
     <StartupObject>O2DESNet.Demos.Workshop.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MathNet.Numerics, Version=3.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.3.8.0\lib\net40\MathNet.Numerics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,14 +52,18 @@
     <Compile Include="MM1Queue\Program.cs" />
     <Compile Include="MM1Queue\Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Workshop\Cluster.cs" />
-    <Compile Include="Workshop\Job.cs" />
-    <Compile Include="Workshop\Machine.cs" />
+    <Compile Include="Workshop\Dynamics\Job.cs" />
+    <Compile Include="Workshop\Dynamics\Machine.cs" />
     <Compile Include="Workshop\Program.cs" />
     <Compile Include="Workshop\Simulator.cs" />
+    <Compile Include="Workshop\Dynamics\Status.cs" />
+    <Compile Include="Workshop\Statics\JobType.cs" />
+    <Compile Include="Workshop\Statics\MachineType.cs" />
+    <Compile Include="Workshop\Statics\Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
