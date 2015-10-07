@@ -10,6 +10,7 @@ namespace O2DESNet.Demos.Workshop
     {
         internal Scenario Scenario { get; private set; }
         internal Simulator Simulator { get; private set; }
+        internal Random RS { get; private set; }
         internal List<Machine> Machines { get; private set; }
         internal List<Job> JobsInSystem { get; private set; }
         internal List<Job> JobsDeparted { get; private set; }
@@ -18,10 +19,11 @@ namespace O2DESNet.Demos.Workshop
 
         internal List<double> TimeSeries_JobHoursInSystem { get; private set; }
 
-        internal Status(Simulator simulation, Scenario scenario)
+        internal Status(Simulator simulation, Scenario scenario, int seed)
         {
             Simulator = simulation;
             Scenario = scenario;
+            RS = new Random(seed);
             Machines = Scenario.MachineTypes.SelectMany(type => Enumerable.Range(0, type.Count)
                 .Select(i => new Machine { Type = type, Processing = null })).ToList();
             Queues = Scenario.MachineTypes.Select(t => new Queue<Job>()).ToList();
@@ -36,9 +38,9 @@ namespace O2DESNet.Demos.Workshop
             return Machines.Where(m => m.Type.Id == typeIndex && m.IsIdle).FirstOrDefault();
         }
 
-        internal Job Generate_EnteringJob(Random rs)
+        internal Job Generate_EnteringJob()
         {
-            var job = new Job { Id = _jobCounter++, Type = Scenario.Generate_JobType(rs), EnterTime = Simulator.ClockTime, CurrentStage = 0 };
+            var job = new Job { Id = _jobCounter++, Type = Scenario.Generate_JobType(RS), EnterTime = Simulator.ClockTime, CurrentStage = 0 };
             JobsInSystem.Add(job);
             return job;
         }

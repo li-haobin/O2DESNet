@@ -1,49 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace O2DESNet
-{
-    public delegate void Event();
-    
+{    
     public class Simulator
     {      
-        private List<FutureEvent> _futureEventList;
+        internal List<FutureEvent> FutureEventList;
         public DateTime ClockTime { get; protected set; }
         
         public Simulator()
         {
             ClockTime = DateTime.MinValue;
-            _futureEventList = new List<FutureEvent>();
+            FutureEventList = new List<FutureEvent>();
             
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
             TimeDilationScale = 1.0;            
             #endregion
         }
-
-        protected void ScheduleEvent(Event evnt, TimeSpan delay) { ScheduleEvent(evnt, ClockTime + delay); }
-        protected void ScheduleEvent(Event evnt, DateTime time)
-        {
-            _futureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
-            _futureEventList.Sort(delegate(FutureEvent x, FutureEvent y)
-            {
-                return x.ScheduledTime.CompareTo(y.ScheduledTime);
-            });
-        }
-
+        
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
-            var head = _futureEventList.FirstOrDefault();
+            var head = FutureEventList.FirstOrDefault();
             if (head == null) return false;
-            _futureEventList.RemoveAt(0);
+            FutureEventList.RemoveAt(0);
 
             /// Execute the event
             ClockTime = head.ScheduledTime;
-            head.Event();
+            head.Event.Invoke();
             return true;
         }
         public virtual bool Run(TimeSpan duration)
@@ -51,8 +37,8 @@ namespace O2DESNet
             var TimeTerminate = ClockTime.Add(duration);
             while (true)
             {
-                if (_futureEventList.Count < 1) return false; // cannot continue
-                if (_futureEventList.First().ScheduledTime <= TimeTerminate) ExecuteHeadEvent();
+                if (FutureEventList.Count < 1) return false; // cannot continue
+                if (FutureEventList.First().ScheduledTime <= TimeTerminate) ExecuteHeadEvent();
                 else return true; // to be continued
             }
         }
@@ -76,7 +62,6 @@ namespace O2DESNet
                 _dilatedTimeAtDilationScaleReset = DilatedClock;
                 _realTimeAtDilationReset = ClockTime;
                 _timeDilattionScale = value;
-                //Console.WriteLine("Scale Reset @ RealClock:{0} DilatedClock:{1}", ClockTime, DilatedClock);
             }
         }
         public DateTime DilatedClock
@@ -94,15 +79,14 @@ namespace O2DESNet
             return _realTimeAtDilationReset +
                 TimeSpan.FromSeconds((dilatedTime - _dilatedTimeAtDilationScaleReset).TotalSeconds / TimeDilationScale);
         }
-        private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(_futureEventList.First().ScheduledTime); } }
+        private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(FutureEventList.First().ScheduledTime); } }
 
         static private bool ExecuteHeadEvent_withTimeDilation(Simulator[] simulations)
         {
-            var toExecute = simulations.Where(s => s._futureEventList.Count > 0)
+            var toExecute = simulations.Where(s => s.FutureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
             if (toExecute != null)
             {
-                Console.WriteLine("*** Simulation #{0} is Executed! ***", simulations.ToList().IndexOf(toExecute) + 1);
                 var result = toExecute.ExecuteHeadEvent();
                 foreach (var s in simulations) if (s != toExecute) s.DilatedClock = toExecute.DilatedClock; //set common clock
                 return result;
@@ -112,13 +96,6 @@ namespace O2DESNet
         static public void Run_withTimeDilation(Simulator[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
-            //if (true) // for debug
-            //{
-            //    Console.WriteLine();
-            //    foreach (var sim in simulations)
-            //        Console.WriteLine("Sim #{0} - Dilated Clock: {1}, Dilated Time for Head Event: {2}",
-            //            simulations.ToList().IndexOf(sim), sim.DilatedClock, sim.DilatedScheduledTimeForHeadEvent);
-            //}
         }
         #endregion
     }

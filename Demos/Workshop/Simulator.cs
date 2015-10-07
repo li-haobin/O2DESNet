@@ -8,28 +8,24 @@ namespace O2DESNet.Demos.Workshop
 {
     public class Simulator : O2DESNet.Simulator
     {
-        private Random _rs;
-
         internal Scenario Scenario { get; private set; }
         internal Status Status { get; private set; }
 
         public Simulator(Scenario scenario, int seed)
         {
             Scenario = scenario;
-            Status = new Status(this, Scenario);
-            _rs = new Random(seed);           
-
-            ScheduleEvent(Arrival(), ClockTime + Scenario.Generate_InterArrivalTime(_rs));
+            Status = new Status(this, Scenario, seed);
+            new Initialization(this).Invoke();
         }
-
+        
         private O2DESNet.Event Arrival()
         {
             return delegate()
             {
-                var job = Status.Generate_EnteringJob(_rs);
+                var job = Status.Generate_EnteringJob(RS);
                 //Console.WriteLine("{0}: Job #{1} (Type {2}) Arrives.", ClockTime, job.Id, job.Type);
                 Process(job)();
-                ScheduleEvent(Arrival(), ClockTime + Scenario.Generate_InterArrivalTime(_rs));
+                ScheduleEvent(Arrival(), ClockTime + Scenario.Generate_InterArrivalTime(RS));
             };
         }
 
@@ -41,7 +37,7 @@ namespace O2DESNet.Demos.Workshop
                 if (machine != null)
                 {
                     Status.StartProcessing(job, machine);
-                    ScheduleEvent(Finish(job), ClockTime + Scenario.Generate_ProcessingTime(job.Type.Id, job.CurrentMachineTypeIndex, _rs));
+                    ScheduleEvent(Finish(job), ClockTime + Scenario.Generate_ProcessingTime(job.Type.Id, job.CurrentMachineTypeIndex, RS));
                     //Console.WriteLine("{0}: Job #{1} (Type {2}) starts process at Machine (Type {3}).", ClockTime, job.Id, job.Type, machine.Type);
                 }
                 else
