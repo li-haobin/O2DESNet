@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet", "O2DESNet\O2DESN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template", "Template\Template.csproj", "{262153B2-BE3A-4BDD-AAAB-5B80498F403C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.Workshop", "O2DESNet.Demos.Workshop\O2DESNet.Demos.Workshop.csproj", "{294BF521-C454-480D-BF86-8E6F906E8177}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{262153B2-BE3A-4BDD-AAAB-5B80498F403C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{262153B2-BE3A-4BDD-AAAB-5B80498F403C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{262153B2-BE3A-4BDD-AAAB-5B80498F403C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{294BF521-C454-480D-BF86-8E6F906E8177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{294BF521-C454-480D-BF86-8E6F906E8177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{294BF521-C454-480D-BF86-8E6F906E8177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{294BF521-C454-480D-BF86-8E6F906E8177}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

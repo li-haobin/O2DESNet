@@ -13,7 +13,7 @@ namespace O2DESNet.Demos.Workshop
         public DateTime EnterTime { get; set; }
         public DateTime ExitTime { get; set; }
         public int CurrentStage { get; set; }
-        public Machine BeingProcessed { get; set; }
+        public Machine BeingProcessedBy { get; set; }
 
         public int CurrentMachineTypeIndex
         {
