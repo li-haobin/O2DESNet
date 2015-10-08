@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,23 +25,23 @@ namespace O2DESNet.Demos.MM1Queue
                 Console.WriteLine("---------------------------------");
                 Console.WriteLine("Seed\tAve.Count\tAve.Duration(h)\tExecutionTime(s)\tAnalysisTime(s)");
                 Console.WriteLine("---------------------------------");
-                var timer = new Timer();
+
+                var scenario = new Scenario(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate));
                 for (int seed = 0; seed < nReplications; seed++)
                 {
-                    var simulation = new Simulator(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate), seed);
-                    timer.Check();
+                    var simulation = new Simulator(scenario, seed);
                     simulation.Run(nEvents);
-                    var executionTime = timer.Check();
-                    var averageCount = simulation.CustomerEventRecorder.AverageCount("Arrival", "Departure");
-                    var averageDuration = simulation.CustomerEventRecorder.AverageDuration("Arrival", "Departure");
-                    Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}", 
-                        seed, averageCount, averageDuration.TotalHours, executionTime.TotalSeconds, timer.Check().TotalSeconds);
+                    //var executionTime = timer.Check();
+                    //var averageCount = simulation.CustomerEventRecorder.AverageCount("Arrival", "Departure");
+                    //var averageDuration = simulation.CustomerEventRecorder.AverageDuration("Arrival", "Departure");
+                    //Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}", 
+                    //seed, averageCount, averageDuration.TotalHours, executionTime.TotalSeconds, timer.Check().TotalSeconds);
                 }
                 Console.WriteLine("---------------------------------");
                 var expectedCount = arrivalRate / (serviceRate - arrivalRate);
                 var expectedDuration = expectedCount / arrivalRate;
-                Console.WriteLine("Exp.Count:\t{0:0.0000000}", expectedCount);
-                Console.WriteLine("Exp.Duration(h):\t{0:0.0000000}", expectedDuration);
+                Console.WriteLine("Expected Count:\t{0:0.0000000}", expectedCount);
+                Console.WriteLine("Expected Duration(h):\t{0:0.0000000}", expectedDuration);
                 Console.WriteLine("---------------------------------");
                 Console.Write("Press any key to continue...");
                 Console.ReadKey();
