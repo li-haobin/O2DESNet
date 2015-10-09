@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathNet.Numerics.Distributions;
+using System;
 
 namespace O2DESNet.Demos.MM1Queue
 {
@@ -14,11 +15,11 @@ namespace O2DESNet.Demos.MM1Queue
 
         internal TimeSpan Generate_InterArrivalTime(Random rs)
         {
-            return TimeSpan.FromHours(MathNet.Numerics.Distributions.Exponential.Sample(rs, 1.0 / ExpectedInterArrivalTime.TotalHours));
+            return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedInterArrivalTime.TotalHours));
         }
         internal TimeSpan Generate_ServiceTime(Random rs)
         {
-            return TimeSpan.FromHours(MathNet.Numerics.Distributions.Exponential.Sample(rs, 1.0 / ExpectedServiceTime.TotalHours));
+            return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedServiceTime.TotalHours));
         }
     }
 }

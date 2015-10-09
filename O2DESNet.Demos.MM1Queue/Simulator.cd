@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="O2DESNet.Demos.MM1Queue.Simulator">
+    <Position X="3.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Simulator.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Scenario" />
+      <Property Name="Status" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.O2DES">
+    <Position X="0.75" Y="4" Width="2" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Scenario">
+    <Position X="3.25" Y="1.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AgIAAAAAAAAAAAEAAAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\Scenario.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Status">
+    <Position X="5.75" Y="3.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAAAAQAAAIAAAAAAQAkAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Dynamics\Status.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Serving" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="WaitingQueue" />
+      <Property Name="ServedCustomers" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Customer">
+    <Position X="9" Y="3.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAIEAAAAEAAAAAAAAAAAAACACAAAAAA=</HashCode>
+      <FileName>Dynamics\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Arrival" Collapsed="true">
+    <Position X="1" Y="8.5" Width="1.5" />
+    <AssociationLine Name="Customer" Type="O2DESNet.Demos.MM1Queue.Customer" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="1.812" Y="9.191" />
+        <Point X="1.812" Y="9.566" />
+        <Point X="9.812" Y="9.566" />
+        <Point X="9.812" Y="6.526" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="7.047" Y="2.758" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\Arrival.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Customer" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Departure" Collapsed="true">
+    <Position X="5.5" Y="8.5" Width="1.5" />
+    <AssociationLine Name="Customer" Type="O2DESNet.Demos.MM1Queue.Customer" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="6.25" Y="9.191" />
+        <Point X="6.25" Y="9.566" />
+        <Point X="9.812" Y="9.566" />
+        <Point X="9.812" Y="6.526" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="2.622" Y="2.766" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\Departure.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Customer" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.Event">
+    <Position X="3.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\Event.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="_sim" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="O2DESNet.Demos.MM1Queue.StartService" Collapsed="true">
+    <Position X="3.25" Y="8.5" Width="1.5" />
+    <AssociationLine Name="Customer" Type="O2DESNet.Demos.MM1Queue.Customer" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3.938" Y="9.191" />
+        <Point X="3.938" Y="9.566" />
+        <Point X="9.812" Y="9.566" />
+        <Point X="9.812" Y="6.526" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="4.922" Y="2.758" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\StartService.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Customer" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
