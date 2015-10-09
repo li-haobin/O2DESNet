@@ -23,19 +23,20 @@ namespace O2DESNet.Demos.MM1Queue
                 int nReplications = Convert.ToInt32(Console.ReadLine());
 
                 Console.WriteLine("---------------------------------");
-                Console.WriteLine("Seed\tAve.Count\tAve.Duration(h)\tExecutionTime(s)\tAnalysisTime(s)");
+                Console.WriteLine("Seed\tAve.Count\tAve.Duration(h)\tSimulation Time(h)\tExecution Time(s)");
                 Console.WriteLine("---------------------------------");
 
                 var scenario = new Scenario(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate));
                 for (int seed = 0; seed < nReplications; seed++)
                 {
-                    var simulation = new Simulator(scenario, seed);
-                    simulation.Run(nEvents);
-                    //var executionTime = timer.Check();
-                    //var averageCount = simulation.CustomerEventRecorder.AverageCount("Arrival", "Departure");
-                    //var averageDuration = simulation.CustomerEventRecorder.AverageDuration("Arrival", "Departure");
-                    //Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}", 
-                    //seed, averageCount, averageDuration.TotalHours, executionTime.TotalSeconds, timer.Check().TotalSeconds);
+                    var sim = new Simulator(scenario, seed);
+                    var timestamp = DateTime.Now;
+                    sim.Run(nEvents);
+                    Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}",
+                        seed, sim.Status.InSystemCounter.AverageCount, 
+                        sim.Status.ServedCustomers.Average(c=>c.InSystemDuration.TotalHours), 
+                        sim.Status.InSystemCounter.TotalHours, 
+                        (DateTime.Now - timestamp).TotalSeconds);
                 }
                 Console.WriteLine("---------------------------------");
                 var expectedCount = arrivalRate / (serviceRate - arrivalRate);
