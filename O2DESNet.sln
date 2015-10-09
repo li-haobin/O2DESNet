@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.Workshop", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.MM1Queue", "O2DESNet.Demos.MM1Queue\O2DESNet.Demos.MM1Queue.csproj", "{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Template", "O2DESNet.Template\O2DESNet.Template.csproj", "{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
