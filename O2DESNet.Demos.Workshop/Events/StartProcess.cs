@@ -12,14 +12,11 @@ namespace O2DESNet.Demos.Workshop
             if (machine != null)
             {
                 _sim.Status.Update_StartProcess(Job, machine);
-                _sim.ScheduleEvent(new FinishProcess(_sim, Job), _sim.Scenario.Generate_ProcessingTime(Job.Type.Id, Job.CurrentMachineTypeIndex, _sim.RS));
-                Console.WriteLine("{0}: Job #{1} starts process on Machine #{2}.", _sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Job.Id, machine.Id);
+                _sim.ScheduleEvent(
+                    new FinishProcess(_sim, Job),
+                    _sim.Scenario.Generate_ProcessingTime(Job.Type.Id, Job.CurrentMachineTypeIndex, _sim.RS));
             }
-            else
-            {
-                _sim.Status.Enqueue(Job);
-                Console.WriteLine("{0}: Job #{1} queues.", _sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Job.Id);
-            }
+            else { _sim.Status.Enqueue(Job); }
 
             
         }

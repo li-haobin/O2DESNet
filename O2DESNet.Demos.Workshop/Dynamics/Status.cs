@@ -53,7 +53,6 @@ namespace O2DESNet.Demos.Workshop
         internal Job GetWaitingJob_onFinishProcess(Job finishing)
         {
             var machine = finishing.BeingProcessedBy;
-            if (machine == null) throw new Exception("wrong");
             finishing.CurrentStage++;
             finishing.BeingProcessedBy = null;
             machine.Processing = null;

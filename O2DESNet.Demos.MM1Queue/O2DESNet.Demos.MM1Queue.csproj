@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Simulator.cd" />
+    <None Include="MM1Queue.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Workshop.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

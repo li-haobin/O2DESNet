@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="O2DESNet.Demos.Workshop.Scenario">
+    <Position X="5" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AoIAAAAAAAIAAAQgAAAAAAAAAAAAAABAAiAAAAAAAAA=</HashCode>
+      <FileName>Statics\Scenario.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="MachineTypes" />
+      <Property Name="JobTypes" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.MachineType">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\MachineType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.JobType">
+    <Position X="1.75" Y="2.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Statics\JobType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Status">
+    <Position X="7.5" Y="3.25" Width="2.5" />
+    <Members>
+      <Method Name="Status" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AARAACAAAAkABEAAIAAAAAAAQAQAAAABAAAAQAQAAAA=</HashCode>
+      <FileName>Dynamics\Status.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_sim" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Machines" />
+      <Property Name="JobsInSystem" />
+      <Property Name="JobsDeparted" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Machine">
+    <Position X="11.25" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAACAAAABAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Dynamics\Machine.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Job">
+    <Position X="11.25" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAIAQAAAAAAAAAAAAgAgAAAAAAAQQAAAAAAAAA=</HashCode>
+      <FileName>Dynamics\Job.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Arrival" Collapsed="true">
+    <Position X="0.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\Arrival.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Event">
+    <Position X="2.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\Event.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="_sim" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.FinishProcess" Collapsed="true">
+    <Position X="4" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\FinishProcess.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.StartProcess" Collapsed="true">
+    <Position X="2.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAAAAAAAAAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events\StartProcess.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Demos.Workshop.Simulator">
+    <Position X="5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Simulator.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Scenario" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
