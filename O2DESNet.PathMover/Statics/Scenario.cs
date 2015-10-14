@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover
 {
-    class System
+   public class Scenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         public List<VehicleType> VehicleTypes { get; private set; }
 
-        public System()
+        public Scenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();

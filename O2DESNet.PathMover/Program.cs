@@ -8,7 +8,7 @@ namespace PathMoverTest
     {
         static void Main(string[] args)
         {
-            var pm = new O2DESNet.PathMover.System();
+            var pm = new O2DESNet.PathMover.Scenario();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(100, 20, Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
@@ -35,7 +35,7 @@ namespace PathMoverTest
 
         }
 
-        static void DisplayRouteTable(O2DESNet.PathMover.System pm)
+        static void DisplayRouteTable(O2DESNet.PathMover.Scenario pm)
         {
             foreach (var cp in pm.ControlPoints)
             {

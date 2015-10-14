@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover
 {
-    class VehicleType
+    public class VehicleType
     {
         public int Id { get; private set; }
         public double MaxSpeed { get; private set; }

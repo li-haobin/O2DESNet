@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover
 {
-    class Path
+    public class Path
     {
         public int Id { get; private set; }
         public double Length { get; private set; }
@@ -45,5 +45,5 @@ namespace O2DESNet.PathMover
         }
     }
 
-    enum Direction { Forward, Backward, TwoWay }
+    public enum Direction { Forward, Backward, TwoWay }
 }

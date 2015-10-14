@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace O2DESNet.Template
+namespace O2DESNet.PathMover
 {
     public class Simulator : O2DES
     {

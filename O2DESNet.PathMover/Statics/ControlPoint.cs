@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover
 {
-    class ControlPoint
+    public class ControlPoint
     {
         public int Id { get; private set; }
         /// <summary>
