@@ -2,6 +2,7 @@
 
 namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     internal class Customer
     {
         private static int _count = 0;

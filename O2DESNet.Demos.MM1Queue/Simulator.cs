@@ -2,6 +2,7 @@
 
 namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     public class Simulator : O2DES
     {
         internal Scenario Scenario { get; private set; }

@@ -1,5 +1,8 @@
-﻿namespace O2DESNet.Demos.MM1Queue
+﻿using System;
+
+namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     internal class Departure : Event
     {
         internal Customer Customer { get; private set; }

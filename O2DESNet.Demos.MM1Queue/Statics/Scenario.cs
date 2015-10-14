@@ -3,6 +3,7 @@ using System;
 
 namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     public class Scenario
     {
         public TimeSpan ExpectedInterArrivalTime { get; private set; }

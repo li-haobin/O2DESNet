@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     internal class Status
     {
         private Simulator _sim;

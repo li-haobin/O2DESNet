@@ -1,4 +1,6 @@
-﻿namespace O2DESNet.Demos.MM1Queue
+﻿using System;
+
+namespace O2DESNet.Demos.MM1Queue
 {
     internal abstract class Event : IEvent
     {
