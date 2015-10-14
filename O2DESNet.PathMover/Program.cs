@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace PathMover_Test
+namespace PathMoverTest
 {
     class Program
     {

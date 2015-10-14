@@ -50,26 +50,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Simulator.cs" />
-    <Compile Include="EventAnalyzer.cs" />
-    <Compile Include="RandomTime.cs" />
+    <Compile Include="O2DES.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Timer.cs" />
+    <Compile Include="HourCounter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Diagrams\DESModel_ExecuteHeadEvent.sequencediagram" />
-    <None Include="Diagrams\DESModel_Basic.cd" />
-    <None Include="Diagrams\DESModel_ScheduleEvent.sequencediagram" />
+    <None Include="O2DES.cd" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Diagrams\DESModel_ExecuteHeadEvent.sequencediagram.layout">
-      <DependentUpon>DESModel_ExecuteHeadEvent.sequencediagram</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Diagrams\DESModel_ScheduleEvent.sequencediagram.layout">
-      <DependentUpon>DESModel_ScheduleEvent.sequencediagram</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

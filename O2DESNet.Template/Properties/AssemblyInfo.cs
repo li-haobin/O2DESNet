@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Demos")]
+[assembly: AssemblyTitle("O2DESNet.Template")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Demos")]
+[assembly: AssemblyProduct("O2DESNet.Template")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5f25a9fa-1a04-44ff-b749-2c7d1301fb28")]
+[assembly: Guid("b1955bf5-ebd1-4e1e-aca1-101023ee323f")]
 
 // Version information for an assembly consists of the following four values:
 //

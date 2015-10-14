@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PathMover")]
+[assembly: AssemblyTitle("O2DESNet.PathMover")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PathMover")]
+[assembly: AssemblyProduct("O2DESNet.PathMover")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("46451198-7e0d-4e6d-8c8e-eb1c37b63066")]
+[assembly: Guid("58765116-a73e-414c-badf-c8a8ac307f4b")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -4,17 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{46451198-7E0D-4E6D-8C8E-EB1C37B63066}</ProjectGuid>
+    <ProjectGuid>{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PathMover</RootNamespace>
-    <AssemblyName>PathMover</AssemblyName>
+    <RootNamespace>O2DESNet.Template</RootNamespace>
+    <AssemblyName>O2DESNet.Template</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -43,18 +43,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Events\MyEvent1.cs" />
+    <Compile Include="Events\Event.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Statics\Dijkstra.cs" />
-    <Compile Include="Statics\Exceptions.cs" />
-    <Compile Include="Statics\Path.cs" />
-    <Compile Include="Statics\System.cs" />
-    <Compile Include="Statics\ControlPoint.cs" />
-    <Compile Include="Statics\VehicleType.cs" />
+    <Compile Include="Simulator.cs" />
+    <Compile Include="Statics\Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Simulator.cd" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
+      <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
+      <Name>O2DESNet</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
