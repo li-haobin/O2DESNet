@@ -2,6 +2,7 @@
 
 namespace O2DESNet.Demos.MM1Queue
 {
+    [Serializable]
     internal abstract class Event : IEvent
     {
         protected Simulator _sim { get; private set; }

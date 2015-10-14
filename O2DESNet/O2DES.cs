@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace O2DESNet
 {
+    [Serializable]
     public abstract class O2DES
     {
         internal List<FutureEvent> FutureEventList;
@@ -107,6 +108,7 @@ namespace O2DESNet
         #endregion
     }
 
+    [Serializable]
     internal class FutureEvent
     {
         public DateTime ScheduledTime { get; set; }

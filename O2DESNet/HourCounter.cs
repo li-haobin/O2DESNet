@@ -2,6 +2,7 @@
 
 namespace O2DESNet
 {
+    [Serializable]
     public class HourCounter
     {
         private O2DES _o2des;
