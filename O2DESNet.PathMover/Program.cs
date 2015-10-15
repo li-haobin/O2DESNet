@@ -6,6 +6,17 @@ namespace O2DESNet.PathMover
 {
     class Program
     {
+        /// Next things to do: 
+        /// 1. Collision detector / path speed limit can be removed, since target speed is explicitly controled?
+        /// 2. AGV Control logic (given route, auto Collision avoidance by speed control)
+        /// 3. What if vehicle sizes are considered (for point 1 & 2)
+        /// 4. conflicting path / control points
+        /// 
+        /// 5. Test scenarios (AGV, O/D generation etc.)
+        /// 6. with 2-layer zone concept
+        /// 
+        /// 7. integrate into warehouse simulator
+
         static void Main(string[] args)
         {
             var pm = new Scenario();
@@ -27,16 +38,17 @@ namespace O2DESNet.PathMover
             pm.AddVehicles(vt1, 2);
             pm.AddVehicles(vt2, 3);
 
+            pm.Initialize();
             var sim = new Simulator(pm, 0);
 
-            //pm.Initialize();
-            //double toSpeed = 12, peakSpeed;
-            //var time = vt.GetShortestTravelingTime(cp1, cp2, 0, ref toSpeed, out peakSpeed);
-            
-            //DisplayRouteTable(pm);
-            Console.WriteLine();
-            
-
+            while (true)
+            {
+                sim.Run(10000);
+                Console.Clear();
+                foreach (var item in sim.Status.VehicleCounters)
+                    Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
+                Console.ReadKey();
+            }
         }
 
         static void DisplayRouteTable(Scenario pm)

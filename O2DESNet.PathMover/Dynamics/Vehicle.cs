@@ -1,5 +1,6 @@
 ﻿using O2DESNet.PathMover.Statics;
 using System;
+using System.Collections.Generic;
 
 namespace O2DESNet.PathMover.Dynamics
 {
@@ -8,7 +9,7 @@ namespace O2DESNet.PathMover.Dynamics
         private static int _count = 0;
         public int Id { get; private set; }
         public VehicleType Type { get; private set; }
-        internal Vehicle(VehicleType type) { Id = ++_count; Type = type; On = false; }
+        internal Vehicle(VehicleType type) { Id = ++_count; Type = type; On = false; HistoricalPath = new List<ControlPoint>(); }
 
         /// <summary>
         /// Whether the vehicle is activated in the path mover system. If set to "false", it does not incur conflicts at any time.
@@ -26,9 +27,10 @@ namespace O2DESNet.PathMover.Dynamics
         public double EndingSpeed { get; internal set; }
         public double EndingTime { get; private set; }
 
+        public List<ControlPoint> HistoricalPath { get; private set; }
+
         internal void SpeedControl(double? targetSpeed = null, double? acceleration = null)
         {
-            Speed = EndingSpeed;
             if (targetSpeed != null)
             {
                 TargetSpeed = Math.Min(Type.MaxSpeed, targetSpeed.Value); // set within limit
@@ -56,6 +58,6 @@ namespace O2DESNet.PathMover.Dynamics
                 EndingSpeed = Math.Sqrt(Speed * Speed + Acceleration * DistanceToTravel * 2);
                 EndingTime = (EndingSpeed - Speed) / Acceleration;
             }
-        }
+        }        
     }
 }

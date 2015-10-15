@@ -16,8 +16,7 @@ namespace O2DESNet.PathMover
             Status = new Status(this);
             RS = new Random(seed);
 
-            // schedule the initial event
-            // ScheduleEvent(new MyEvent1(this, new Load_1()), TimeSpan.FromHours(some_random_value));
+            new Events.Start(this).Invoke();
         }
     }
 }

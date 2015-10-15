@@ -74,7 +74,7 @@ namespace O2DESNet.PathMover.Statics
             var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();            
             while (incompleteSet.Count > 0)
             {
-                ConstructRoutingTables(incompleteSet.First().Id + 1, edges);
+                ConstructRoutingTables(incompleteSet.First().Id, edges);
                 incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
             }
         }
@@ -116,8 +116,8 @@ namespace O2DESNet.PathMover.Statics
             for (int i = 0; i < path.ControlPoints.Count - 1; i++)
             {
                 var length = path.ControlPoints[i + 1].Positions[path] - path.ControlPoints[i].Positions[path];
-                var from = path.ControlPoints[i].Id + 1;
-                var to = path.ControlPoints[i + 1].Id + 1;
+                var from = path.ControlPoints[i].Id;
+                var to = path.ControlPoints[i + 1].Id;
                 if (path.Direction != Direction.Backward) edges.Add(new Dijkstra.Edge(from, to, length));
                 if (path.Direction != Direction.Forward) edges.Add(new Dijkstra.Edge(to, from, length));
             }
