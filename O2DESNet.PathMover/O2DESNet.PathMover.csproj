@@ -45,12 +45,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Statics\ControlPoint.cs" />
-    <Compile Include="Statics\Dijkstra.cs" />
-    <Compile Include="Statics\Exceptions.cs" />
+    <Compile Include="Dijkstra.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Statics\Path.cs" />
     <Compile Include="Statics\Scenario.cs" />
     <Compile Include="Statics\VehicleType.cs" />
@@ -63,6 +64,9 @@
       <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
       <Name>O2DESNet</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Events\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

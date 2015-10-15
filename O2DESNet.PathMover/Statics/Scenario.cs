@@ -4,27 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover
+namespace O2DESNet.PathMover.Statics
 {
    public class Scenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
-        public List<VehicleType> VehicleTypes { get; private set; }
+        /// <summary>
+        /// Numbers of vehicles of each type
+        /// </summary>
+        public Dictionary<VehicleType, int> NumsVehicles { get; private set; }
 
         public Scenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
-            VehicleTypes = new List<VehicleType>();
+            NumsVehicles = new Dictionary<VehicleType, int>();
         }
 
+        #region Path Mover Builder
         /// <summary>
         /// Create and return a new path
         /// </summary>
         public Path CreatePath(double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
-            var path = new Path(Paths.Count, length, maxSpeed, direction);
+            var path = new Path(length, maxSpeed, direction);
             Paths.Add(path);
             return path;
         }
@@ -33,18 +37,16 @@ namespace O2DESNet.PathMover
         /// </summary>
         public ControlPoint CreateControlPoint(Path path, double position)
         {
-            var controlPoint = new ControlPoint(ControlPoints.Count);
+            var controlPoint = new ControlPoint();
             path.Add(controlPoint, position);
             ControlPoints.Add(controlPoint);
             return controlPoint;
         }
-        public VehicleType CreateVehicleType(double maxSpeed, double maxAcceleration, double maxDeceleration)
+        public void AddVehicles(VehicleType vehicleType, int number)
         {
-            var vehicleType = new VehicleType(VehicleTypes.Count, maxSpeed, maxAcceleration, maxDeceleration);
-            VehicleTypes.Add(vehicleType);
-            return vehicleType;
+            if (!NumsVehicles.ContainsKey(vehicleType)) NumsVehicles.Add(vehicleType, 0);
+            NumsVehicles[vehicleType] += number;
         }
-
         /// <summary>
         /// Connect two paths at specified positions
         /// </summary>
@@ -57,7 +59,9 @@ namespace O2DESNet.PathMover
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
-        
+        #endregion
+
+        #region For Static Routing (Distance-Based)
         public void Initialize()
         {
             ConstructRoutingTables();
@@ -119,5 +123,6 @@ namespace O2DESNet.PathMover
             }
             return edges;
         }
+        #endregion
     }
 }

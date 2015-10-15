@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover
+namespace O2DESNet.PathMover.Statics
 {
     public class Path
     {
+        private static int _count = 0;
         public int Id { get; private set; }
         public double Length { get; private set; }
         public double SpeedLimit { get; private set; }
         public Direction Direction { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
 
-        internal Path(int id, double length, double maxSpeed, Direction direction)
+        internal Path(double length, double maxSpeed, Direction direction)
         {
-            Id = id;
+            Id = ++_count;
             Length = length;
             SpeedLimit = maxSpeed;
             Direction = direction;

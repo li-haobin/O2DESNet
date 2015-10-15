@@ -1,4 +1,6 @@
-﻿using System;
+﻿using O2DESNet.PathMover.Dynamics;
+using O2DESNet.PathMover.Statics;
+using System;
 
 namespace O2DESNet.PathMover
 {

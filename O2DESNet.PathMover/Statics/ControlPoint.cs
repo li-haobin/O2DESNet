@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover
+namespace O2DESNet.PathMover.Statics
 {
     public class ControlPoint
     {
+        private static int _count = 0;
         public int Id { get; private set; }
         /// <summary>
         /// Check for the position on each path
@@ -21,7 +22,7 @@ namespace O2DESNet.PathMover
         /// Check for the path to take, providing the next control point to visit
         /// </summary>
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
-        internal ControlPoint(int id) { Id = id; Positions = new Dictionary<Path, double>(); }
+        internal ControlPoint() { Id = ++_count; Positions = new Dictionary<Path, double>(); }
         /// <summary>
         /// Get distance to an adjacent control point
         /// </summary>
