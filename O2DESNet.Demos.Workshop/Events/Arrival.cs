@@ -13,5 +13,9 @@ namespace O2DESNet.Demos.Workshop
             // schedule the next arrival event
             _sim.ScheduleEvent(new Arrival(_sim), _sim.Scenario.Generate_InterArrivalTime(_sim.RS));
         }
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

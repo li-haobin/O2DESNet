@@ -20,5 +20,9 @@ namespace O2DESNet.Demos.Workshop
 
             
         }
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

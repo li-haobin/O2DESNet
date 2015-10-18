@@ -25,5 +25,10 @@ namespace O2DESNet.Template
             // schedule subsequent events if necessary
             // _sim.ScheduleEvent(new MyEvent2(_sim, new Load_2()), TimeSpan.FromHours(some_random_value));
         }
+
+        public override void Backtrack()
+        {
+            // reverse invoke operations
+        }
     }
 }

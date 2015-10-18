@@ -15,5 +15,9 @@ namespace O2DESNet.Demos.Workshop
             if (Job.CurrentMachineTypeIndex > 0) new StartProcess(_sim, Job).Invoke();
             else _sim.Status.Depart(Job);
         }
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

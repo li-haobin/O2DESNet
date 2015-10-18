@@ -70,6 +70,8 @@ namespace O2DESNet
             else { ClockTime = EventHistory.Peek().ScheduledTime; }
 
             last.Event.Backtrack();
+            // ScheduleEvent(last.Event, last.ScheduledTime);
+            FutureEventList.Insert(0, last);
             return true;
         }
 
