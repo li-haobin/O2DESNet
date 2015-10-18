@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -56,6 +57,30 @@ namespace O2DESNet
             while (eventCount-- > 0)
                 if (!ExecuteHeadEvent()) return false;
             return true;
+        }
+
+        public void SerializeTo(string filename)
+        {
+            Serializer.WriteTo(this, filename);
+        }
+
+        // How to make this non-template?
+        // A quick search suggests reflection...
+        // But that will also be problematic because
+        // this is the object to be replaced
+        public T SeserializeFrom<T>(string filename)
+        {
+            return Serializer.ReadFrom<T>(filename);
+
+            /*
+            MethodInfo method = typeof(Serializer).GetMethod("ReadFrom");
+            MethodInfo generic = method.MakeGenericMethod(this.GetType());
+
+            var param = new object[1];
+            param[0] = filename;
+
+            generic.Invoke(null, param);
+            */
         }
 
         #region For Time Dilation
