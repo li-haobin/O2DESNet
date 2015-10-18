@@ -16,5 +16,9 @@ namespace O2DESNet.Demos.MM1Queue
                 new Arrival(_sim, new Customer()), 
                 _sim.Scenario.Generate_InterArrivalTime(_sim.RS));
         }
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

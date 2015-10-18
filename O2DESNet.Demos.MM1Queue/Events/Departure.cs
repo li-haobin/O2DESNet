@@ -15,5 +15,9 @@ namespace O2DESNet.Demos.MM1Queue
                 new StartService(_sim, _sim.Status.WaitingQueue.Dequeue()).Invoke();
             else _sim.Status.Serving = null;
         }
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

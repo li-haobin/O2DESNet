@@ -15,5 +15,10 @@ namespace O2DESNet.Demos.MM1Queue
                 new Departure(_sim, Customer), 
                 _sim.Scenario.Generate_ServiceTime(_sim.RS));
         }
+
+        public override void Backtrack()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
