@@ -9,12 +9,14 @@ namespace O2DESNet
     public abstract class O2DES
     {
         internal List<FutureEvent> FutureEventList;
+        internal Stack<FutureEvent> EventHistory;
         public DateTime ClockTime { get; protected set; }
 
         public O2DES()
         {
             ClockTime = DateTime.MinValue;
             FutureEventList = new List<FutureEvent>();
+            EventHistory = new Stack<FutureEvent>();
 
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
@@ -56,6 +58,25 @@ namespace O2DESNet
         {
             while (eventCount-- > 0)
                 if (!ExecuteHeadEvent()) return false;
+            return true;
+        }
+
+        protected bool BacktrackLastEvent()
+        {
+            if (EventHistory.Count == 0) return false;
+
+            var last = EventHistory.Pop();
+            if (EventHistory.Count == 0) { ClockTime = DateTime.MinValue; } // Backtrack first event
+            else { ClockTime = EventHistory.Peek().ScheduledTime; }
+
+            last.Event.Backtrack();
+            return true;
+        }
+
+        public virtual bool Backtrack(int eventCount)
+        {
+            while (eventCount-- > 0)
+                if (!BacktrackLastEvent()) return false;
             return true;
         }
 
@@ -140,5 +161,9 @@ namespace O2DESNet
         public IEvent Event { get; set; }
     }
 
-    public interface IEvent { void Invoke(); }
+    public interface IEvent
+    {
+        void Invoke();
+        void Backtrack();
+    }
 }
