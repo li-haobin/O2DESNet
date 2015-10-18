@@ -42,6 +42,9 @@ namespace O2DESNet
             /// Execute the event
             ClockTime = head.ScheduledTime;
             head.Event.Invoke();
+
+            // Save to history
+            EventHistory.Push(head);
             return true;
         }
         public virtual bool Run(TimeSpan duration)
