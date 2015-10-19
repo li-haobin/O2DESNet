@@ -6,8 +6,8 @@ namespace O2DESNet
     {
         private O2DES _o2des;
         private DateTime _initialTime;
-        public DateTime CurrentTime;
-        public int CurrentCount { get; private set; }
+        public DateTime LastTime;
+        public int LastCount { get; private set; }
         /// <summary>
         /// Total number of increment observed
         /// </summary>
@@ -19,7 +19,7 @@ namespace O2DESNet
         /// <summary>
         /// Total number of hours since the initial time.
         /// </summary>
-        public double TotalHours { get { return (CurrentTime - _initialTime).TotalHours; } }
+        public double TotalHours { get { return (LastTime - _initialTime).TotalHours; } }
         /// <summary>
         /// The cumulative count value on time in unit of hours
         /// </summary>
@@ -42,8 +42,8 @@ namespace O2DESNet
         {
             _o2des = null;
             _initialTime = initialTime;
-            CurrentTime = initialTime;
-            CurrentCount = 0;
+            LastTime = initialTime;
+            LastCount = 0;
             TotalIncrementCount = 0;
             TotalDecrementCount = 0;
             CumValue = 0;
@@ -51,15 +51,15 @@ namespace O2DESNet
         public void ObserveCount(int count) { ObserveCount(count, _o2des.ClockTime); }
         public void ObserveCount(int count, DateTime timestamp)
         {
-            if (timestamp < CurrentTime)
+            if (timestamp < LastTime)
                 throw new Exception("Time of new count cannot be earlier than current time.");
-            if (count > CurrentCount) TotalIncrementCount += count - CurrentCount;
-            else TotalDecrementCount += CurrentCount - count;
-            CumValue += (timestamp - CurrentTime).TotalHours * CurrentCount;
-            CurrentTime = timestamp;
-            CurrentCount = count;
+            if (count > LastCount) TotalIncrementCount += count - LastCount;
+            else TotalDecrementCount += LastCount - count;
+            CumValue += (timestamp - LastTime).TotalHours * LastCount;
+            LastTime = timestamp;
+            LastCount = count;
         }
         public void ObserveChange(int change) { ObserveChange(change, _o2des.ClockTime); }
-        public void ObserveChange(int change, DateTime timestamp) { ObserveCount(CurrentCount + change, timestamp); }
+        public void ObserveChange(int change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
     }
 }

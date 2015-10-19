@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Distribution\Empirical.cs" />
     <Compile Include="O2DES.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HourCounter.cs" />
