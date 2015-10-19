@@ -7,15 +7,15 @@ namespace O2DESNet
         private O2DES _o2des;
         private DateTime _initialTime;
         public DateTime LastTime;
-        public int LastCount { get; private set; }
+        public double LastCount { get; private set; }
         /// <summary>
         /// Total number of increment observed
         /// </summary>
-        public int TotalIncrementCount { get; private set; }
+        public double TotalIncrementCount { get; private set; }
         /// <summary>
         /// Total number of decrement observed
         /// </summary>
-        public int TotalDecrementCount { get; private set; }
+        public double TotalDecrementCount { get; private set; }
         /// <summary>
         /// Total number of hours since the initial time.
         /// </summary>
@@ -48,8 +48,8 @@ namespace O2DESNet
             TotalDecrementCount = 0;
             CumValue = 0;
         }
-        public void ObserveCount(int count) { ObserveCount(count, _o2des.ClockTime); }
-        public void ObserveCount(int count, DateTime timestamp)
+        public void ObserveCount(double count) { ObserveCount(count, _o2des.ClockTime); }
+        public void ObserveCount(double count, DateTime timestamp)
         {
             if (timestamp < LastTime)
                 throw new Exception("Time of new count cannot be earlier than current time.");
@@ -59,7 +59,7 @@ namespace O2DESNet
             LastTime = timestamp;
             LastCount = count;
         }
-        public void ObserveChange(int change) { ObserveChange(change, _o2des.ClockTime); }
-        public void ObserveChange(int change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
+        public void ObserveChange(double change) { ObserveChange(change, _o2des.ClockTime); }
+        public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
     }
 }
