@@ -22,11 +22,9 @@ namespace O2DESNet
         public void ScheduleEvent(IEvent evnt, TimeSpan delay) { ScheduleEvent(evnt, ClockTime + delay); }
         public void ScheduleEvent(IEvent evnt, DateTime time)
         {
+            if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
             FutureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
-            FutureEventList.Sort(delegate (FutureEvent x, FutureEvent y)
-            {
-                return x.ScheduledTime.CompareTo(y.ScheduledTime);
-            });
+            FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
         }
         protected bool ExecuteHeadEvent()
         {
