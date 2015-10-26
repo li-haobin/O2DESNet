@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="O2DESNet.Warehouse.Simulator" Collapsed="true">
+    <Position X="10.75" Y="1" Width="1.5" />
+    <AssociationLine Name="Scenario" Type="O2DESNet.Warehouse.Statics.Scenario" FixedFromPoint="true">
+      <Path>
+        <Point X="11.5" Y="1.691" />
+        <Point X="11.5" Y="3" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Simulator.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Scenario" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.WarehouseSim" Collapsed="true">
+    <Position X="13.25" Y="2.5" Width="1.5" />
+    <AssociationLine Name="wh" Type="O2DESNet.Warehouse.Statics.Scenario" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="14" Y="3.062" />
+        <Point X="14" Y="4.5" />
+        <Point X="12.25" Y="4.5" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQQAAAAAAAAAAAAAAAgAAAAAAAAAAAI=</HashCode>
+      <FileName>WarehouseSim.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="sim" />
+      <Property Name="wh" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.ControlPoint" Collapsed="true">
+    <Position X="8.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAACgAAAAAAAAAIAAAAAAAACIAAAAAAA=</HashCode>
+      <FileName>Statics\ControlPoint.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.CPRack" Collapsed="true">
+    <Position X="8.25" Y="3.75" Width="1.5" />
+    <AssociationLine Name="OnShelf" Type="O2DESNet.Warehouse.Statics.PathShelf" FixedFromPoint="true">
+      <Path>
+        <Point X="8.25" Y="4.188" />
+        <Point X="7.25" Y="4.188" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.048" Y="-0.305" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\CPRack.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="OnShelf" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="SKUs" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.Path" Collapsed="true">
+    <Position X="3.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAICAABAAAQAAAAAACAAAABAAAAAAAAAAACAAAQAAAA=</HashCode>
+      <FileName>Statics\Path.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.PathAisle" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <AssociationLine Name="Rows" Type="O2DESNet.Warehouse.Statics.PathRow" FixedFromPoint="true">
+      <Path>
+        <Point X="2" Y="3.938" />
+        <Point X="3.25" Y="3.938" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEAAAAAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\PathAisle.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Rows" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.PathRow" Collapsed="true">
+    <Position X="3.25" Y="3.75" Width="1.5" />
+    <AssociationLine Name="AisleIn" Type="O2DESNet.Warehouse.Statics.PathAisle" FixedFromPoint="true">
+      <Path>
+        <Point X="3.25" Y="4.063" />
+        <Point X="2" Y="4.063" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.183" Y="-0.253" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="AisleOut" Type="O2DESNet.Warehouse.Statics.PathAisle" FixedFromPoint="true">
+      <Path>
+        <Point X="3.25" Y="4.375" />
+        <Point X="2" Y="4.375" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.1" Y="-0.305" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="Shelves" Type="O2DESNet.Warehouse.Statics.PathShelf" FixedFromPoint="true">
+      <Path>
+        <Point X="4.75" Y="3.938" />
+        <Point X="5.75" Y="3.938" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.068" Y="0.07" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAACAAAABAAAAAAAAAAAAAAAAAgQA=</HashCode>
+      <FileName>Statics\PathRow.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="AisleIn" />
+      <Property Name="AisleOut" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Shelves" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.PathShelf" Collapsed="true">
+    <Position X="5.75" Y="3.75" Width="1.5" />
+    <AssociationLine Name="Row" Type="O2DESNet.Warehouse.Statics.PathRow" FixedFromPoint="true">
+      <Path>
+        <Point X="5.75" Y="4.25" />
+        <Point X="4.75" Y="4.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.11" Y="-0.252" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="Racks" Type="O2DESNet.Warehouse.Statics.CPRack" FixedToPoint="true">
+      <Path>
+        <Point X="7.25" Y="3.938" />
+        <Point X="8.25" Y="3.938" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAAAAAgAACgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\PathShelf.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Row" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Racks" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.Scenario">
+    <Position X="10.75" Y="3" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>EIC0AAAgAQAAIUMAAAAgAICAAgAACAAAAAgAAAQKAYM=</HashCode>
+      <FileName>Statics\Scenario.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Warehouse.Statics.SKU" Collapsed="true">
+    <Position X="8.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAAgAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Statics\SKU.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

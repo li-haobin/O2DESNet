@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="StaticsClassDiagram.cd" />
     <None Include="PathMover.cd" />
   </ItemGroup>
   <ItemGroup>
