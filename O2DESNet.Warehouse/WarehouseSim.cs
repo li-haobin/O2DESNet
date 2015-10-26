@@ -33,10 +33,10 @@ namespace O2DESNet.Warehouse
 
             var cp1 = pm.CreateControlPoint(paths[0], 30);
             var cp2 = pm.CreateControlPoint(paths[0], 40);
-            var vt1 = new VehicleType(maxSpeed: 14, maxAcceleration: 20, maxDeceleration: 20);
-            var vt2 = new VehicleType(maxSpeed: 30, maxAcceleration: 15, maxDeceleration: 10);
-            pm.AddVehicles(vt1, 2);
-            pm.AddVehicles(vt2, 3);
+            var vt1 = new PickerType(maxSpeed: 14, maxAcceleration: 20, maxDeceleration: 20);
+            var vt2 = new PickerType(maxSpeed: 30, maxAcceleration: 15, maxDeceleration: 10);
+            pm.AddPickers(vt1, 2);
+            pm.AddPickers(vt2, 3);
 
             pm.Initialize();
             sim = new Simulator(pm, 0);

@@ -59,10 +59,10 @@
     <Compile Include="Statics\Path.cs" />
     <Compile Include="Statics\PathRow.cs" />
     <Compile Include="Statics\PathShelf.cs" />
-    <Compile Include="Statics\Rack.cs" />
+    <Compile Include="Statics\CPRack.cs" />
     <Compile Include="Statics\Scenario.cs" />
     <Compile Include="Statics\SKU.cs" />
-    <Compile Include="Statics\VehicleType.cs" />
+    <Compile Include="Statics\PickerType.cs" />
     <Compile Include="WarehouseSim.cs" />
   </ItemGroup>
   <ItemGroup>

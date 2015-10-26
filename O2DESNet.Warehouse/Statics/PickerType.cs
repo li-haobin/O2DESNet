@@ -6,30 +6,26 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse.Statics
 {
-    public class VehicleType
+    public class PickerType
     {
         private static int _count = 0;
         public int Id { get; private set; }
-        public double MaxSpeed { get; private set; }
-        public double MaxAcceleration { get; private set; }
-        public double MaxDeceleration { get; private set; }
+        public double AveMoveSpeed { get; private set; }
+        public TimeSpan AvePickTime{ get; private set; }
         public double Capacity { get; private set; }
 
-        internal VehicleType(double maxSpeed, double maxAcceleration, double maxDeceleration, double capacity = double.PositiveInfinity)
+        internal PickerType(double aveMoveSpeed, TimeSpan avePickTime, double capacity = double.PositiveInfinity)
         {
             Id = ++_count;
-            if (maxSpeed <= 0 || maxSpeed == double.PositiveInfinity)
-                throw new Exceptions.InfeasibleConstruction("Vehicle max speed must be positive finite.");
-            if (maxAcceleration <= 0 || maxAcceleration == double.PositiveInfinity)
-                throw new Exceptions.InfeasibleConstruction("Vehicle max acceleration must be positive finite.");
-            if (maxDeceleration <= 0 || maxDeceleration == double.PositiveInfinity)
-                throw new Exceptions.InfeasibleConstruction("Vehicle max deceleration must be positive finite.");
+            if (aveMoveSpeed <= 0 || aveMoveSpeed == double.PositiveInfinity)
+                throw new Exceptions.InfeasibleConstruction("Picker average movement speed must be positive finite.");
+            if (avePickTime <= TimeSpan.Zero || avePickTime.TotalSeconds == double.PositiveInfinity)
+                throw new Exceptions.InfeasibleConstruction("Picker average picking time must be positive finite.");
             if (capacity <= 0)
-                throw new Exceptions.InfeasibleConstruction("Vehicle capacity must be positive.");
+                throw new Exceptions.InfeasibleConstruction("Picker capacity must be positive.");
 
-            MaxSpeed = maxSpeed;
-            MaxAcceleration = maxAcceleration;
-            MaxDeceleration = maxDeceleration;
+            AveMoveSpeed = aveMoveSpeed;
+            AvePickTime = avePickTime;
             Capacity = capacity;
         }
         ///// <summary>

@@ -13,13 +13,13 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Numbers of vehicles of each type
         /// </summary>
-        public Dictionary<VehicleType, int> NumsVehicles { get; private set; }
+        public Dictionary<PickerType, int> NumPickers { get; private set; }
 
         public Scenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
-            NumsVehicles = new Dictionary<VehicleType, int>();
+            NumPickers = new Dictionary<PickerType, int>();
         }
 
         #region Layout Builder
@@ -68,8 +68,8 @@ namespace O2DESNet.Warehouse.Statics
             var rack = (CPRack)CreateControlPoint(shelf, position);
             rack.InitializeRack();
 
-            if(SKUs != null)
-                foreach(var s in SKUs)
+            if (SKUs != null)
+                foreach (var s in SKUs)
                 {
                     shelf.SKUs.Add(s, rack);
                     AddToRack(s, rack);
@@ -84,7 +84,14 @@ namespace O2DESNet.Warehouse.Statics
         {
             _sku.Racks.Add(rack);
             rack.SKUs.Add(_sku);
-        }     
+        }
+        public void AddPickers(PickerType pickerType, int quantity)
+        {
+            if (!NumPickers.ContainsKey(pickerType)) NumPickers.Add(pickerType, 0);
+            NumPickers[pickerType] += quantity;
+        }
+
+        // Consider making private the 3 methods below:
         /// <summary>
         /// Create and return a new control point
         /// </summary>
@@ -107,15 +114,9 @@ namespace O2DESNet.Warehouse.Statics
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
-
-        public void AddVehicles(VehicleType vehicleType, int number)
-        {
-            if (!NumsVehicles.ContainsKey(vehicleType)) NumsVehicles.Add(vehicleType, 0);
-            NumsVehicles[vehicleType] += number;
-        }
         #endregion
 
-        #region For Static Routing (Distance-Based)
+        #region For Static Routing (Distance-Based), Using Dijkstra
         public void Initialize()
         {
             ConstructRoutingTables();
