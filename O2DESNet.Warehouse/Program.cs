@@ -9,9 +9,34 @@ namespace O2DESNet.Warehouse
         static void Main(string[] args)
         {
             WarehouseSim whsim = new WarehouseSim();
-            whsim.wh.ViewAll();
+            //whsim.wh.ViewAll();
+
+            //DisplayRouteTable(whsim.wh);
+            //DisplayPathingTable(whsim.wh);
 
             Console.ReadKey();
-        }      
+        }
+
+        static void DisplayRouteTable(Scenario pm)
+        {
+            foreach (var cp in pm.ControlPoints)
+            {
+                Console.WriteLine("Route Table at CP_{0}:", cp.Id);
+                foreach (var item in cp.RoutingTable)
+                    Console.WriteLine("{0}:{1}", item.Key.Id, item.Value.Id);
+                Console.WriteLine();
+            }
+        }
+
+        static void DisplayPathingTable(Scenario pm)
+        {
+            foreach (var cp in pm.ControlPoints)
+            {
+                Console.WriteLine("Pathing Table at CP_{0}:", cp.Id);
+                foreach (var item in cp.PathingTable)
+                    Console.WriteLine("{0}:{1}", item.Key.Id, item.Value.Id);
+                Console.WriteLine();
+            }
+        }
     }
 }

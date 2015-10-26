@@ -38,6 +38,10 @@ namespace O2DESNet.Warehouse.Statics
             SKUs = new HashSet<SKU>();
         }
 
+        #region Build from CSV file
+
+        #endregion
+
         #region View Layout
         public void ViewAll()
         {
