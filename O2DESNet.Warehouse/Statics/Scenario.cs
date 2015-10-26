@@ -8,19 +8,122 @@ namespace O2DESNet.Warehouse.Statics
 {
     public class Scenario
     {
+        /// <summary>
+        /// Parent Classes for Dijkstra
+        /// </summary>
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         /// <summary>
         /// Numbers of vehicles of each type
         /// </summary>
         public Dictionary<PickerType, int> NumPickers { get; private set; }
+        /// <summary>
+        /// Lists which are useful
+        /// </summary>
+        public List<PathAisle> Aisles { get; private set; }
+        public List<PathRow> Rows { get; private set; }
+        public List<PathShelf> Shelves { get; private set; }
+        public List<CPRack> Racks { get; private set; }
+        public HashSet<SKU> SKUs { get; private set; }
 
         public Scenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
             NumPickers = new Dictionary<PickerType, int>();
+            Aisles = new List<PathAisle>();
+            Rows = new List<PathRow>();
+            Shelves = new List<PathShelf>();
+            Racks = new List<CPRack>();
+            SKUs = new HashSet<SKU>();
         }
+
+        #region View Layout
+        public void ViewAisles()
+        {
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("                Aisles                ");
+            Console.WriteLine("--------------------------------------");
+
+            foreach (var a in Aisles)
+            {
+                Console.WriteLine("Aisle {0}\tLength {1}", a.Aisle_ID, a.Length);
+                Console.WriteLine("Row_ID\tLength");
+                foreach (var r in a.Rows)
+                {
+                    Console.WriteLine("{0}\t{1}", r.Row_ID, r.Length);
+                }
+
+            }
+        }
+        public void ViewRows()
+        {
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("                 Rows                 ");
+            Console.WriteLine("--------------------------------------");
+
+            foreach (var r in Rows)
+            {
+                Console.WriteLine("Row {0}\tLength {1}", r.Row_ID, r.Length);
+                Console.WriteLine("In {0}\tOut {1}", r.AisleIn.Id, ((r.AisleOut != null) ? r.AisleOut.Aisle_ID : "NIL"));
+                Console.WriteLine("Shelf_ID\tHeight");
+                foreach (var s in r.Shelves)
+                {
+                    Console.WriteLine("{0}\t{1}", s.Shelf_ID, s.Length);
+                }
+
+            }
+        }
+        public void ViewShelves()
+        {
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("                Shelves               ");
+            Console.WriteLine("--------------------------------------");
+
+            foreach (var s in Shelves)
+            {
+                Console.WriteLine("Shelf {0}\tHeight {1}\tOnRow {2}", s.Shelf_ID, s.Length, s.Row.Row_ID);
+                foreach (CPRack r in s.ControlPoints)
+                {
+                    Console.WriteLine("{0}", r.Rack_ID);
+                }
+
+            }
+        }
+        public void ViewRacks()
+        {
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("                 Racks                ");
+            Console.WriteLine("--------------------------------------");
+
+            foreach (var r in Racks)
+            {
+                Console.WriteLine("Rack {0}", r.Rack_ID);
+                foreach (var s in r.SKUs)
+                {
+                    Console.WriteLine("{0}", s.SKU_ID);
+                }
+
+            }
+        }
+        public void ViewSKUs()
+        {
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("                 SKUs                 ");
+            Console.WriteLine("--------------------------------------");
+
+            Console.WriteLine("SKU_ID\tDescription\tRacks");
+            var SKUList = SKUs.ToList();
+            foreach (var s in SKUList)
+            {
+                Console.Write("{0}\t{1}\t", s.SKU_ID, s.Description);
+                foreach (var r in s.Racks)
+                    Console.Write("{0} ", r.Rack_ID);
+                Console.WriteLine("");
+            }
+
+        }
+        #endregion
 
         #region Layout Builder
         /// <summary>
@@ -30,6 +133,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var aisle = new PathAisle(length, maxSpeed, direction);
             Paths.Add(aisle);
+            Aisles.Add(aisle);
             return aisle;
         }
         /// <summary>
@@ -40,6 +144,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var row = new PathRow(length, aisleIn, aisleOut, maxSpeed, direction);
             Paths.Add(row);
+            Rows.Add(row);
             Connect(row, aisleIn, 0, inPos);
             if (aisleOut != null)
                 if (!double.IsNegativeInfinity(outPos))
@@ -57,6 +162,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var shelf = new PathShelf(height, row, maxSpeed, direction);
             Paths.Add(shelf);
+            Shelves.Add(shelf);
             Connect(shelf, row, 0, pos);
             return shelf;
         }
@@ -67,6 +173,8 @@ namespace O2DESNet.Warehouse.Statics
         {
             var rack = (CPRack)CreateControlPoint(shelf, position);
             rack.InitializeRack();
+            Racks.Add(rack);
+            rack.OnShelf = shelf;
 
             if (SKUs != null)
                 foreach (var s in SKUs)
@@ -82,6 +190,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         public void AddToRack(SKU _sku, CPRack rack)
         {
+            if (!SKUs.Contains(_sku)) SKUs.Add(_sku);
             _sku.Racks.Add(rack);
             rack.SKUs.Add(_sku);
         }

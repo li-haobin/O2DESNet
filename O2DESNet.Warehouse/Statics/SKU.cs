@@ -16,6 +16,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             SKU_ID = sku_id;
             Description = description;
+            Racks = new List<CPRack>();
         }
     }
 }
