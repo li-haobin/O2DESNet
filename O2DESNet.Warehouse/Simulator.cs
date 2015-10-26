@@ -1,4 +1,6 @@
-﻿using System;
+﻿using O2DESNet.Warehouse.Dynamics;
+using O2DESNet.Warehouse.Statics;
+using System;
 
 namespace O2DESNet.Warehouse
 {
@@ -14,8 +16,7 @@ namespace O2DESNet.Warehouse
             Status = new Status(this);
             RS = new Random(seed);
 
-            // schedule the initial event
-            // ScheduleEvent(new MyEvent1(this, new Load_1()), TimeSpan.FromHours(some_random_value));
+            new Events.Start(this).Invoke();
         }
     }
 }

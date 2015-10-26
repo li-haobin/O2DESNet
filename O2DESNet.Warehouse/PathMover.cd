@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="O2DESNet.PathMover.Simulator" Collapsed="true">
+    <Position X="1" Y="0.5" Width="1.5" />
+    <AssociationLine Name="Status" Type="O2DESNet.PathMover.Dynamics.Status">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.716" Y="0.102" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>IAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Simulator.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Scenario" />
+      <Property Name="Status" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Dynamics.Status">
+    <Position X="1" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAQAgAAAIAAAAAAAAAAABAAQAAIAABQAAAABA=</HashCode>
+      <FileName>Dynamics\Status.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_sim" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="AllVehicles" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Dynamics.Vehicle" Collapsed="true">
+    <Position X="4" Y="5.75" Width="1.5" />
+    <AssociationLine Name="Current" Type="O2DESNet.PathMover.Statics.ControlPoint" FixedFromPoint="true">
+      <Path>
+        <Point X="4.75" Y="5.75" />
+        <Point X="4.75" Y="4.391" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.143" Y="0.752" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="Towards" Type="O2DESNet.PathMover.Statics.ControlPoint" FixedFromPoint="true">
+      <Path>
+        <Point X="4.875" Y="5.75" />
+        <Point X="4.875" Y="4.391" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.853" Y="0.767" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>IAACAAEAEEAAAAAAgACAAAABAAQgEIAAgQCEAAAAAIA=</HashCode>
+      <FileName>Dynamics\Vehicle.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Type" />
+      <Property Name="Current" />
+      <Property Name="Towards" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Statics.ControlPoint">
+    <Position X="4" Y="2" Width="1.5" />
+    <AssociationLine Name="RoutingTable" Type="O2DESNet.PathMover.Statics.ControlPoint" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4" Y="4.129" />
+        <Point X="3.75" Y="4.129" />
+        <Point X="3.75" Y="2.8" />
+        <Point X="4" Y="2.8" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.13" Y="0.135" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="PathingTable" Type="O2DESNet.PathMover.Statics.Path" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="5.5" Y="3.938" />
+        <Point X="7.875" Y="3.938" />
+        <Point X="7.875" Y="3.47" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.043" Y="0.232" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAACgAAAAAAAAAIAAAAAAAACIAAAAAAA=</HashCode>
+      <FileName>Statics\ControlPoint.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="RoutingTable" />
+      <Property Name="PathingTable" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Statics.Path">
+    <Position X="7.25" Y="0.5" Width="1.5" />
+    <AssociationLine Name="ControlPoints" Type="O2DESNet.PathMover.Statics.ControlPoint" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="8.062" Y="3.47" />
+        <Point X="8.062" Y="4.25" />
+        <Point X="5.5" Y="4.25" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.241" Y="-0.293" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAICAABAAAQAAAAAACAAAABAAAAAAAAAAACAAAQAAAA=</HashCode>
+      <FileName>Statics\Path.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="ControlPoints" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Statics.Scenario" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <AssociationLine Name="ControlPoints" Type="O2DESNet.PathMover.Statics.ControlPoint" FixedFromPoint="true">
+      <Path>
+        <Point X="4.812" Y="1.062" />
+        <Point X="4.812" Y="2" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.259" Y="0.27" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAQMAAAAgAIAAAAAEAAAAAAAAAAQIBIA=</HashCode>
+      <FileName>Statics\Scenario.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Paths" />
+      <Property Name="ControlPoints" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.PathMover.Statics.VehicleType" Collapsed="true">
+    <Position X="7.25" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAEAAIAAAAAAAAAAACAAAAAAQA=</HashCode>
+      <FileName>Statics\VehicleType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
