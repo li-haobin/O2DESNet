@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse.Statics
 {
-   public class Scenario
+    public class Scenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
@@ -22,16 +22,69 @@ namespace O2DESNet.Warehouse.Statics
             NumsVehicles = new Dictionary<VehicleType, int>();
         }
 
-        #region Path Mover Builder
+        #region Layout Builder
         /// <summary>
-        /// Create and return a new path
+        /// Create and return a new aisle
         /// </summary>
-        public Path CreatePath(double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
+        public PathAisle CreateAisle(double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
-            var path = new Path(length, maxSpeed, direction);
-            Paths.Add(path);
-            return path;
+            var aisle = new PathAisle(length, maxSpeed, direction);
+            Paths.Add(aisle);
+            return aisle;
         }
+        /// <summary>
+        /// Create and return a new row, connected to aisle(s)
+        /// </summary>
+        public PathRow CreateRow(double length, PathAisle aisleIn, double inPos, PathAisle aisleOut = null, double outPos = double.NegativeInfinity,
+            double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
+        {
+            var row = new PathRow(length, aisleIn, aisleOut, maxSpeed, direction);
+            Paths.Add(row);
+            Connect(row, aisleIn, 0, inPos);
+            if (aisleOut != null)
+                if (!double.IsNegativeInfinity(outPos))
+                    Connect(row, aisleOut, row.Length, outPos);
+                else
+                    throw new Exception("Specify aisleOut position");
+
+            return row;
+        }
+        /// <summary>
+        /// Create and return a new shelf, connected to a row
+        /// </summary>
+        public PathShelf CreateShelf(double height, PathRow row, double pos,
+            double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
+        {
+            var shelf = new PathShelf(height, row, maxSpeed, direction);
+            Paths.Add(shelf);
+            Connect(shelf, row, 0, pos);
+            return shelf;
+        }
+        /// <summary>
+        /// Create and return a new rack, on a shelf. Optional SKUs on rack.
+        /// </summary>
+        public CPRack CreateRack(PathShelf shelf, double position, List<SKU> SKUs = null)
+        {
+            var rack = (CPRack)CreateControlPoint(shelf, position);
+            rack.InitializeRack();
+
+            if(SKUs != null)
+                foreach(var s in SKUs)
+                {
+                    shelf.SKUs.Add(s, rack);
+                    AddToRack(s, rack);
+                }
+
+            return rack;
+        }
+        /// <summary>
+        /// Add SKU into a Rack
+        /// </summary>
+        public void AddToRack(SKU _sku, CPRack rack)
+        {
+            _sku.Racks.Add(rack);
+            rack.SKUs.Add(_sku);
+        }     
         /// <summary>
         /// Create and return a new control point
         /// </summary>
@@ -41,11 +94,6 @@ namespace O2DESNet.Warehouse.Statics
             path.Add(controlPoint, position);
             ControlPoints.Add(controlPoint);
             return controlPoint;
-        }
-        public void AddVehicles(VehicleType vehicleType, int number)
-        {
-            if (!NumsVehicles.ContainsKey(vehicleType)) NumsVehicles.Add(vehicleType, 0);
-            NumsVehicles[vehicleType] += number;
         }
         /// <summary>
         /// Connect two paths at specified positions
@@ -59,6 +107,12 @@ namespace O2DESNet.Warehouse.Statics
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
+
+        public void AddVehicles(VehicleType vehicleType, int number)
+        {
+            if (!NumsVehicles.ContainsKey(vehicleType)) NumsVehicles.Add(vehicleType, 0);
+            NumsVehicles[vehicleType] += number;
+        }
         #endregion
 
         #region For Static Routing (Distance-Based)
@@ -66,12 +120,12 @@ namespace O2DESNet.Warehouse.Statics
         {
             ConstructRoutingTables();
             ConstructPathingTables();
-        }        
+        }
         private void ConstructRoutingTables()
         {
             foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
             var incompleteSet = ControlPoints.ToList();
-            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();            
+            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();
             while (incompleteSet.Count > 0)
             {
                 ConstructRoutingTables(incompleteSet.First().Id, edges);

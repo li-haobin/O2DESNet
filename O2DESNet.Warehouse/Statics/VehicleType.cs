@@ -13,8 +13,9 @@ namespace O2DESNet.Warehouse.Statics
         public double MaxSpeed { get; private set; }
         public double MaxAcceleration { get; private set; }
         public double MaxDeceleration { get; private set; }
+        public double Capacity { get; private set; }
 
-        internal VehicleType(double maxSpeed, double maxAcceleration, double maxDeceleration)
+        internal VehicleType(double maxSpeed, double maxAcceleration, double maxDeceleration, double capacity = double.PositiveInfinity)
         {
             Id = ++_count;
             if (maxSpeed <= 0 || maxSpeed == double.PositiveInfinity)
@@ -23,9 +24,13 @@ namespace O2DESNet.Warehouse.Statics
                 throw new Exceptions.InfeasibleConstruction("Vehicle max acceleration must be positive finite.");
             if (maxDeceleration <= 0 || maxDeceleration == double.PositiveInfinity)
                 throw new Exceptions.InfeasibleConstruction("Vehicle max deceleration must be positive finite.");
+            if (capacity <= 0)
+                throw new Exceptions.InfeasibleConstruction("Vehicle capacity must be positive.");
+
             MaxSpeed = maxSpeed;
             MaxAcceleration = maxAcceleration;
             MaxDeceleration = maxDeceleration;
+            Capacity = capacity;
         }
         ///// <summary>
         ///// Get shortest time traveling between two adjacent control points, given the start and end speed.

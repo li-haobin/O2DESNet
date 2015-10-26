@@ -7,8 +7,8 @@
     <ProjectGuid>{58765116-A73E-414C-BADF-C8A8AC307F4B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>O2DESNet.PathMover</RootNamespace>
-    <AssemblyName>O2DESNet.PathMover</AssemblyName>
+    <RootNamespace>O2DESNet.Warehouse</RootNamespace>
+    <AssemblyName>O2DESNet.Warehouse</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>O2DESNet.Warehouse.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,19 +48,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dynamics\Status.cs" />
-    <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Events\Event.cs" />
-    <Compile Include="Events\Move.cs" />
-    <Compile Include="Events\Start.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulator.cs" />
+    <Compile Include="Statics\PathAisle.cs" />
     <Compile Include="Statics\ControlPoint.cs" />
     <Compile Include="Dijkstra.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Statics\Path.cs" />
+    <Compile Include="Statics\PathRow.cs" />
+    <Compile Include="Statics\PathShelf.cs" />
+    <Compile Include="Statics\Rack.cs" />
     <Compile Include="Statics\Scenario.cs" />
+    <Compile Include="Statics\SKU.cs" />
     <Compile Include="Statics\VehicleType.cs" />
+    <Compile Include="WarehouseSim.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse.Statics
 {
-    public class Path
+    public abstract class Path
     {
-        private static int _count = 0;
+        protected static int _count = 0;
         public int Id { get; private set; }
         public double Length { get; private set; }
         public double SpeedLimit { get; private set; }
