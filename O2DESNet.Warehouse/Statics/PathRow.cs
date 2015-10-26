@@ -13,9 +13,10 @@ namespace O2DESNet.Warehouse.Statics
         public PathAisle AisleOut { get; private set; }
         public List<PathShelf> Shelves { get; set; }
 
-        public PathRow(double length, PathAisle aisleIn, PathAisle aisleOut, double maxSpeed, Direction direction)
+        public PathRow(string row_ID, double length, PathAisle aisleIn, PathAisle aisleOut, double maxSpeed, Direction direction)
             : base(length, maxSpeed, direction)
         {
+            Row_ID = row_ID;
             AisleIn = aisleIn;
             AisleOut = aisleOut;
             Shelves = new List<PathShelf>();

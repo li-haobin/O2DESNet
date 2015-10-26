@@ -11,9 +11,10 @@ namespace O2DESNet.Warehouse.Statics
         public string Aisle_ID { get; set; }
         public List<PathRow> Rows { get; set; }
 
-        public PathAisle(double length, double maxSpeed, Direction direction)
+        public PathAisle(string aisle_ID, double length, double maxSpeed, Direction direction)
             : base(length, maxSpeed, direction)
         {
+            Aisle_ID = aisle_ID;
             Rows = new List<PathRow>();
         }
     }

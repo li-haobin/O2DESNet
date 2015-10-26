@@ -8,7 +8,10 @@ namespace O2DESNet.Warehouse
     {
         static void Main(string[] args)
         {
-            
+            WarehouseSim whsim = new WarehouseSim();
+            whsim.wh.ViewAll();
+
+            Console.ReadKey();
         }      
     }
 }

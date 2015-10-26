@@ -9,8 +9,8 @@ namespace O2DESNet.Warehouse
 {
     class WarehouseSim
     {
-        public Simulator sim { get; set; }
-        public Scenario pm { get; set; }
+        public Simulator sim { get; private set; }
+        public Scenario wh { get; private set; }
 
         public WarehouseSim()
         {
@@ -19,39 +19,33 @@ namespace O2DESNet.Warehouse
 
         private void Initialize()
         {
-            pm = new Scenario();
-            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, maxSpeed: 20, direction: Direction.Forward)).ToArray();
-            pm.Connect(paths[0], paths[1]);
-            pm.Connect(paths[1], paths[2]);
-            pm.Connect(paths[2], paths[3]);
-            pm.Connect(paths[3], paths[0]);
-            pm.Connect(paths[0], paths[4], 50, 0);
-            pm.Connect(paths[2], paths[4], 50, 100);
-            pm.Connect(paths[1], paths[5], 50, 0);
-            pm.Connect(paths[3], paths[5], 50, 100);
-            pm.Connect(paths[4], paths[5], 50, 50);
+            wh = new Scenario();
 
-            var cp1 = pm.CreateControlPoint(paths[0], 30);
-            var cp2 = pm.CreateControlPoint(paths[0], 40);
-            var vt1 = new PickerType(maxSpeed: 14, maxAcceleration: 20, maxDeceleration: 20);
-            var vt2 = new PickerType(maxSpeed: 30, maxAcceleration: 15, maxDeceleration: 10);
-            pm.AddPickers(vt1, 2);
-            pm.AddPickers(vt2, 3);
+            var a1 = wh.CreateAisle("A1", 100);
+            var a2 = wh.CreateAisle("A2", 100);
+            var r1 = wh.CreateRow("R1", 20, a1, 0, a2, 0);
+            var r2 = wh.CreateRow("R2", 20, a1, 50, a2, 50);
+            var r3 = wh.CreateRow("R3", 20, a1, 100, a2, 100);
 
-            pm.Initialize();
-            sim = new Simulator(pm, 0);
+            var r1s1 = wh.CreateShelf("R1S1", 5, r1, 10);
+            var r1s1k1 = wh.CreateRack("R1S1K1", r1s1, 3);
+
+            wh.AddToRack(new SKU("SKU0001", "Item 1"), r1s1k1);
+
+            wh.Initialize();
+            sim = new Simulator(wh, 0);
         }
 
         public void Run()
         {
-            while (true)
-            {
-                sim.Run(10000);
-                Console.Clear();
-                foreach (var item in sim.Status.VehicleCounters)
-                    Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
-                Console.ReadKey();
-            }
+            //while (true)
+            //{
+            //    sim.Run(10000);
+            //    Console.Clear();
+            //    foreach (var item in sim.Status.VehicleCounters)
+            //        Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
+            //    Console.ReadKey();
+            //}
         }
     }
 }

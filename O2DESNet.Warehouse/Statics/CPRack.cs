@@ -12,13 +12,15 @@ namespace O2DESNet.Warehouse.Statics
         public PathShelf OnShelf { get; set; }
         public List<SKU> SKUs { get; set; }
 
-        public CPRack() : base()
+        public CPRack(string rack_ID, PathShelf shelf) : base()
         {
-            InitializeRack();
-        }
+            Rack_ID = rack_ID;
+            OnShelf = shelf;
+            if (shelf == null)
+                throw new Exception("Rack must be connected to a shelf");
+            else
+                OnShelf.Racks.Add(this);
 
-        public void InitializeRack()
-        {
             SKUs = new List<SKU>();
         }
     }

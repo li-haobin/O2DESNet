@@ -39,6 +39,14 @@ namespace O2DESNet.Warehouse.Statics
         }
 
         #region View Layout
+        public void ViewAll()
+        {
+            ViewAisles();
+            ViewRows();
+            ViewShelves();
+            ViewRacks();
+            ViewSKUs();
+        }
         public void ViewAisles()
         {
             Console.WriteLine("--------------------------------------");
@@ -65,7 +73,7 @@ namespace O2DESNet.Warehouse.Statics
             foreach (var r in Rows)
             {
                 Console.WriteLine("Row {0}\tLength {1}", r.Row_ID, r.Length);
-                Console.WriteLine("In {0}\tOut {1}", r.AisleIn.Id, ((r.AisleOut != null) ? r.AisleOut.Aisle_ID : "NIL"));
+                Console.WriteLine("In {0}\tOut {1}", r.AisleIn.Aisle_ID, ((r.AisleOut != null) ? r.AisleOut.Aisle_ID : "NIL"));
                 Console.WriteLine("Shelf_ID\tHeight");
                 foreach (var s in r.Shelves)
                 {
@@ -83,7 +91,7 @@ namespace O2DESNet.Warehouse.Statics
             foreach (var s in Shelves)
             {
                 Console.WriteLine("Shelf {0}\tHeight {1}\tOnRow {2}", s.Shelf_ID, s.Length, s.Row.Row_ID);
-                foreach (CPRack r in s.ControlPoints)
+                foreach (var r in s.Racks)
                 {
                     Console.WriteLine("{0}", r.Rack_ID);
                 }
@@ -129,9 +137,9 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Create and return a new aisle
         /// </summary>
-        public PathAisle CreateAisle(double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
+        public PathAisle CreateAisle(string aisle_ID, double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
-            var aisle = new PathAisle(length, maxSpeed, direction);
+            var aisle = new PathAisle(aisle_ID, length, maxSpeed, direction);
             Paths.Add(aisle);
             Aisles.Add(aisle);
             return aisle;
@@ -139,10 +147,10 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Create and return a new row, connected to aisle(s)
         /// </summary>
-        public PathRow CreateRow(double length, PathAisle aisleIn, double inPos, PathAisle aisleOut = null, double outPos = double.NegativeInfinity,
+        public PathRow CreateRow(string row_ID, double length, PathAisle aisleIn, double inPos, PathAisle aisleOut = null, double outPos = double.NegativeInfinity,
             double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
-            var row = new PathRow(length, aisleIn, aisleOut, maxSpeed, direction);
+            var row = new PathRow(row_ID, length, aisleIn, aisleOut, maxSpeed, direction);
             Paths.Add(row);
             Rows.Add(row);
             Connect(row, aisleIn, 0, inPos);
@@ -157,10 +165,10 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Create and return a new shelf, connected to a row
         /// </summary>
-        public PathShelf CreateShelf(double height, PathRow row, double pos,
+        public PathShelf CreateShelf(string shelf_ID, double height, PathRow row, double pos,
             double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
-            var shelf = new PathShelf(height, row, maxSpeed, direction);
+            var shelf = new PathShelf(shelf_ID, height, row, maxSpeed, direction);
             Paths.Add(shelf);
             Shelves.Add(shelf);
             Connect(shelf, row, 0, pos);
@@ -169,17 +177,16 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Create and return a new rack, on a shelf. Optional SKUs on rack.
         /// </summary>
-        public CPRack CreateRack(PathShelf shelf, double position, List<SKU> SKUs = null)
+        public CPRack CreateRack(string rack_ID, PathShelf shelf, double position, List<SKU> SKUs = null)
         {
-            var rack = (CPRack)CreateControlPoint(shelf, position);
-            rack.InitializeRack();
+            var rack = new CPRack(rack_ID, shelf);
+            shelf.Add(rack, position);
+            ControlPoints.Add(rack);
             Racks.Add(rack);
-            rack.OnShelf = shelf;
 
             if (SKUs != null)
                 foreach (var s in SKUs)
                 {
-                    shelf.SKUs.Add(s, rack);
                     AddToRack(s, rack);
                 }
 
@@ -193,6 +200,7 @@ namespace O2DESNet.Warehouse.Statics
             if (!SKUs.Contains(_sku)) SKUs.Add(_sku);
             _sku.Racks.Add(rack);
             rack.SKUs.Add(_sku);
+            rack.OnShelf.SKUs.Add(_sku, rack);
         }
         public void AddPickers(PickerType pickerType, int quantity)
         {
