@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace O2DESNet.PathMover
+namespace O2DESNet.PathMover.Methods
 {
     internal class Dijkstra
     {

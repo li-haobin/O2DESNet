@@ -33,7 +33,7 @@ namespace O2DESNet.PathMover
 
             var cp1 = pm.CreateControlPoint(paths[0], 30);
             var cp2 = pm.CreateControlPoint(paths[0], 40);
-            var vt1 = new VehicleType(maxSpeed: 14, maxAcceleration: 20, maxDeceleration: 20);
+            var vt1 = new VehicleType(maxSpeed: 20, maxAcceleration: 20, maxDeceleration: 20);
             var vt2 = new VehicleType(maxSpeed: 30, maxAcceleration: 15, maxDeceleration: 10);
             pm.AddVehicles(vt1, 2);
             pm.AddVehicles(vt2, 3);
@@ -43,8 +43,9 @@ namespace O2DESNet.PathMover
 
             while (true)
             {
-                sim.Run(10000);
+                sim.Run(TimeSpan.FromDays(1));
                 Console.Clear();
+                Console.WriteLine("# Passing-Overs: {0}", sim.Status.CounterForPassingOvers);
                 foreach (var item in sim.Status.VehicleCounters)
                     Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
                 Console.ReadKey();
