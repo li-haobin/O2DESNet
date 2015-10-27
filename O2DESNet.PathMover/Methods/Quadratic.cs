@@ -13,7 +13,7 @@ namespace O2DESNet.PathMover.Methods
             var delta = b * b - a * c * 4;
             if (delta < 0) return new double[] { };
             else if (delta == 0) return new double[] { -b / (a * 2) };
-            else return new double[] { (-b - Math.Sqrt(delta)) / (a * 2), (-b + Math.Sqrt(delta)) / (a * 2) };
+            else return new List<double> { (-b - Math.Sqrt(delta)) / (a * 2), (-b + Math.Sqrt(delta)) / (a * 2) }.OrderBy(v => v).ToArray();
         }
     }
 }

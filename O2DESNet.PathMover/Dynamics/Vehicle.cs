@@ -99,7 +99,7 @@ namespace O2DESNet.PathMover.Dynamics
                    SolvePassOverEq23(v11, v12, v21, t12, t21, a1, a2, tMax).Where(t => t12 <= t && t < t22)).Concat(
                     SolvePassOverEq24(v11, v12, v21, v22, t12, t22, a1, a2, tMax).Where(t => t22 <= t)).ToArray();
             }
-            return times.OrderBy(t => t).Select(t => LastTime.AddSeconds(t)).ToArray();
+            return times.Select(t => LastTime.AddSeconds(t)).ToArray();
         }
         private static IEnumerable<double> SolvePassOverEq13(double v11, double v21, double t21, double a1, double a2, double tMax)
         {
