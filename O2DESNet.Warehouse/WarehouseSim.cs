@@ -12,25 +12,27 @@ namespace O2DESNet.Warehouse
         public Simulator sim { get; private set; }
         public Scenario wh { get; private set; }
 
-        public WarehouseSim()
+        public WarehouseSim(string scenarioName)
         {
-            Initialize();
+            Initialize(scenarioName);
         }
 
-        private void Initialize()
+        private void Initialize(string scenarioName)
         {
-            wh = new Scenario();
+            wh = new Scenario(scenarioName);
 
-            var a1 = wh.CreateAisle("A1", 100);
-            var a2 = wh.CreateAisle("A2", 100);
-            var r1 = wh.CreateRow("R1", 20, a1, 0, a2, 0);
-            var r2 = wh.CreateRow("R2", 20, a1, 50, a2, 50);
-            var r3 = wh.CreateRow("R3", 20, a1, 100, a2, 100);
+            wh.ReadLayoutFiles();
 
-            var r1s1 = wh.CreateShelf("R1S1", 5, r1, 10);
-            var r1s1k1 = wh.CreateRack("R1S1K1", r1s1, 3);
+            //var a1 = wh.CreateAisle("A1", 100);
+            //var a2 = wh.CreateAisle("A2", 100);
+            //var r1 = wh.CreateRow("R1", 20, a1, 0, a2, 0);
+            //var r2 = wh.CreateRow("R2", 20, a1, 50, a2, 50);
+            //var r3 = wh.CreateRow("R3", 20, a1, 100, a2, 100);
 
-            wh.AddToRack(new SKU("SKU0001", "Item 1"), r1s1k1);
+            //var r1s1 = wh.CreateShelf("R1S1", 5, r1, 10);
+            //var r1s1k1 = wh.CreateRack("R1S1K1", r1s1, 3);
+
+            //wh.AddToRack(new SKU("SKU0001", "Item 1"), r1s1k1);
 
             wh.Initialize();
             sim = new Simulator(wh, 0);

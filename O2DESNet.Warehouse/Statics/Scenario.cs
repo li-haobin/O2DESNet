@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace O2DESNet.Warehouse.Statics
     {
         /// <summary>
         /// Parent Classes for Dijkstra
-        /// </summary>
+        /// </summary>  
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         /// <summary>
@@ -18,28 +19,99 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         public Dictionary<PickerType, int> NumPickers { get; private set; }
         /// <summary>
-        /// Lists which are useful
+        /// Layout lookup
         /// </summary>
-        public List<PathAisle> Aisles { get; private set; }
-        public List<PathRow> Rows { get; private set; }
-        public List<PathShelf> Shelves { get; private set; }
-        public List<CPRack> Racks { get; private set; }
-        public HashSet<SKU> SKUs { get; private set; }
+        public Dictionary<string, PathAisle> Aisles { get; private set; }
+        public Dictionary<string, PathRow> Rows { get; private set; }
+        public Dictionary<string, PathShelf> Shelves { get; private set; }
+        public Dictionary<string, CPRack> Racks { get; private set; }
+        public Dictionary<string, SKU> SKUs { get; private set; }
+        public string Name { get; private set; }
 
-        public Scenario()
+        public Scenario(string name)
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
             NumPickers = new Dictionary<PickerType, int>();
-            Aisles = new List<PathAisle>();
-            Rows = new List<PathRow>();
-            Shelves = new List<PathShelf>();
-            Racks = new List<CPRack>();
-            SKUs = new HashSet<SKU>();
+            Aisles = new Dictionary<string, PathAisle>();
+            Rows = new Dictionary<string, PathRow>();
+            Shelves = new Dictionary<string, PathShelf>();
+            Racks = new Dictionary<string, CPRack>();
+            SKUs = new Dictionary<string, SKU>();
+            Name = name;
         }
 
         #region Build from CSV file
+        public void ReadLayoutFiles()
+        {
+            string aisles_file = @"Layout\" + Name + "_Aisles.csv";
+            string rows_file = @"Layout\" + Name + "_Rows.csv";
+            string shelves_file = @"Layout\" + Name + "_Shelves.csv";
+            string racks_file = @"Layout\" + Name + "_Racks.csv";
 
+            ReadAislesFile(aisles_file);
+            ReadRowsFile(rows_file);
+            ReadShelvesFile(shelves_file);
+            ReadRacksFile(racks_file);
+        }
+        private void ReadAislesFile(string filename)
+        {
+            var aisles = CSVToList(filename);
+            foreach (var data in aisles)
+            {
+                CreateAisle(data[0], Convert.ToDouble(data[1]));
+            }
+        }
+        private void ReadRowsFile(string filename)
+        {
+            // Assuming there are two aisles connected to the row.
+            var rows = CSVToList(filename);
+            foreach (var data in rows)
+            {
+                CreateRow(data[0], Convert.ToDouble(data[1]),
+                    Aisles[data[2]], Convert.ToDouble(data[3]),
+                    Aisles[data[4]], Convert.ToDouble(data[5]));
+            }
+        }
+        private void ReadShelvesFile(string filename)
+        {
+            var shelves = CSVToList(filename);
+            foreach (var data in shelves)
+            {
+                CreateShelf(data[0], Convert.ToDouble(data[1]),
+                    Rows[data[2]], Convert.ToDouble(data[3]));
+            }
+        }
+        private void ReadRacksFile(string filename)
+        {
+            var racks = CSVToList(filename);
+            foreach (var data in racks)
+            {
+                CreateRack(data[0],
+                    Shelves[data[1]], Convert.ToDouble(data[2]));
+            }
+        }
+        /// <summary>
+        /// Converts csv file with header into list (row) of string array (column)
+        /// </summary>
+        /// <param name="csvfile"></param>
+        /// <returns></returns>
+        private List<string[]> CSVToList(string csvfile)
+        {
+            List<string[]> output = new List<string[]>();
+            string line;
+
+            using (StreamReader sr = new StreamReader(csvfile))
+            {
+                sr.ReadLine();
+                while ((line = sr.ReadLine()) != null)
+                {
+                    output.Add(line.Split(','));
+                }
+            }
+
+            return output;
+        }
         #endregion
 
         #region View Layout
@@ -57,7 +129,7 @@ namespace O2DESNet.Warehouse.Statics
             Console.WriteLine("                Aisles                ");
             Console.WriteLine("--------------------------------------");
 
-            foreach (var a in Aisles)
+            foreach (var a in Aisles.Values.ToList())
             {
                 Console.WriteLine("Aisle {0}\tLength {1}", a.Aisle_ID, a.Length);
                 Console.WriteLine("Row_ID\tLength");
@@ -74,7 +146,7 @@ namespace O2DESNet.Warehouse.Statics
             Console.WriteLine("                 Rows                 ");
             Console.WriteLine("--------------------------------------");
 
-            foreach (var r in Rows)
+            foreach (var r in Rows.Values.ToList())
             {
                 Console.WriteLine("Row {0}\tLength {1}", r.Row_ID, r.Length);
                 Console.WriteLine("In {0}\tOut {1}", r.AisleIn.Aisle_ID, ((r.AisleOut != null) ? r.AisleOut.Aisle_ID : "NIL"));
@@ -92,7 +164,7 @@ namespace O2DESNet.Warehouse.Statics
             Console.WriteLine("                Shelves               ");
             Console.WriteLine("--------------------------------------");
 
-            foreach (var s in Shelves)
+            foreach (var s in Shelves.Values.ToList())
             {
                 Console.WriteLine("Shelf {0}\tHeight {1}\tOnRow {2}", s.Shelf_ID, s.Length, s.Row.Row_ID);
                 foreach (var r in s.Racks)
@@ -108,7 +180,7 @@ namespace O2DESNet.Warehouse.Statics
             Console.WriteLine("                 Racks                ");
             Console.WriteLine("--------------------------------------");
 
-            foreach (var r in Racks)
+            foreach (var r in Racks.Values.ToList())
             {
                 Console.WriteLine("Rack {0}", r.Rack_ID);
                 foreach (var s in r.SKUs)
@@ -125,8 +197,7 @@ namespace O2DESNet.Warehouse.Statics
             Console.WriteLine("--------------------------------------");
 
             Console.WriteLine("SKU_ID\tDescription\tRacks");
-            var SKUList = SKUs.ToList();
-            foreach (var s in SKUList)
+            foreach (var s in SKUs.Values.ToList())
             {
                 Console.Write("{0}\t{1}\t", s.SKU_ID, s.Description);
                 foreach (var r in s.Racks)
@@ -145,7 +216,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var aisle = new PathAisle(aisle_ID, length, maxSpeed, direction);
             Paths.Add(aisle);
-            Aisles.Add(aisle);
+            Aisles.Add(aisle_ID, aisle);
             return aisle;
         }
         /// <summary>
@@ -156,7 +227,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var row = new PathRow(row_ID, length, aisleIn, aisleOut, maxSpeed, direction);
             Paths.Add(row);
-            Rows.Add(row);
+            Rows.Add(row_ID, row);
             Connect(row, aisleIn, 0, inPos);
             if (aisleOut != null)
                 if (!double.IsNegativeInfinity(outPos))
@@ -174,7 +245,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var shelf = new PathShelf(shelf_ID, height, row, maxSpeed, direction);
             Paths.Add(shelf);
-            Shelves.Add(shelf);
+            Shelves.Add(shelf_ID, shelf);
             Connect(shelf, row, 0, pos);
             return shelf;
         }
@@ -186,7 +257,7 @@ namespace O2DESNet.Warehouse.Statics
             var rack = new CPRack(rack_ID, shelf);
             shelf.Add(rack, position);
             ControlPoints.Add(rack);
-            Racks.Add(rack);
+            Racks.Add(rack_ID, rack);
 
             if (SKUs != null)
                 foreach (var s in SKUs)
@@ -201,7 +272,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         public void AddToRack(SKU _sku, CPRack rack)
         {
-            if (!SKUs.Contains(_sku)) SKUs.Add(_sku);
+            if (!SKUs.ContainsKey(_sku.SKU_ID)) SKUs.Add(_sku.SKU_ID, _sku);
             _sku.Racks.Add(rack);
             rack.SKUs.Add(_sku);
             rack.OnShelf.SKUs.Add(_sku, rack);
