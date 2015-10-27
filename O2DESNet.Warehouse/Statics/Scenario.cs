@@ -48,11 +48,13 @@ namespace O2DESNet.Warehouse.Statics
             string rows_file = @"Layout\" + Name + "_Rows.csv";
             string shelves_file = @"Layout\" + Name + "_Shelves.csv";
             string racks_file = @"Layout\" + Name + "_Racks.csv";
+            string SKUs_file = @"Layout\" + Name + "_SKUs.csv";
 
             ReadAislesFile(aisles_file);
             ReadRowsFile(rows_file);
             ReadShelvesFile(shelves_file);
             ReadRacksFile(racks_file);
+            ReadSKUsFile(SKUs_file);
         }
         private void ReadAislesFile(string filename)
         {
@@ -89,6 +91,16 @@ namespace O2DESNet.Warehouse.Statics
             {
                 CreateRack(data[0],
                     Shelves[data[1]], Convert.ToDouble(data[2]));
+            }
+        }
+        private void ReadSKUsFile(string filename)
+        {
+            var SKUs = CSVToList(filename);
+            foreach (var data in SKUs)
+            {
+                var sku = new SKU(data[0], data[1]);
+                for (int i = 2; i < data.Length; i++)
+                    AddToRack(sku, Racks[data[i]]);
             }
         }
         /// <summary>
