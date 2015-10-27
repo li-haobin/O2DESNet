@@ -33,9 +33,10 @@ namespace O2DESNet
             if (intialTime == null) Init(DateTime.MinValue);
             else Init(intialTime.Value);
         }
-        public HourCounter(O2DES o2des)
+        public HourCounter(O2DES o2des, DateTime? initialTime = null)
         {
-            Init(o2des.ClockTime);
+            if (initialTime == null) Init(o2des.ClockTime);
+            else Init(initialTime.Value);
             _o2des = o2des;
         }
         private void Init(DateTime initialTime)
