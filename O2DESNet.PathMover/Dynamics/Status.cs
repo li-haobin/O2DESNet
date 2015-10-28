@@ -14,10 +14,12 @@ namespace O2DESNet.PathMover.Dynamics
         public HashSet<Vehicle> OffVehicles { get; private set; }
         public Dictionary<ControlPoint, HashSet<Vehicle>> IncomingVehicles { get; private set; }
         public Dictionary<ControlPoint, HashSet<Vehicle>> OutgoingVehicles { get; private set; }
-        public Dictionary<Vehicle, Dictionary<Vehicle, DateTime[]>> Conflicts_PassingOver { get; private set; }
+        public Dictionary<Vehicle, Dictionary<Vehicle, DateTime[]>> Conflicts_PassOver { get; private set; }
+        public Dictionary<Vehicle, Dictionary<Vehicle, DateTime>> Conflicts_CrossOver { get; private set; }
         // for analysis
         public Dictionary<ControlPoint, HourCounter> VehicleCounters { get; private set; }
-        public int CounterForPassingOvers = 0;
+        public int Count_PassOvers = 0;
+        public int Count_CrossOvers = 0;
 
         internal Status(Simulator simulation)
         {
@@ -26,7 +28,8 @@ namespace O2DESNet.PathMover.Dynamics
             OffVehicles = new HashSet<Vehicle>(AllVehicles);
             IncomingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             OutgoingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
-            Conflicts_PassingOver = AllVehicles.ToDictionary(v => v, v => new Dictionary<Vehicle, DateTime[]>());
+            Conflicts_PassOver = AllVehicles.ToDictionary(v => v, v => new Dictionary<Vehicle, DateTime[]>());
+            Conflicts_CrossOver = AllVehicles.ToDictionary(v => v, v => new Dictionary<Vehicle, DateTime>());
             VehicleCounters = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HourCounter(_sim));
         }
 
@@ -38,7 +41,7 @@ namespace O2DESNet.PathMover.Dynamics
             vehicle.LastTime = _sim.ClockTime;
             vehicle.LastControlPoint = controlPoint;
             vehicle.NextControlPoint = null;
-            vehicle.EndingSpeed = 0;
+            vehicle.Speed_ToNextControlPoint = 0;
             vehicle.TargetSpeed = 0;
             vehicle.Acceleration = 0;
             OffVehicles.Remove(vehicle);
@@ -58,7 +61,7 @@ namespace O2DESNet.PathMover.Dynamics
         internal void MoveToNext(Vehicle vehicle, ControlPoint nextControlPoint, double? targetSpeed = null, double? acceleration = null)
         {
             //vehicle.HistoricalPath.Add(vehicle.Current);
-            vehicle.DistanceToTravel = vehicle.LastControlPoint.GetDistanceTo(nextControlPoint);
+            vehicle.Distance_ToNextControlPoint = vehicle.LastControlPoint.GetDistanceTo(nextControlPoint);
             IncomingVehicles[nextControlPoint].Add(vehicle);
             vehicle.NextControlPoint = nextControlPoint;
             vehicle.SpeedControl(targetSpeed, acceleration);
@@ -68,7 +71,7 @@ namespace O2DESNet.PathMover.Dynamics
         }
         internal void Reach(Vehicle vehicle)
         {
-            vehicle.Speed = vehicle.EndingSpeed;
+            vehicle.Speed = vehicle.Speed_ToNextControlPoint;
             OutgoingVehicles[vehicle.LastControlPoint].Remove(vehicle);
             VehicleCounters[vehicle.LastControlPoint].ObserveChange(-1);
             IncomingVehicles[vehicle.NextControlPoint].Remove(vehicle);
@@ -77,16 +80,23 @@ namespace O2DESNet.PathMover.Dynamics
             vehicle.LastControlPoint = vehicle.NextControlPoint;
             vehicle.NextControlPoint = null;
         }
-        internal bool IdentifyConflicts_PassingOver(Vehicle vehicle)
+        internal bool IdentifyConflicts_PassOver(Vehicle vehicle)
         {
-            Conflicts_PassingOver[vehicle] = new Dictionary<Vehicle, DateTime[]>();
+            Conflicts_PassOver[vehicle] = new Dictionary<Vehicle, DateTime[]>();
             foreach (var v in OutgoingVehicles[vehicle.LastControlPoint].Intersect(IncomingVehicles[vehicle.NextControlPoint]))
                 if (v != vehicle)
                 {
-                    var timesOfPassingOver = vehicle.GetTime_PassingOver(v);
-                    if (timesOfPassingOver.Length > 0) Conflicts_PassingOver[vehicle].Add(v, timesOfPassingOver);
+                    var times = vehicle.GetTimes_PassOver(v);
+                    if (times.Length > 0) Conflicts_PassOver[vehicle].Add(v, times);
                 }
-            return Conflicts_PassingOver[vehicle].Count > 0;
+            return Conflicts_PassOver[vehicle].Count > 0;
+        }
+        internal bool IdentifyConflicts_CrossOver(Vehicle vehicle)
+        {
+            Conflicts_CrossOver[vehicle] = new Dictionary<Vehicle, DateTime>();
+            foreach (var v in OutgoingVehicles[vehicle.NextControlPoint].Intersect(IncomingVehicles[vehicle.LastControlPoint]))
+                Conflicts_CrossOver[vehicle].Add(v, vehicle.GetTime_CrossOver(v));                
+            return Conflicts_CrossOver[vehicle].Count > 0;
         }
     }
 }

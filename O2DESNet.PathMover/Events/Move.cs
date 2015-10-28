@@ -23,16 +23,19 @@ namespace O2DESNet.PathMover.Events
                 //targetSpeed: 20);
                 //targetSpeed: 15.0 + 5.0 * _sim.RS.NextDouble());
                 targetSpeed: 20.0 * _sim.RS.NextDouble());
-            if (_sim.Status.IdentifyConflicts_PassingOver(Vehicle))
+            if (_sim.Status.IdentifyConflicts_PassOver(Vehicle))
             {
-                foreach (var i in _sim.Status.Conflicts_PassingOver[Vehicle])
+                foreach (var i in _sim.Status.Conflicts_PassOver[Vehicle])
                     for (int j = 0; j < i.Value.Length; j++)
                     {
                         if (j / 2 * 2 == j) _sim.ScheduleEvent(new PassOver(_sim, Vehicle, i.Key), i.Value[j]);
                         else _sim.ScheduleEvent(new PassOver(_sim, i.Key, Vehicle), i.Value[j]);
                     }
             }
-            _sim.ScheduleEvent(new Move(_sim, Vehicle), TimeSpan.FromSeconds(Vehicle.TimeToEnd));
+            if (_sim.Status.IdentifyConflicts_CrossOver(Vehicle))
+                foreach (var i in _sim.Status.Conflicts_CrossOver[Vehicle])
+                    _sim.ScheduleEvent(new CrossOver(_sim, Vehicle, i.Key), i.Value);
+            _sim.ScheduleEvent(new Move(_sim, Vehicle), TimeSpan.FromSeconds(Vehicle.Time_ToNextControlPoint));
         }
     }
 }

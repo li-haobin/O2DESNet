@@ -45,7 +45,8 @@ namespace O2DESNet.PathMover
             {
                 sim.Run(TimeSpan.FromDays(1));
                 Console.Clear();
-                Console.WriteLine("# Passing-Overs: {0}", sim.Status.CounterForPassingOvers);
+                Console.WriteLine("# Pass-Overs: {0}", sim.Status.Count_PassOvers);
+                Console.WriteLine("# Cross-Overs: {0}", sim.Status.Count_CrossOvers);
                 foreach (var item in sim.Status.VehicleCounters)
                     Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
                 Console.ReadKey();
@@ -62,9 +63,5 @@ namespace O2DESNet.PathMover
                 Console.WriteLine();
             }
         }
-        
-        
-
-        
     }
 }

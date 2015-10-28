@@ -24,13 +24,11 @@ namespace O2DESNet.PathMover.Dynamics
         public double TargetSpeed { get; internal set; }
         public double Acceleration { get; internal set; }
 
-        public double DistanceToTravel { get; internal set; }
-        public double TimeToTargetSpeed { get; private set; }
-        public double DistanceToTargetSpeed { get; private set; }
-        public double EndingSpeed { get; internal set; }
-        public double TimeToEnd { get; private set; }
-
-        public Dictionary<Vehicle, DateTime> Conflicts_PassingOver;
+        public double Distance_ToNextControlPoint { get; internal set; }
+        public double Distance_ToTargetSpeed { get; private set; }
+        public double Time_ToNextControlPoint { get; private set; }
+        public double Time_ToTargetSpeed { get; private set; }
+        public double Speed_ToNextControlPoint { get; internal set; }        
 
         public List<ControlPoint> HistoricalPath { get; private set; }
 
@@ -50,35 +48,44 @@ namespace O2DESNet.PathMover.Dynamics
         }
         internal void ForwardCalculate()
         {
-            TimeToTargetSpeed = (TargetSpeed - Speed) / Acceleration;
-            if (TimeToTargetSpeed < 0) TimeToTargetSpeed = double.PositiveInfinity;
-            DistanceToTargetSpeed = Speed * TimeToTargetSpeed + Acceleration * TimeToTargetSpeed * TimeToTargetSpeed / 2;
-            if (DistanceToTargetSpeed < DistanceToTravel)
+            Time_ToTargetSpeed = (TargetSpeed - Speed) / Acceleration;
+            if (Time_ToTargetSpeed < 0) Time_ToTargetSpeed = double.PositiveInfinity;
+            Distance_ToTargetSpeed = Speed * Time_ToTargetSpeed + Acceleration * Time_ToTargetSpeed * Time_ToTargetSpeed / 2;
+            if (Distance_ToTargetSpeed < Distance_ToNextControlPoint)
             {
-                EndingSpeed = TargetSpeed;
-                TimeToEnd = TimeToTargetSpeed + (DistanceToTravel - DistanceToTargetSpeed) / TargetSpeed;
+                Speed_ToNextControlPoint = TargetSpeed;
+                Time_ToNextControlPoint = Time_ToTargetSpeed + (Distance_ToNextControlPoint - Distance_ToTargetSpeed) / TargetSpeed;
             }
             else
             {
-                EndingSpeed = Math.Sqrt(Speed * Speed + Acceleration * DistanceToTravel * 2);
-                TimeToEnd = (EndingSpeed - Speed) / Acceleration;
+                Speed_ToNextControlPoint = Math.Sqrt(Speed * Speed + Acceleration * Distance_ToNextControlPoint * 2);
+                Time_ToNextControlPoint = (Speed_ToNextControlPoint - Speed) / Acceleration;
             }
         }
         public double GetDistance(DateTime time)
         {
             var t = (time - LastTime).TotalSeconds;
-            if (t < 0 || t > TimeToEnd) throw new Exception("Given time is out of range.");
-            if (t < TimeToTargetSpeed) return Speed * t + Acceleration * t * t / 2;
-            else return (TargetSpeed * TargetSpeed - Speed * Speed) / Acceleration / 2 + TargetSpeed * (t - TimeToTargetSpeed);
+            if (t < 0 || t > Time_ToNextControlPoint) throw new Exception("Given time is out of range.");
+            if (t < Time_ToTargetSpeed) return Speed * t + Acceleration * t * t / 2;
+            else return (TargetSpeed * TargetSpeed - Speed * Speed) / Acceleration / 2 + TargetSpeed * (t - Time_ToTargetSpeed);
         }
-        #region Identify conflict of passing-Over another vehicle
-        internal DateTime[] GetTime_PassingOver(Vehicle vehicle)
+
+        public override string ToString()
+        {
+            var str = string.Format("[Vehicle #{0}]\n", Id);
+            str += string.Format("CP#{0}->#{1} since {2}.\n", LastControlPoint.Id, NextControlPoint.Id, LastTime);
+            str += string.Format("with speed {0:F4}->{1:F4} m/s \nand acc. {2:F4} m/s2.", Speed, TargetSpeed, Acceleration);
+            return str;
+        }
+
+        #region Identify passing-over & crossing-over another vehicle
+        internal DateTime[] GetTimes_PassOver(Vehicle vehicle)
         {
             double v11, v12, v21, v22, t12, t21, t22, tMax, a1, a2;
             v11 = Speed; v12 = TargetSpeed; v21 = vehicle.Speed; v22 = vehicle.TargetSpeed;
-            t12 = TimeToTargetSpeed;
-            t21 = (vehicle.LastTime - LastTime).TotalSeconds; t22 = t21 + vehicle.TimeToTargetSpeed;
-            tMax = Math.Min(TimeToEnd, t21 + vehicle.TimeToEnd);
+            t12 = Time_ToTargetSpeed;
+            t21 = (vehicle.LastTime - LastTime).TotalSeconds; t22 = t21 + vehicle.Time_ToTargetSpeed;
+            tMax = Math.Min(Time_ToNextControlPoint, t21 + vehicle.Time_ToNextControlPoint);
             a1 = Acceleration; a2 = vehicle.Acceleration;
             double[] times;
             if (t22 < 0)
@@ -101,6 +108,36 @@ namespace O2DESNet.PathMover.Dynamics
             }
             return times.Select(t => LastTime.AddSeconds(t)).ToArray();
         }
+        internal DateTime GetTime_CrossOver(Vehicle vehicle)
+        {
+            double v11, v12, v21, v22, t12, t21, t22, a1, a2, s;
+            v11 = Speed; v12 = TargetSpeed; v21 = vehicle.Speed; v22 = vehicle.TargetSpeed;
+            t12 = Time_ToTargetSpeed;
+            t21 = (vehicle.LastTime - LastTime).TotalSeconds; t22 = t21 + vehicle.Time_ToTargetSpeed;
+            s = Distance_ToNextControlPoint;
+            a1 = Acceleration; a2 = vehicle.Acceleration;
+            double[] times;
+            if (t22 < 0)
+            {
+                times = SolveCrossOverEq14(v11, v21, v22, t22, a1, a2, s).Where(t => t < t12).Concat(
+                    SolveCrossOverEq24(v11, v12, v21, v22, t12, t22, a1, a2, s).Where(t => t12 <= t)).ToArray();
+
+            }
+            else if (t22 < t12)
+            {
+                times = SolveCrossOverEq13(v11, v21, t21, a1, a2, s).Where(t => t < t22).Concat(
+                    SolveCrossOverEq14(v11, v21, v22, t22, a1, a2, s).Where(t => t22 <= t && t < t12)).Concat(
+                    SolveCrossOverEq24(v11, v12, v21, v22, t12, t22, a1, a2, s).Where(t => t12 <= t)).ToArray();
+            }
+            else
+            {
+                times = SolveCrossOverEq13(v11, v21, t21, a1, a2, s).Where(t => t < t12).Concat(
+                   SolveCrossOverEq23(v11, v12, v21, t12, t21, a1, a2, s).Where(t => t12 <= t && t < t22)).Concat(
+                    SolveCrossOverEq24(v11, v12, v21, v22, t12, t22, a1, a2, s).Where(t => t22 <= t)).ToArray();
+            }
+            //if (times.Length > 1) throw new Exception(); // for validation only
+            return LastTime.AddSeconds(times.First());
+        }
         private static IEnumerable<double> SolvePassOverEq13(double v11, double v21, double t21, double a1, double a2, double tMax)
         {
             return Quadratic.Solve((a1 - a2) / 2, v11 - v21 + a2 * t21, v21 * t21 - a2 * t21 * t21 / 2).Where(t => t >= 0 && t < tMax);
@@ -117,14 +154,24 @@ namespace O2DESNet.PathMover.Dynamics
         {
             return new double[] { ((v22 * v22 - v21 * v21) / (a2 * 2) - (v12 * v12 - v11 * v11) / (a1 * 2) + v12 * t12 - v22 * t22) / (v12 - v22) }.Where(t => t >= 0 && t < tMax);
         }
+        private static IEnumerable<double> SolveCrossOverEq13(double v11, double v21, double t21, double a1, double a2, double s)
+        {
+            return Quadratic.Solve((a1 + a2) / 2, v11 + v21 - a2 * t21, a2 * t21 * t21 / 2 - v21 * t21 - s).Where(t => t >= 0);
+        }
+        private static IEnumerable<double> SolveCrossOverEq14(double v11, double v21, double v22, double t22, double a1, double a2, double s)
+        {
+            return Quadratic.Solve(a1 / 2, v11 + v22, (v22 * v22 - v21 * v21) / (a2 * 2) - v22 * t22 - s).Where(t => t >= 0);
+        }
+        private static IEnumerable<double> SolveCrossOverEq23(double v11, double v12, double v21, double t12, double t21, double a1, double a2, double s)
+        {
+            return Quadratic.Solve(a2 / 2, v21 + v12 - a2 * t21, a2 * t21 * t21 / 2 - v12 * t12 - v21 * t21 + (v12 * v12 - v11 * v11) / (a1 * 2) - s).Where(t => t >= 0);
+        }
+        private static IEnumerable<double> SolveCrossOverEq24(double v11, double v12, double v21, double v22, double t12, double t22, double a1, double a2, double s)
+        {
+            return new double[] { (s - (v22 * v22 - v21 * v21) / (a2 * 2) - (v12 * v12 - v11 * v11) / (a1 * 2) + v12 * t12 + v22 * t22) / (v12 + v22) }.Where(t => t >= 0);
+        }
         #endregion
 
-        public override string ToString()
-        {
-            var str = string.Format("[Vehicle #{0}]\n", Id);
-            str += string.Format("CP#{0}->#{1} since {2}.\n", LastControlPoint.Id, NextControlPoint.Id, LastTime);
-            str += string.Format("with speed {0:F4}->{1:F4} m/s \nand acc. {2:F4} m/s2.", Speed, TargetSpeed, Acceleration);
-            return str;
-        }
+
     }
 }

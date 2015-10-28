@@ -47,6 +47,7 @@
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\CrossOver.cs" />
     <Compile Include="Events\PassOver.cs" />
     <Compile Include="Events\Move.cs" />
     <Compile Include="Events\Start.cs" />
