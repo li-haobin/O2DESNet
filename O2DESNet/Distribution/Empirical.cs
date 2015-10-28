@@ -8,7 +8,7 @@ namespace O2DESNet.Distribution
 {
     public class Empirical
     {
-        public static int Sample(double[] ratios, Random rs)
+        public static int Sample(Random rs, double[] ratios)
         {
             var v = ratios.Sum() * rs.NextDouble();
             double sum = 0;

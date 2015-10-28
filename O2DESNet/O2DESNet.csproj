@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Distribution\Uniform.cs" />
+    <Compile Include="Distribution\Exponential.cs" />
     <Compile Include="Distribution\Empirical.cs" />
     <Compile Include="O2DES.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
