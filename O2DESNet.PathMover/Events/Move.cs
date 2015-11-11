@@ -14,16 +14,19 @@ namespace O2DESNet.PathMover.Events
         internal Move(Simulator sim, Vehicle vehicle) : base(sim) { Vehicle = vehicle; }
         public override void Invoke()
         {
-            if (!Vehicle.On)
-                _sim.Status.PutOn(Vehicle, _sim.Scenario.ControlPoints[_sim.RS.Next(_sim.Scenario.ControlPoints.Count)]);
-            else _sim.Status.Reach(Vehicle);
+            if (!Vehicle.On) Vehicle.PutOn(_sim.Scenario.ControlPoints[_sim.RS.Next(_sim.Scenario.ControlPoints.Count)]);
+            else Vehicle.Reach();
 
             var cps = Vehicle.LastControlPoint.PathingTable.Keys.Except(new ControlPoint[] { Vehicle.LastControlPoint }).ToList();
-            _sim.Status.MoveToNext(Vehicle, cps[_sim.RS.Next(cps.Count)],
+            bool withinBuffer;
+            //Vehicle.MoveToNext(cps[_sim.RS.Next(cps.Count)],
                 //targetSpeed: 20);
                 //targetSpeed: 15.0 + 5.0 * _sim.RS.NextDouble());
-                targetSpeed: 20.0 * _sim.RS.NextDouble());
-            if (_sim.Status.IdentifyConflicts_PassOver(Vehicle))
+                //targetSpeed: 20.0 * _sim.RS.NextDouble());
+            //Vehicle.MoveToNext(cps[_sim.RS.Next(cps.Count)], targetSpeed: 20.0 * _sim.RS.NextDouble());
+            Vehicle.MoveToNext(cps[_sim.RS.Next(cps.Count)], bufferTime: 0.01, withinBuffer: out withinBuffer);
+            if (!withinBuffer) _sim.Status.Count_FailureToScheduleWithinBuffer++;
+            if (Vehicle.IdentifyConflicts_PassOver())
             {
                 foreach (var i in _sim.Status.Conflicts_PassOver[Vehicle])
                     for (int j = 0; j < i.Value.Length; j++)
@@ -32,7 +35,7 @@ namespace O2DESNet.PathMover.Events
                         else _sim.ScheduleEvent(new PassOver(_sim, i.Key, Vehicle), i.Value[j]);
                     }
             }
-            if (_sim.Status.IdentifyConflicts_CrossOver(Vehicle))
+            if (Vehicle.IdentifyConflicts_CrossOver())
                 foreach (var i in _sim.Status.Conflicts_CrossOver[Vehicle])
                     _sim.ScheduleEvent(new CrossOver(_sim, Vehicle, i.Key), i.Value);
             _sim.ScheduleEvent(new Move(_sim, Vehicle), TimeSpan.FromSeconds(Vehicle.Time_ToNextControlPoint));

@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dynamics\Job.cs" />
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Events\Event.cs" />

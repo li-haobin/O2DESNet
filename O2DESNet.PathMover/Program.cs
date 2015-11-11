@@ -47,10 +47,33 @@ namespace O2DESNet.PathMover
                 Console.Clear();
                 Console.WriteLine("# Pass-Overs: {0}", sim.Status.Count_PassOvers);
                 Console.WriteLine("# Cross-Overs: {0}", sim.Status.Count_CrossOvers);
+                Console.WriteLine("# Failure of Scheduling in Buffer: {0}", sim.Status.Count_FailureToScheduleWithinBuffer);
                 foreach (var item in sim.Status.VehicleCounters)
                     Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
                 Console.ReadKey();
             }
+        }
+
+        static Scenario GetPM1()
+        {
+            var pm = new Scenario();
+            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, maxSpeed: 20, direction: Direction.Forward)).ToArray();
+            pm.Connect(paths[0], paths[1]);
+            pm.Connect(paths[1], paths[2]);
+            pm.Connect(paths[2], paths[3]);
+            pm.Connect(paths[3], paths[0]);
+            pm.Connect(paths[0], paths[4], 50, 0);
+            pm.Connect(paths[2], paths[4], 50, 100);
+            pm.Connect(paths[1], paths[5], 50, 0);
+            pm.Connect(paths[3], paths[5], 50, 100);
+            pm.Connect(paths[4], paths[5], 50, 50);
+            var cp1 = pm.CreateControlPoint(paths[0], 30);
+            var cp2 = pm.CreateControlPoint(paths[0], 40);
+            var vt1 = new VehicleType(maxSpeed: 20, maxAcceleration: 20, maxDeceleration: 20);
+            var vt2 = new VehicleType(maxSpeed: 30, maxAcceleration: 15, maxDeceleration: 10);
+            pm.AddVehicles(vt1, 2);
+            pm.AddVehicles(vt2, 3);
+            return pm;
         }
 
         static void DisplayRouteTable(Scenario pm)
