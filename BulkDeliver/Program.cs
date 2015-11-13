@@ -13,6 +13,14 @@ namespace BulkDeliver
     {
         static void Main(string[] args)
         {
+            var scenario = FileReader.GetScenario();
+            var cplexSolver = new CplexSolver(scenario, 60, 1);
+
+            SimOpt();
+        }
+
+        static void SimOpt()
+        {
             while (true)
             {
                 var baseScenario = FileReader.GetScenario();
