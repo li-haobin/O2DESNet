@@ -14,7 +14,11 @@ namespace BulkDeliver
         static void Main(string[] args)
         {
             var scenario = FileReader.GetScenario();
-            var cplexSolver = new CplexSolver(scenario, 60, 1);
+
+            //var timestamp = DateTime.Now;
+            //var cplexSolver = new CplexSolver(scenario, 15, 2);
+            //Console.WriteLine("{0} Seconds.", (DateTime.Now - timestamp).TotalSeconds);
+            //Console.ReadKey();
 
             SimOpt();
         }
@@ -49,11 +53,13 @@ namespace BulkDeliver
                     {
                         var sim = new Simulation(scenario, seed);
                         sim.Run(TimeSpan.FromDays(days));
-                        return sim.AverageAnnualCost;
+                        return sim.AverageAnnualCost / 365;
                     },
                     decisions
                     );
+                var timestamp = DateTime.Now;
                 selection.Evaluate(cl, budget, true);
+                Console.WriteLine("{0} Seconds.", (DateTime.Now - timestamp).TotalSeconds);
                 Console.WriteLine("\n");
                 selection.Display();
 

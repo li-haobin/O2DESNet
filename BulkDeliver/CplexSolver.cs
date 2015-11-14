@@ -60,7 +60,7 @@ namespace BulkDeliver
                 }
                 _model.AddEq(sampleCosts[i], _model.Prod(1.0 / nDays, _model.Sum(_model.Sum(holdingCosts), _model.Sum(deliveryCosts))));
                 // end trigering
-                //_model.Add(_model.IfThen(_model.Ge(_model.Sum(startingWeights[nDays - 1], inWeights[nDays - 1]), 0), _model.Eq(toDeliver[nDays - 1], 1)));
+                _model.Add(_model.IfThen(_model.Ge(_model.Sum(startingWeights[nDays - 1], inWeights[nDays - 1]), 0), _model.Eq(toDeliver[nDays - 1], 1)));
             }
 
             _model.AddMinimize(_model.Prod(1.0 / nSamples, _model.Sum(sampleCosts)));
@@ -70,8 +70,8 @@ namespace BulkDeliver
                 Console.Clear();
                 Console.WriteLine("Min. Average Sample Daily Cost = {0}", _model.GetObjValue());
 
-                //var values1 = _model.GetValues(deliveryCosts);
-                //var values2 = _model.GetValues(holdingCosts);
+                //var values1 = _model.GetValues(deliveryCosts); var sum1 = values1.Sum();
+                //var values2 = _model.GetValues(holdingCosts); var sum2 = values2.Sum();
                 //var values3 = _model.GetValues(toDeliver);
                 //var values4 = _model.GetValues(maxDelays);
 
