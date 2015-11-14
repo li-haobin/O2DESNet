@@ -16,7 +16,7 @@ namespace BulkDeliver
             var scenario = FileReader.GetScenario();
 
             //var timestamp = DateTime.Now;
-            //var cplexSolver = new CplexSolver(scenario, 15, 2);
+            //var cplexSolver = new CplexSolver(scenario, 7, 3);
             //Console.WriteLine("{0} Seconds.", (DateTime.Now - timestamp).TotalSeconds);
             //Console.ReadKey();
 

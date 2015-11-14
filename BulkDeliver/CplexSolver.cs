@@ -63,7 +63,8 @@ namespace BulkDeliver
                 _model.Add(_model.IfThen(_model.Ge(_model.Sum(startingWeights[nDays - 1], inWeights[nDays - 1]), 0), _model.Eq(toDeliver[nDays - 1], 1)));
             }
 
-            _model.AddMinimize(_model.Prod(1.0 / nSamples, _model.Sum(sampleCosts)));
+
+            _model.AddMinimize(_model.Sum(_model.Prod(1.0 / nSamples, _model.Sum(sampleCosts)), _model.Prod(0.000001, weightThreshold)));
 
             if (_model.Solve())
             {
@@ -89,14 +90,14 @@ namespace BulkDeliver
             {
                 _model.Add(_model.IfThen(activator, _model.IfThen(
                     _model.Ge(weight, startWeight), _model.IfThen(_model.Le(weight, pieceCost.StartWeight),
-                        _model.Ge(cost, _model.Sum(constan, _model.Prod(unitCost, _model.Sum(weight, -startWeight))))))));
+                        _model.Eq(cost, _model.Sum(constan, _model.Prod(unitCost, _model.Sum(weight, -startWeight))))))));
                 constan += unitCost * (pieceCost.StartWeight - startWeight);
                 startWeight = pieceCost.StartWeight;
                 unitCost = pieceCost.UnitCost;
             }
             _model.Add(_model.IfThen(activator, _model.IfThen(
                     _model.Ge(weight, startWeight),
-                    _model.Ge(cost, _model.Sum(constan, _model.Prod(unitCost, _model.Sum(weight, -startWeight)))))));
+                    _model.Eq(cost, _model.Sum(constan, _model.Prod(unitCost, _model.Sum(weight, -startWeight)))))));
         }
 
         private void Sample(int nDays, out double[] inWeights, out double[] inHoldingCosts)
