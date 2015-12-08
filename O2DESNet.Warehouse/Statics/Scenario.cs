@@ -93,7 +93,7 @@ namespace O2DESNet.Warehouse.Statics
                     Shelves[data[1]], Convert.ToDouble(data[2]));
             }
         }
-        private void ReadSKUsFile(string filename)
+        public void ReadSKUsFile(string filename)
         {
             var SKUs = CSVToList(filename);
             foreach (var data in SKUs)
@@ -321,7 +321,7 @@ namespace O2DESNet.Warehouse.Statics
         #endregion
 
         #region For Static Routing (Distance-Based), Using Dijkstra
-        public void Initialize()
+        public void InitializeRouting()
         {
             ConstructRoutingTables();
             ConstructPathingTables();

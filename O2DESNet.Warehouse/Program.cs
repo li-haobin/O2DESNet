@@ -8,12 +8,13 @@ namespace O2DESNet.Warehouse
     {
         static void Main(string[] args)
         {
-            WarehouseSim whsim = new WarehouseSim("Trial");
-            //whsim.wh.ViewAll();
+            WarehouseSim whsim = new WarehouseSim("ZA");
+            whsim.wh.ViewRacks();
 
             //DisplayRouteTable(whsim.wh);
             //DisplayPathingTable(whsim.wh);
 
+            Console.WriteLine("Simulation End");
             Console.ReadKey();
         }
 
