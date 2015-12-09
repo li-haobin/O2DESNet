@@ -15,7 +15,7 @@ namespace O2DESNet.Warehouse.Statics
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         /// <summary>
-        /// Numbers of vehicles of each type
+        /// Numbers of pickers of each type
         /// </summary>
         public Dictionary<PickerType, int> NumPickers { get; private set; }
         /// <summary>
@@ -213,7 +213,7 @@ namespace O2DESNet.Warehouse.Statics
             {
                 Console.Write("{0}\t{1}\t", s.SKU_ID, s.Description);
                 foreach (var r in s.Racks)
-                    Console.Write("{0} ", r.Rack_ID);
+                    Console.Write("{0} ", r.Key.Rack_ID);
                 Console.WriteLine("");
             }
 
@@ -285,7 +285,10 @@ namespace O2DESNet.Warehouse.Statics
         public void AddToRack(SKU _sku, CPRack rack)
         {
             if (!SKUs.ContainsKey(_sku.SKU_ID)) SKUs.Add(_sku.SKU_ID, _sku);
-            _sku.Racks.Add(rack);
+
+            if (!_sku.Racks.ContainsKey(rack)) _sku.Racks.Add(rack, 0);
+            else _sku.Racks[rack]++;
+
             rack.SKUs.Add(_sku);
             rack.OnShelf.SKUs.Add(_sku, rack);
         }

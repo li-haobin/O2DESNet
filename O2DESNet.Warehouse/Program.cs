@@ -9,7 +9,7 @@ namespace O2DESNet.Warehouse
         static void Main(string[] args)
         {
             WarehouseSim whsim = new WarehouseSim("ZA");
-            whsim.wh.ViewRacks();
+            //whsim.wh.ViewRacks();
 
             //DisplayRouteTable(whsim.wh);
             //DisplayPathingTable(whsim.wh);
