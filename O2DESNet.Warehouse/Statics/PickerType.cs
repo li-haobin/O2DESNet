@@ -29,12 +29,12 @@ namespace O2DESNet.Warehouse.Statics
             Capacity = capacity;
         }
 
-        public double GetTravellingTime(ControlPoint from, ControlPoint to)
+        public double GetNextTravelTime(ControlPoint from, ControlPoint to)
         {
             return 0;
         }
 
-        public TimeSpan GetPickingTime()
+        public TimeSpan GetNextPickingTime()
         {
             return AvePickTime;
         }

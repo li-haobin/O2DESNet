@@ -9,10 +9,10 @@ namespace O2DESNet.Warehouse.Dynamics
 {
     public class Picker
     {
-        public ControlPoint CurLocation;
-        public PickerType Type;
-        public List<PickJob> PickList;
-        public Dictionary<SKU, int> Items;
+        public ControlPoint CurLocation { get; set; }
+        public PickerType Type { get; private set; }
+        public List<PickJob> PickList { get; set; }
+        public Dictionary<SKU, int> Items { get; set; }
 
         public Picker(PickerType type)
         {
@@ -23,18 +23,18 @@ namespace O2DESNet.Warehouse.Dynamics
         }
 
         // All time in seconds
-        public double GetNextTravelTime(ControlPoint destination)
+        public double GetTravelTime(ControlPoint destination)
         {
-            return Type.GetTravellingTime(CurLocation, destination);
+            return Type.GetNextTravelTime(CurLocation, destination);
         }
-        public TimeSpan GetNextPickingTime()
+        public TimeSpan GetPickingTime()
         {
-            return Type.GetPickingTime();
+            return Type.GetNextPickingTime();
         }
         public void PickNextItem()
         {
             var pickJob = PickList.First();
-            if (CurLocation != pickJob.location) throw new Exception("Wrong location, halt pick");
+            if (CurLocation != pickJob.location) throw new Exception("ERROR! Wrong location, halt pick");
 
             pickJob.item.PickFromRack(pickJob.location, pickJob.quantity);
 

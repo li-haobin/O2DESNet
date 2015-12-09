@@ -21,7 +21,7 @@ namespace O2DESNet.Warehouse.Events
             picker.CurLocation = _sim.Scenario.StartCP; 
             if(picker.PickList.Count > 0)
             {
-                var duration = picker.GetNextTravelTime(picker.PickList.First().location);
+                var duration = picker.GetTravelTime(picker.PickList.First().location);
                 _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.AddSeconds(duration));
 
                 // Any status updates?

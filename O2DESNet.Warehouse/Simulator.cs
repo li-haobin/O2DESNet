@@ -16,7 +16,7 @@ namespace O2DESNet.Warehouse
             Status = new Status(this);
             RS = new Random(seed);
 
-            // new Events.Start(this).Invoke();
+            new Events.StartSim(this).Invoke();
         }
     }
 }
