@@ -51,7 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dynamics\Pick.cs" />
+    <Compile Include="Dynamics\PickJob.cs" />
     <Compile Include="Dynamics\Picker.cs" />
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Events\PickItem.cs" />

@@ -11,14 +11,14 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         public ControlPoint CurLocation;
         public PickerType Type;
-        public List<Pick> PickList;
+        public List<PickJob> PickList;
         public Dictionary<SKU, int> Items;
 
         public Picker(PickerType type)
         {
             CurLocation = null;
             Type = type;
-            PickList = new List<Pick>();
+            PickList = new List<PickJob>();
             Items = new Dictionary<SKU, int>();
         }
 
@@ -33,16 +33,13 @@ namespace O2DESNet.Warehouse.Dynamics
         }
         public void PickNextItem()
         {
-            var pick = PickList.First();
-            if (CurLocation != pick.location) throw new Exception("Wrong location, unable to pick");
+            var pickJob = PickList.First();
+            if (CurLocation != pickJob.location) throw new Exception("Wrong location, halt pick");
 
-            if (pick.item.Racks[pick.location] >= pick.quantity)
-                pick.item.Racks[pick.location] -= pick.quantity;
-            else
-                throw new Exception("Shortage of item at location");
+            pickJob.item.PickFromRack(pickJob.location, pickJob.quantity);
 
-            if (!Items.ContainsKey(pick.item)) Items.Add(pick.item, 1);
-            else Items[pick.item] += pick.quantity;
+            if (!Items.ContainsKey(pickJob.item)) Items.Add(pickJob.item, 1);
+            else Items[pickJob.item] += pickJob.quantity;
 
             PickList.RemoveAt(0);
         }

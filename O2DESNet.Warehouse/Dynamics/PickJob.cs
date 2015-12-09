@@ -7,7 +7,7 @@ using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse.Dynamics
 {
-    public class Pick
+    public class PickJob
     {
         public SKU item;
         public CPRack location;

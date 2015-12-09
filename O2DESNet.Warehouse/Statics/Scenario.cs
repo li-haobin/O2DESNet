@@ -217,7 +217,7 @@ namespace O2DESNet.Warehouse.Statics
             foreach (var s in SKUs.Values.ToList())
             {
                 Console.Write("{0}\t{1}\t", s.SKU_ID, s.Description);
-                foreach (var r in s.Racks)
+                foreach (var r in s.QtyAtRack)
                     Console.Write("{0} ", r.Key.Rack_ID);
                 Console.WriteLine("");
             }
@@ -291,11 +291,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             if (!SKUs.ContainsKey(_sku.SKU_ID)) SKUs.Add(_sku.SKU_ID, _sku);
 
-            if (!_sku.Racks.ContainsKey(rack)) _sku.Racks.Add(rack, 1);
-            else _sku.Racks[rack]++;
-
-            rack.SKUs.Add(_sku);
-            rack.OnShelf.SKUs.Add(_sku, rack);
+            _sku.AddToRack(rack);
         }
         public void AddPickers(PickerType pickerType, int quantity)
         {
