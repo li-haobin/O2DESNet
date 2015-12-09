@@ -20,7 +20,7 @@ namespace O2DESNet.Warehouse.Dynamics
         internal Status(Simulator simulation)
         {
             _sim = simulation;
-            //AllVehicles = _sim.Scenario.NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Vehicle(item.Key))).ToArray();
+            AllPicker = _sim.Scenario.NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
             //IncomingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             //OutgoingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             //OffVehicles = new HashSet<Vehicle>(AllVehicles);

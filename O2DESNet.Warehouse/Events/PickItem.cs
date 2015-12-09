@@ -20,15 +20,16 @@ namespace O2DESNet.Warehouse.Events
             picker.PickNextItem();
             if (picker.PickList.Count > 0)
             {
-                var duration = picker.GetNextTravelTime();
+                var duration = picker.GetNextTravelTime(picker.PickList.First().location);
                 _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.AddSeconds(duration));
 
                 // Any status updates?
             }
             else
             {
-                // Supposed to go to end location
-                _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime);
+                // Return to start location
+                var duration = picker.GetNextTravelTime(_sim.Scenario.StartCP);
+                _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime.AddSeconds(duration));
             }
         }
 

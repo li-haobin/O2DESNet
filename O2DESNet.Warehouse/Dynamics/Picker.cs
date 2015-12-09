@@ -14,10 +14,18 @@ namespace O2DESNet.Warehouse.Dynamics
         public List<Pick> PickList;
         public Dictionary<SKU, int> Items;
 
-        // All time in seconds
-        public double GetNextTravelTime()
+        public Picker(PickerType type)
         {
-            return Type.GetTravellingTime(CurLocation, PickList.First().location);
+            CurLocation = null;
+            Type = type;
+            PickList = new List<Pick>();
+            Items = new Dictionary<SKU, int>();
+        }
+
+        // All time in seconds
+        public double GetNextTravelTime(ControlPoint destination)
+        {
+            return Type.GetTravellingTime(CurLocation, destination);
         }
         public TimeSpan GetNextPickingTime()
         {
