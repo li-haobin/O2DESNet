@@ -10,7 +10,7 @@ namespace O2DESNet.Warehouse.Statics
     {
         private static int _count = 0;
         public int Id { get; private set; }
-        public double AveMoveSpeed { get; private set; }
+        public double AveMoveSpeed { get; private set; } // metre per sec
         public TimeSpan AvePickTime{ get; private set; }
         public double Capacity { get; private set; }
 
@@ -31,7 +31,11 @@ namespace O2DESNet.Warehouse.Statics
 
         public double GetNextTravelTime(ControlPoint from, ControlPoint to)
         {
-            return 0;
+            // In metres
+            var dist = from.GetDistanceTo(from);
+
+            // In seconds
+            return dist / AveMoveSpeed;
         }
 
         public TimeSpan GetNextPickingTime()

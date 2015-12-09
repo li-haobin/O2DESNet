@@ -34,9 +34,9 @@ namespace O2DESNet.Warehouse.Dynamics
         public void PickNextItem()
         {
             var pickJob = PickList.First();
-            if (CurLocation != pickJob.location) throw new Exception("ERROR! Wrong location, halt pick");
+            if (CurLocation != pickJob.rack.OnShelf.BaseCP) throw new Exception("ERROR! Wrong location, halt pick");
 
-            pickJob.item.PickFromRack(pickJob.location, pickJob.quantity);
+            pickJob.item.PickFromRack(pickJob.rack, pickJob.quantity);
 
             if (!Items.ContainsKey(pickJob.item)) Items.Add(pickJob.item, 1);
             else Items[pickJob.item] += pickJob.quantity;

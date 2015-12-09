@@ -14,7 +14,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Parent Classes for Dijkstra
         /// </summary>  
         public List<Path> Paths { get; private set; }
-        public List<ControlPoint> ControlPoints { get; private set; }
+        public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack
         /// <summary>
         /// Numbers of pickers of each type
         /// </summary>
@@ -41,7 +41,8 @@ namespace O2DESNet.Warehouse.Statics
             Racks = new Dictionary<string, CPRack>();
             SKUs = new Dictionary<string, SKU>();
             Name = name;
-
+            
+            // Starting location
             StartCP = null;
             ControlPoints.Add(StartCP);
         }
@@ -264,6 +265,7 @@ namespace O2DESNet.Warehouse.Statics
             Paths.Add(shelf);
             Shelves.Add(shelf_ID, shelf);
             Connect(shelf, row, 0, pos);
+            shelf.BaseCP = shelf.ControlPoints[0];
             return shelf;
         }
         /// <summary>
@@ -273,7 +275,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var rack = new CPRack(rack_ID, shelf);
             shelf.Add(rack, position);
-            ControlPoints.Add(rack);
+            // ControlPoints.Add(rack); // Exclude CPRack from Dijkstra
             Racks.Add(rack_ID, rack);
 
             if (SKUs != null)

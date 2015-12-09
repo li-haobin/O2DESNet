@@ -20,7 +20,8 @@ namespace O2DESNet.Warehouse.Events
             picker.PickNextItem();
             if (picker.PickList.Count > 0)
             {
-                var duration = picker.GetTravelTime(picker.PickList.First().location);
+                var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
+                var duration = picker.GetTravelTime(shelfCP);
                 _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.AddSeconds(duration));
 
                 // Any status updates?

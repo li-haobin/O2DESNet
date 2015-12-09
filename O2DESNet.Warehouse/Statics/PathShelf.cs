@@ -12,6 +12,7 @@ namespace O2DESNet.Warehouse.Statics
         public string Shelf_ID { get; set; }
         public PathRow Row { get; set; }
         public List<CPRack> Racks { get; set; }
+        public ControlPoint BaseCP { get; set; }
         public Dictionary<SKU, CPRack> SKUs { get; set; }
 
         public PathShelf(string shelf_ID, double height, PathRow row, double maxSpeed, Direction direction)

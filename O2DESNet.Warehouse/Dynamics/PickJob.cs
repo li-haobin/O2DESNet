@@ -10,7 +10,7 @@ namespace O2DESNet.Warehouse.Dynamics
     public class PickJob
     {
         public SKU item { get; set; }
-        public CPRack location { get; set; }
+        public CPRack rack { get; set; }
         public int quantity { get; set; }
     }
 }
