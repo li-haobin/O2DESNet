@@ -10,7 +10,7 @@ namespace O2DESNet.Warehouse.Dynamics
     internal class Status
     {
         private Simulator _sim;   
-        //public Vehicle[] AllVehicles { get; private set; }
+        public List<Picker> AllPicker { get; private set; }
         //public Dictionary<ControlPoint, HashSet<Vehicle>> IncomingVehicles { get; private set; }
         //public Dictionary<ControlPoint, HashSet<Vehicle>> OutgoingVehicles { get; private set; }
         //public HashSet<Vehicle> OffVehicles { get; private set; }

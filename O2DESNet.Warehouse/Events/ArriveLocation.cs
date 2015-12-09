@@ -17,7 +17,9 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            throw new NotImplementedException();
+            picker.CurLocation = picker.PickList.First().location;
+            var duration = picker.GetNextPickingTime();
+            _sim.ScheduleEvent(new PickItem(_sim, picker), _sim.ClockTime.Add(duration));
         }
 
         public override void Backtrack()

@@ -17,7 +17,13 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            throw new NotImplementedException();
+            if(picker.PickList.Count > 0)
+            {
+                var duration = picker.GetNextTravelTime();
+                _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.AddSeconds(duration));
+
+                // Any status updates?
+            }
         }
 
         public override void Backtrack()

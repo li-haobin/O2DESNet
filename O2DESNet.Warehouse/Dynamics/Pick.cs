@@ -11,5 +11,6 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         public SKU item;
         public CPRack location;
+        public int quantity;
     }
 }

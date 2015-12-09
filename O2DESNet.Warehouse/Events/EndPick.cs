@@ -17,7 +17,7 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            throw new NotImplementedException();
+            // Just status update
         }
 
         public override void Backtrack()

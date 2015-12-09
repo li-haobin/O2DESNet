@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Statics
 {
@@ -286,7 +287,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             if (!SKUs.ContainsKey(_sku.SKU_ID)) SKUs.Add(_sku.SKU_ID, _sku);
 
-            if (!_sku.Racks.ContainsKey(rack)) _sku.Racks.Add(rack, 0);
+            if (!_sku.Racks.ContainsKey(rack)) _sku.Racks.Add(rack, 1);
             else _sku.Racks[rack]++;
 
             rack.SKUs.Add(_sku);

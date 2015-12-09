@@ -71,7 +71,7 @@
     <Compile Include="Statics\PathShelf.cs" />
     <Compile Include="Statics\CPRack.cs" />
     <Compile Include="Statics\Scenario.cs" />
-    <Compile Include="Statics\SKU.cs" />
+    <Compile Include="Dynamics\SKU.cs" />
     <Compile Include="Statics\PickerType.cs" />
     <Compile Include="WarehouseSim.cs" />
   </ItemGroup>

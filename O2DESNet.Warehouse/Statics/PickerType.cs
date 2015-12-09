@@ -28,6 +28,17 @@ namespace O2DESNet.Warehouse.Statics
             AvePickTime = avePickTime;
             Capacity = capacity;
         }
+
+        public double GetTravellingTime(ControlPoint from, ControlPoint to)
+        {
+            return 0;
+        }
+
+        public TimeSpan GetPickingTime()
+        {
+            return AvePickTime;
+        }
+
         ///// <summary>
         ///// Get shortest time traveling between two adjacent control points, given the start and end speed.
         ///// </summary>
