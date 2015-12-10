@@ -12,7 +12,7 @@ namespace O2DESNet.Warehouse.Dynamics
         public ControlPoint CurLocation { get; set; }
         public PickerType Type { get; private set; }
         public List<PickJob> PickList { get; set; }
-        public List<PickJob> CompletedJob { get; set; }
+        public List<PickJob> CompletedJobs { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public bool IsIdle { get; set; }
@@ -22,7 +22,7 @@ namespace O2DESNet.Warehouse.Dynamics
             CurLocation = null;
             Type = type;
             PickList = new List<PickJob>();
-            CompletedJob = new List<PickJob>();
+            CompletedJobs = new List<PickJob>();
         }
 
         // All time in seconds
@@ -41,17 +41,19 @@ namespace O2DESNet.Warehouse.Dynamics
 
             pickJob.item.PickFromRack(pickJob.rack, pickJob.quantity);
 
-            CompletedJob.Add(pickJob);
+            CompletedJobs.Add(pickJob);
 
             PickList.RemoveAt(0);
         }
 
         public int GetNumCompletedPickJobs()
         {
-            return CompletedJob.Count;
+            return CompletedJobs.Count;
         }
         public TimeSpan GetTimeToCompleteJobs()
         {
+            if (EndTime < StartTime) throw new Exception("Error: EndTime < StartTime");
+
             return EndTime - StartTime;
         }
     }

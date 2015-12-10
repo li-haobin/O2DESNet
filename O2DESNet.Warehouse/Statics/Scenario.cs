@@ -28,7 +28,7 @@ namespace O2DESNet.Warehouse.Statics
         public Dictionary<string, CPRack> Racks { get; private set; }
         public Dictionary<string, SKU> SKUs { get; private set; }
         public string Name { get; private set; }
-        public ControlPoint StartCP { get; private set; }
+        public ControlPoint StartCP { get; set; }
 
         public Scenario(string name)
         {

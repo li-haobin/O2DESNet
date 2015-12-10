@@ -36,30 +36,41 @@ namespace O2DESNet.Warehouse
         {
             // Dimensions in metres
 
-            string[] zone = { "A", "B", "C", "D" ,"E", "F", "Y", "Z"};
+            string[] zone = { "A", "B", "C", "D", "E", "F", "Y", "Z" }; // In pairs
+            int numPairs = zone.Count() / 2;
             int numRows = 5; //160
             int numShelves = 20; //20
             int numRacks = 6; //6
             double interRowSpace = 1.7;
             double shelfWidth = 1.5;
             double rackHeight = 0.35;
+            double aisleLength = numRows * interRowSpace;
             double rowLength = numShelves * shelfWidth;
             double shelfHeight = numRacks * rackHeight;
+            double interAisleDist = 2 * rowLength;
 
-            for (int z = 0; z < zone.Count() / 2; z++)
+            var mainAisle = wh.CreateAisle("MAIN", numPairs * interAisleDist);
+            wh.StartCP = wh.CreateControlPoint(mainAisle, 0);
+
+            // rowPair
+            for (int z = 0; z < numPairs; z++)
             {
-                var mainAisle = wh.CreateAisle(zone[2 * z] + zone[2 * z + 1], interRowSpace * (numRows - 1));
+                var pairAisle = wh.CreateAisle(zone[2 * z] + zone[2 * z + 1], aisleLength);
+                wh.Connect(mainAisle, pairAisle, (z + 1) * interAisleDist, 0);
 
-                for (int i = 0; i < numRows; i++)
+                // Rows
+                for (int i = 1; i <= numRows; i++)
                 {
-                    var row1 = wh.CreateRow(zone[2 * z] + "-" + (i + 1).ToString(), rowLength, mainAisle, i * interRowSpace);
-                    var row2 = wh.CreateRow(zone[2 * z + 1] + "-" + (i + 1).ToString(), rowLength, mainAisle, i * interRowSpace);
+                    var row1 = wh.CreateRow(zone[2 * z] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
+                    var row2 = wh.CreateRow(zone[2 * z + 1] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
 
+                    // Shelves
                     for (int j = 1; j <= numShelves; j++)
                     {
                         var shelf1 = wh.CreateShelf(row1.Row_ID + "-" + j.ToString(), shelfHeight, row1, j * shelfWidth);
                         var shelf2 = wh.CreateShelf(row2.Row_ID + "-" + j.ToString(), shelfHeight, row2, j * shelfWidth);
 
+                        // Racks
                         for (int k = 1; k <= numRacks; k++)
                         {
                             wh.CreateRack(shelf1.Shelf_ID + "-" + k.ToString(), shelf1, k * rackHeight);

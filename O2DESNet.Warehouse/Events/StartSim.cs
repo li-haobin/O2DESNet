@@ -15,6 +15,7 @@ namespace O2DESNet.Warehouse.Events
         {
             foreach (var picker in _sim.Status.AllPickers)
             {
+                picker.CurLocation = _sim.Scenario.StartCP;
                 _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime);
             }
         }

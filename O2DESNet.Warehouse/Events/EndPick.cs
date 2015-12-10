@@ -17,10 +17,19 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
+            // Check
+            if (picker.PickList.Count > 0) throw new Exception("There are still items to pick!");
+
             // Just status update
             picker.CurLocation = _sim.Scenario.StartCP;
             picker.EndTime = _sim.ClockTime;
             picker.IsIdle = true;
+            _sim.Status.CaptureCompletedPickList(picker);
+
+            if (_sim.Status.MasterPickList[picker.Type].Count > 0)
+            {
+                _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime);
+            }
         }
 
         public override void Backtrack()

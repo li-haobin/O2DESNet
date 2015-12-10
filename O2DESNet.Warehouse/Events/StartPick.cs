@@ -17,23 +17,31 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            // Set Start Location
-            picker.CurLocation = _sim.Scenario.StartCP;
+            // check start location
+            if (picker.CurLocation != _sim.Scenario.StartCP) throw new Exception("Picker not at StartCP, unable to start picking job");
+
             picker.StartTime = _sim.ClockTime;
             picker.IsIdle = false;
+            picker.CompletedJobs.Clear();
 
-            if (picker.PickList.Count > 0)
+            if (_sim.Status.MasterPickList[picker.Type].Count > 0)
             {
-                var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
-                var duration = picker.GetTravelTime(shelfCP);
-                _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
+                picker.PickList = _sim.Status.MasterPickList[picker.Type].First();
+                _sim.Status.MasterPickList[picker.Type].RemoveAt(0);
 
-                // Any status updates?
-            }
-            else
-            {
-                // Picklist empty
-                _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime);
+                if (picker.PickList.Count > 0)
+                {
+                    var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
+                    var duration = picker.GetTravelTime(shelfCP);
+                    _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
+
+                    // Any status updates?
+                }
+                else
+                {
+                    // Picklist empty
+                    _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime);
+                }
             }
         }
 
