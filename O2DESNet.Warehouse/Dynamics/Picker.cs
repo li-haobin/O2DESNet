@@ -50,7 +50,7 @@ namespace O2DESNet.Warehouse.Dynamics
         {
             return CompletedJobs.Count;
         }
-        public TimeSpan GetTimeToCompleteJobs()
+        public TimeSpan GetTimeToCompletePickList()
         {
             if (EndTime < StartTime) throw new Exception("Error: EndTime < StartTime");
 
