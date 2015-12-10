@@ -18,18 +18,22 @@ namespace O2DESNet.Warehouse.Events
         public override void Invoke()
         {
             // Set Start Location
-            picker.CurLocation = _sim.Scenario.StartCP; 
-            if(picker.PickList.Count > 0)
+            picker.CurLocation = _sim.Scenario.StartCP;
+            picker.StartTime = _sim.ClockTime;
+            picker.IsIdle = false;
+
+            if (picker.PickList.Count > 0)
             {
                 var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
                 var duration = picker.GetTravelTime(shelfCP);
-                _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.AddSeconds(duration));
+                _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
 
                 // Any status updates?
             }
             else
             {
                 // Picklist empty
+                _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime);
             }
         }
 

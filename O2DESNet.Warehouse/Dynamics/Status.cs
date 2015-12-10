@@ -10,7 +10,7 @@ namespace O2DESNet.Warehouse.Dynamics
     internal class Status
     {
         private Simulator _sim;   
-        public List<Picker> AllPicker { get; private set; }
+        public List<Picker> AllPickers { get; private set; }
         //public Dictionary<ControlPoint, HashSet<Vehicle>> IncomingVehicles { get; private set; }
         //public Dictionary<ControlPoint, HashSet<Vehicle>> OutgoingVehicles { get; private set; }
         //public HashSet<Vehicle> OffVehicles { get; private set; }
@@ -20,7 +20,7 @@ namespace O2DESNet.Warehouse.Dynamics
         internal Status(Simulator simulation)
         {
             _sim = simulation;
-            AllPicker = _sim.Scenario.NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
+            AllPickers = _sim.Scenario.NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
             //IncomingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             //OutgoingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             //OffVehicles = new HashSet<Vehicle>(AllVehicles);

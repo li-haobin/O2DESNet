@@ -13,7 +13,7 @@ namespace O2DESNet.Warehouse.Events
 
         public override void Invoke()
         {
-            foreach (var picker in _sim.Status.AllPicker)
+            foreach (var picker in _sim.Status.AllPickers)
             {
                 _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime);
             }
@@ -21,7 +21,7 @@ namespace O2DESNet.Warehouse.Events
 
         public override void Backtrack()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Unable to Backtrack Start Simulation Event");
         }
     }
 }

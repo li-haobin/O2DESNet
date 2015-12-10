@@ -12,36 +12,47 @@ namespace O2DESNet.Warehouse.Dynamics
         public ControlPoint CurLocation { get; set; }
         public PickerType Type { get; private set; }
         public List<PickJob> PickList { get; set; }
-        public Dictionary<SKU, int> Items { get; set; }
+        public List<PickJob> CompletedJob { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public bool IsIdle { get; set; }
 
         public Picker(PickerType type)
         {
             CurLocation = null;
             Type = type;
             PickList = new List<PickJob>();
-            Items = new Dictionary<SKU, int>();
+            CompletedJob = new List<PickJob>();
         }
 
         // All time in seconds
-        public double GetTravelTime(ControlPoint destination)
+        public TimeSpan GetTravelTime(ControlPoint destination)
         {
-            return Type.GetNextTravelTime(CurLocation, destination);
+            return TimeSpan.FromSeconds(Type.GetNextTravelTime(CurLocation, destination));
         }
         public TimeSpan GetPickingTime()
         {
             return Type.GetNextPickingTime();
         }
-        public void PickNextItem()
+        public void PickItem()
         {
             var pickJob = PickList.First();
             if (CurLocation != pickJob.rack.OnShelf.BaseCP) throw new Exception("ERROR! Wrong location, halt pick");
 
             pickJob.item.PickFromRack(pickJob.rack, pickJob.quantity);
 
-            if (!Items.ContainsKey(pickJob.item)) Items.Add(pickJob.item, 1);
-            else Items[pickJob.item] += pickJob.quantity;
+            CompletedJob.Add(pickJob);
 
             PickList.RemoveAt(0);
+        }
+
+        public int GetNumCompletedPickJobs()
+        {
+            return CompletedJob.Count;
+        }
+        public TimeSpan GetTimeToCompleteJobs()
+        {
+            return EndTime - StartTime;
         }
     }
 }

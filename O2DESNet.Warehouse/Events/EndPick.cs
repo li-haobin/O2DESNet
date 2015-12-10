@@ -18,6 +18,9 @@ namespace O2DESNet.Warehouse.Events
         public override void Invoke()
         {
             // Just status update
+            picker.CurLocation = _sim.Scenario.StartCP;
+            picker.EndTime = _sim.ClockTime;
+            picker.IsIdle = true;
         }
 
         public override void Backtrack()

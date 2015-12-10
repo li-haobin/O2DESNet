@@ -31,7 +31,7 @@ namespace O2DESNet.Warehouse.Statics
 
         public double GetNextTravelTime(ControlPoint from, ControlPoint to)
         {
-            // In metres
+            // In metres. From shelf to shelf.
             var dist = from.GetDistanceTo(from);
 
             // In seconds
