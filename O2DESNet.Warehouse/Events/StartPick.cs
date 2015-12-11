@@ -24,10 +24,10 @@ namespace O2DESNet.Warehouse.Events
             picker.IsIdle = false;
             picker.CompletedJobs.Clear();
 
-            if (_sim.Status.MasterPickList[picker.Type].Count > 0)
+            if (_sim.Scenario.MasterPickList[picker.Type].Count > 0)
             {
-                picker.PickList = _sim.Status.MasterPickList[picker.Type].First();
-                _sim.Status.MasterPickList[picker.Type].RemoveAt(0);
+                picker.PickList = _sim.Scenario.MasterPickList[picker.Type].First();
+                _sim.Scenario.MasterPickList[picker.Type].RemoveAt(0);
 
                 if (picker.PickList.Count > 0)
                 {

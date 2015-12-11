@@ -26,10 +26,9 @@ namespace O2DESNet.Warehouse
 
             BasicBuilder();
 
-
-
-            // wh.ReadSKUsFile("ZA_SKUs.csv");
-            // wh.InitializeRouting(); // Need to find a way to generate this better (e.g. only generate for those CP with SKU. or no Rack. Or serialise...
+            wh.ReadSKUsFile();
+            sim.Scenario.ReadMasterPickList();
+            // wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
         }
 
         private void BasicBuilder()

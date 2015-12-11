@@ -10,11 +10,12 @@ namespace O2DESNet.Warehouse.Statics
     {
         private static int _count = 0;
         public int Id { get; private set; }
+        public string Type_ID { get; private set; }
         public double AveMoveSpeed { get; private set; } // metre per sec
         public TimeSpan AvePickTime{ get; private set; }
         public double Capacity { get; private set; }
 
-        internal PickerType(double aveMoveSpeed, TimeSpan avePickTime, double capacity = double.PositiveInfinity)
+        internal PickerType(string id, double aveMoveSpeed, TimeSpan avePickTime, double capacity = double.PositiveInfinity)
         {
             Id = ++_count;
             if (aveMoveSpeed <= 0 || aveMoveSpeed == double.PositiveInfinity)
@@ -24,6 +25,7 @@ namespace O2DESNet.Warehouse.Statics
             if (capacity <= 0)
                 throw new Exceptions.InfeasibleConstruction("Picker capacity must be positive.");
 
+            Type_ID = id;
             AveMoveSpeed = aveMoveSpeed;
             AvePickTime = avePickTime;
             Capacity = capacity;

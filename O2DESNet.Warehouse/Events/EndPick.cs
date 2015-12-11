@@ -26,7 +26,7 @@ namespace O2DESNet.Warehouse.Events
             picker.IsIdle = true;
             _sim.Status.CaptureCompletedPickList(picker);
 
-            if (_sim.Status.MasterPickList[picker.Type].Count > 0)
+            if (_sim.Scenario.MasterPickList[picker.Type].Count > 0)
             {
                 _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime);
             }

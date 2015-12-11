@@ -10,15 +10,21 @@ namespace O2DESNet.Warehouse.Statics
 {
     public class Scenario
     {
+        public string Name { get; private set; }
+
         /// <summary>
         /// Parent Classes for Dijkstra
         /// </summary>  
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack
+
         /// <summary>
         /// Numbers of pickers of each type
         /// </summary>
+        public Dictionary<string, PickerType> GetPickerType { get; private set; }
         public Dictionary<PickerType, int> NumPickers { get; private set; }
+        public List<Picker> AllPickers { get; private set; }
+
         /// <summary>
         /// Layout lookup
         /// </summary>
@@ -27,8 +33,13 @@ namespace O2DESNet.Warehouse.Statics
         public Dictionary<string, PathShelf> Shelves { get; private set; }
         public Dictionary<string, CPRack> Racks { get; private set; }
         public Dictionary<string, SKU> SKUs { get; private set; }
-        public string Name { get; private set; }
         public ControlPoint StartCP { get; set; }
+
+        /// <summary>
+        /// Pick Lists
+        /// </summary>
+        public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; set; }
+        public Dictionary<PickerType, List<List<PickJob>>> CompletedPickLists { get; set; }
 
         public Scenario(string name)
         {
@@ -41,10 +52,13 @@ namespace O2DESNet.Warehouse.Statics
             Racks = new Dictionary<string, CPRack>();
             SKUs = new Dictionary<string, SKU>();
             Name = name;
-            
+
             // Starting location
             StartCP = null;
             ControlPoints.Add(StartCP);
+
+            // Init pickers
+            AllPickers = NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
         }
 
         #region Build from CSV file
@@ -99,7 +113,7 @@ namespace O2DESNet.Warehouse.Statics
                     Shelves[data[1]], Convert.ToDouble(data[2]));
             }
         }
-        public void ReadSKUsFile(string filename)
+        private void ReadSKUsFile(string filename)
         {
             var SKUs = CSVToList(filename);
             foreach (var data in SKUs)
@@ -108,6 +122,11 @@ namespace O2DESNet.Warehouse.Statics
                 for (int i = 2; i < data.Length; i++)
                     AddToRack(sku, Racks[data[i]]);
             }
+        }
+
+        public void ReadSKUsFile()
+        {
+            ReadSKUsFile(@"Layout\" + Name + "_SKUs.csv");
         }
         /// <summary>
         /// Converts csv file with header into list (row) of string array (column)
@@ -121,7 +140,7 @@ namespace O2DESNet.Warehouse.Statics
 
             using (StreamReader sr = new StreamReader(csvfile))
             {
-                sr.ReadLine();
+                sr.ReadLine(); // Skip header
                 while ((line = sr.ReadLine()) != null)
                 {
                     output.Add(line.Split(','));
@@ -278,6 +297,7 @@ namespace O2DESNet.Warehouse.Statics
             // ControlPoints.Add(rack); // Exclude CPRack from Dijkstra
             Racks.Add(rack_ID, rack);
 
+            // For quick rack-SKU creation. Should not be used with AddToRack.
             if (SKUs != null)
                 foreach (var s in SKUs)
                 {
@@ -289,11 +309,11 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Add SKU into a Rack
         /// </summary>
-        public void AddToRack(SKU _sku, CPRack rack)
+        public void AddToRack(SKU sku, CPRack rack)
         {
-            if (!SKUs.ContainsKey(_sku.SKU_ID)) SKUs.Add(_sku.SKU_ID, _sku);
+            if (!SKUs.ContainsKey(sku.SKU_ID)) SKUs.Add(sku.SKU_ID, sku);
 
-            _sku.AddToRack(rack);
+            sku.AddToRack(rack);
         }
         public void AddPickers(PickerType pickerType, int quantity)
         {
@@ -324,6 +344,68 @@ namespace O2DESNet.Warehouse.Statics
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
         public void Connect(Path path_0, Path path_1) { Connect(path_0, path_1, path_0.Length, 0); }
+        #endregion
+
+        #region PickList Reader     
+        public void ReadMasterPickList()
+        {
+            int count = 1;
+            string filename = @"Picklist\" + Name + "_Picklist_" + count.ToString() + ".csv";
+
+            while (File.Exists(filename))
+            {
+                ReadPickList(filename);
+
+                count++;
+                filename = @"Picklist\" + Name + "_Picklist_" + count.ToString() + ".csv";
+            }
+        }
+
+        private void ReadPickList(string filename)
+        {
+            using (StreamReader sr = new StreamReader(filename))
+            {
+                List<PickJob> picklist = new List<PickJob>();
+                string line;
+
+                string type_id = sr.ReadLine(); // First line is picker type id
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    var data = line.Split(',');
+                    var sku = SKUs[data[0]];
+                    var rack = Racks[data[1]];
+                    var qty = int.Parse(data[2]);
+
+                    picklist.Add(new PickJob(sku, rack, qty));
+                }
+
+                MasterPickList[GetPickerType[type_id]].Add(picklist);
+            }
+
+        }
+        #endregion
+
+        #region Picker Reader
+        public void ReadPickers()
+        {
+            string filename = Name + "_Pickers.csv";
+
+            var pickerTypes = CSVToList(filename); // ID, move speed, pick time, numPickers
+
+            foreach(var data in pickerTypes)
+            {
+                var id = data[0];
+                var moveSpd = double.Parse(data[1]); // From metres per sec
+                var pickingTime = TimeSpan.FromSeconds(double.Parse(data[2])); // Seconds per item
+                var numPickers = int.Parse(data[4]);
+
+                var type = new PickerType(id, moveSpd, pickingTime);
+
+                GetPickerType.Add(id, type);
+                NumPickers.Add(type, numPickers);
+            }
+        }
         #endregion
 
         #region For Static Routing (Distance-Based), Using Dijkstra

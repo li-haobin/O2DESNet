@@ -4,21 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace O2DESNet.Warehouse.Dynamics
 {
     internal class Status
     {
         private Simulator _sim;
-        public List<Picker> AllPickers { get; private set; }
-        public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; set; }
-        public Dictionary<PickerType, List<List<PickJob>>> CompletedPickLists { get; set; }
+        
+        
 
         // Possible to discriminate by PickerType
         public int TotalPickJobsCompleted { get; private set; }
         public int TotalPickListsCompleted { get; private set; }
         public TimeSpan TotalPickingTime { get; private set; }
-        
+
 
         //public Dictionary<ControlPoint, HashSet<Vehicle>> IncomingVehicles { get; private set; }
         //public Dictionary<ControlPoint, HashSet<Vehicle>> OutgoingVehicles { get; private set; }
@@ -29,7 +29,7 @@ namespace O2DESNet.Warehouse.Dynamics
         internal Status(Simulator simulation)
         {
             _sim = simulation;
-            AllPickers = _sim.Scenario.NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
+            
             TotalPickJobsCompleted = 0;
             TotalPickListsCompleted = 0;
             TotalPickingTime = TimeSpan.Zero;
@@ -41,11 +41,13 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public void CaptureCompletedPickList(Picker picker)
         {
-            CompletedPickLists[picker.Type].Add(picker.CompletedJobs);
+            _sim.Scenario.CompletedPickLists[picker.Type].Add(picker.CompletedJobs);
             TotalPickingTime += picker.GetTimeToCompletePickList();
             TotalPickJobsCompleted += picker.GetNumCompletedPickJobs();
             TotalPickListsCompleted++;
         }
+
+        
 
         //internal void PutOn(Vehicle vehicle, ControlPoint controlPoint)
         //{
