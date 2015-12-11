@@ -15,6 +15,7 @@ namespace O2DESNet.Warehouse.Statics
 
         public CPRack(string rack_ID, PathShelf shelf) : base()
         {
+            _count--; //Exclude CPRack from Dijkstra : for performance
             Rack_ID = rack_ID;
             OnShelf = shelf;
             if (shelf == null)

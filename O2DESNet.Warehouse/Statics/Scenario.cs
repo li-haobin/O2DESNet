@@ -55,7 +55,7 @@ namespace O2DESNet.Warehouse.Statics
 
             // Starting location
             StartCP = null;
-            ControlPoints.Add(StartCP);
+            //ControlPoints.Add(StartCP);
 
             // Init pickers
             AllPickers = NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
@@ -281,7 +281,7 @@ namespace O2DESNet.Warehouse.Statics
             double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
             var shelf = new PathShelf(shelf_ID, height, row, maxSpeed, direction);
-            Paths.Add(shelf);
+            //Paths.Add(shelf); //Exclude Shelf from Dijkstra : for performance
             Shelves.Add(shelf_ID, shelf);
             Connect(shelf, row, 0, pos);
             shelf.BaseCP = shelf.ControlPoints[0];
@@ -294,10 +294,10 @@ namespace O2DESNet.Warehouse.Statics
         {
             var rack = new CPRack(rack_ID, shelf);
             shelf.Add(rack, position);
-            // ControlPoints.Add(rack); // Exclude CPRack from Dijkstra
+            //ControlPoints.Add(rack); // Exclude CPRack from Dijkstra : for performance
             Racks.Add(rack_ID, rack);
 
-            // For quick rack-SKU creation. Should not be used with AddToRack.
+            // For quick rack-SKU creation. Should not be used with AddToRack (duplicate).
             if (SKUs != null)
                 foreach (var s in SKUs)
                 {

@@ -18,6 +18,7 @@ namespace O2DESNet.Warehouse.Statics
         public PathShelf(string shelf_ID, double height, PathRow row, double maxSpeed, Direction direction)
             : base(height, maxSpeed, direction)
         {
+            _count--; //Exclude Shelf from Dijkstra : for performance
             Shelf_ID = shelf_ID;
             Row = row;
             if (Row == null)

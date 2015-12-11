@@ -25,10 +25,11 @@ namespace O2DESNet.Warehouse
             // wh.ReadLayoutFiles();
 
             BasicBuilder();
+            wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
 
             wh.ReadSKUsFile();
-            sim.Scenario.ReadMasterPickList();
-            // wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
+            wh.ReadMasterPickList();
+            
         }
 
         private void BasicBuilder()
@@ -37,12 +38,13 @@ namespace O2DESNet.Warehouse
 
             string[] zone = { "A", "B", "C", "D", "E", "F", "Y", "Z" }; // In pairs
             int numPairs = zone.Count() / 2;
-            int numRows = 5; //160
-            int numShelves = 20; //20
-            int numRacks = 6; //6
+            int numRows = 2; //160
+            int numShelves = 2; //20
+            int numRacks = 2; //6
             double interRowSpace = 1.7;
             double shelfWidth = 1.5;
             double rackHeight = 0.35;
+
             double aisleLength = numRows * interRowSpace;
             double rowLength = numShelves * shelfWidth;
             double shelfHeight = numRacks * rackHeight;
@@ -55,6 +57,7 @@ namespace O2DESNet.Warehouse
             for (int z = 0; z < numPairs; z++)
             {
                 var pairAisle = wh.CreateAisle(zone[2 * z] + zone[2 * z + 1], aisleLength);
+
                 wh.Connect(mainAisle, pairAisle, (z + 1) * interAisleDist, 0);
 
                 // Rows
