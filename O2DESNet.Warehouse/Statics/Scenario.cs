@@ -43,22 +43,28 @@ namespace O2DESNet.Warehouse.Statics
 
         public Scenario(string name)
         {
+            Name = name;
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
+
+            GetPickerType = new Dictionary<string, PickerType>();
             NumPickers = new Dictionary<PickerType, int>();
+
             Aisles = new Dictionary<string, PathAisle>();
             Rows = new Dictionary<string, PathRow>();
             Shelves = new Dictionary<string, PathShelf>();
             Racks = new Dictionary<string, CPRack>();
             SKUs = new Dictionary<string, SKU>();
-            Name = name;
+            
+
+            MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
+            CompletedPickLists = new Dictionary<PickerType, List<List<PickJob>>>();
 
             // Starting location
             StartCP = null;
             //ControlPoints.Add(StartCP);
 
-            // Init pickers
-            AllPickers = NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
+            
         }
 
         #region Build from CSV file
@@ -366,9 +372,9 @@ namespace O2DESNet.Warehouse.Statics
             using (StreamReader sr = new StreamReader(filename))
             {
                 List<PickJob> picklist = new List<PickJob>();
-                string line;
+                string line = sr.ReadLine();
 
-                string type_id = sr.ReadLine(); // First line is picker type id
+                string type_id = line.Split(',').First(); // First line is picker type id
 
                 while ((line = sr.ReadLine()) != null)
                 {
@@ -389,22 +395,28 @@ namespace O2DESNet.Warehouse.Statics
         #region Picker Reader
         public void ReadPickers()
         {
-            string filename = Name + "_Pickers.csv";
+            string filename = @"Picklist\" + Name + "_Pickers.csv";
 
             var pickerTypes = CSVToList(filename); // ID, move speed, pick time, numPickers
 
-            foreach(var data in pickerTypes)
+            foreach (var data in pickerTypes)
             {
                 var id = data[0];
                 var moveSpd = double.Parse(data[1]); // From metres per sec
                 var pickingTime = TimeSpan.FromSeconds(double.Parse(data[2])); // Seconds per item
-                var numPickers = int.Parse(data[4]);
+                var numPickers = int.Parse(data[3]);
 
                 var type = new PickerType(id, moveSpd, pickingTime);
+
+                MasterPickList.Add(type, new List<List<PickJob>>());
+                CompletedPickLists.Add(type, new List<List<PickJob>>());
 
                 GetPickerType.Add(id, type);
                 NumPickers.Add(type, numPickers);
             }
+
+            // Init pickers
+            AllPickers = NumPickers.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Picker(item.Key))).ToList();
         }
         #endregion
 

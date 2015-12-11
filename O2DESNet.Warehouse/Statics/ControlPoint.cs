@@ -26,7 +26,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Get distance to an adjacent control point
         /// </summary>
-        public double GetDistanceTo(ControlPoint next)
+        private double GetDistanceToAdjacent(ControlPoint next)
         {
             if (!PathingTable.ContainsKey(next))
                 throw new Exceptions.InfeasibleTravelling(
@@ -35,5 +35,23 @@ namespace O2DESNet.Warehouse.Statics
             return Math.Abs(next.Positions[path] - Positions[path]);
         }
 
+        public double GetDistanceTo(ControlPoint destination)
+        {
+            if (!RoutingTable.ContainsKey(destination))
+                throw new Exceptions.InfeasibleTravelling(
+                    "Make sure the destination control point is in routing table.");
+
+            double dist = 0;
+            var cur = this;
+
+            while (cur != destination)
+            {
+                var next = cur.RoutingTable[destination];
+                dist += cur.GetDistanceToAdjacent(next);
+                cur = next;
+            }
+
+            return dist;
+        }
     }
 }

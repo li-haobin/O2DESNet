@@ -33,7 +33,13 @@ namespace O2DESNet.Warehouse.Statics
                     "Control point must be positioned within the range of path length.");
             ControlPoints.Sort((t0, t1) => t0.Positions[this].CompareTo(t1.Positions[this]));
         }
-        public double GetDistance(ControlPoint from, ControlPoint to)
+        /// <summary>
+        /// Get distance between Control Points on Path
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        public double GetDistanceOnPath(ControlPoint from, ControlPoint to)
         {
             if (from.Positions.ContainsKey(this) && to.Positions.ContainsKey(this))
             {

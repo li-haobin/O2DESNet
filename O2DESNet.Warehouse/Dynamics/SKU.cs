@@ -29,7 +29,8 @@ namespace O2DESNet.Warehouse.Dynamics
                 // Add reference
                 QtyAtRack.Add(rack, quantity);
                 rack.SKUs.Add(this);
-                rack.OnShelf.SKUs.Add(this, rack);
+                if (!rack.OnShelf.SKUs.ContainsKey(this))
+                    rack.OnShelf.SKUs.Add(this, rack);
             }
         }
 
@@ -44,7 +45,7 @@ namespace O2DESNet.Warehouse.Dynamics
                 else
                     throw new Exception("Shortage of item at rack");
 
-                if(QtyAtRack[rack] == 0)
+                if (QtyAtRack[rack] == 0)
                 {
                     // Remove reference
                     QtyAtRack.Remove(rack);

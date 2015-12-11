@@ -14,25 +14,24 @@ namespace O2DESNet.Warehouse
 
         public WarehouseSim(string scenarioName)
         {
-            Initialize(scenarioName);
+            InitializeScenario(scenarioName);
+            sim = new Simulator(wh, 0); // Only after warehouse has been built and initialised properly.
         }
 
-        private void Initialize(string scenarioName)
+        private void InitializeScenario(string scenarioName)
         {
             wh = new Scenario(scenarioName);
-            sim = new Simulator(wh, 0);
 
             // wh.ReadLayoutFiles();
-
-            BasicBuilder();
+            BasicBuilder(wh);
             wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
 
             wh.ReadSKUsFile();
+            wh.ReadPickers();
             wh.ReadMasterPickList();
-            
         }
 
-        private void BasicBuilder()
+        private void BasicBuilder(Scenario scenario)
         {
             // Dimensions in metres
 
@@ -50,33 +49,33 @@ namespace O2DESNet.Warehouse
             double shelfHeight = numRacks * rackHeight;
             double interAisleDist = 2 * rowLength;
 
-            var mainAisle = wh.CreateAisle("MAIN", numPairs * interAisleDist);
-            wh.StartCP = wh.CreateControlPoint(mainAisle, 0);
+            var mainAisle = scenario.CreateAisle("MAIN", numPairs * interAisleDist);
+            scenario.StartCP = scenario.CreateControlPoint(mainAisle, 0);
 
             // rowPair
             for (int z = 0; z < numPairs; z++)
             {
-                var pairAisle = wh.CreateAisle(zone[2 * z] + zone[2 * z + 1], aisleLength);
+                var pairAisle = scenario.CreateAisle(zone[2 * z] + zone[2 * z + 1], aisleLength);
 
-                wh.Connect(mainAisle, pairAisle, (z + 1) * interAisleDist, 0);
+                scenario.Connect(mainAisle, pairAisle, (z + 1) * interAisleDist, 0);
 
                 // Rows
                 for (int i = 1; i <= numRows; i++)
                 {
-                    var row1 = wh.CreateRow(zone[2 * z] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
-                    var row2 = wh.CreateRow(zone[2 * z + 1] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
+                    var row1 = scenario.CreateRow(zone[2 * z] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
+                    var row2 = scenario.CreateRow(zone[2 * z + 1] + "-" + i.ToString(), rowLength, pairAisle, i * interRowSpace);
 
                     // Shelves
                     for (int j = 1; j <= numShelves; j++)
                     {
-                        var shelf1 = wh.CreateShelf(row1.Row_ID + "-" + j.ToString(), shelfHeight, row1, j * shelfWidth);
-                        var shelf2 = wh.CreateShelf(row2.Row_ID + "-" + j.ToString(), shelfHeight, row2, j * shelfWidth);
+                        var shelf1 = scenario.CreateShelf(row1.Row_ID + "-" + j.ToString(), shelfHeight, row1, j * shelfWidth);
+                        var shelf2 = scenario.CreateShelf(row2.Row_ID + "-" + j.ToString(), shelfHeight, row2, j * shelfWidth);
 
                         // Racks
                         for (int k = 1; k <= numRacks; k++)
                         {
-                            wh.CreateRack(shelf1.Shelf_ID + "-" + k.ToString(), shelf1, k * rackHeight);
-                            wh.CreateRack(shelf2.Shelf_ID + "-" + k.ToString(), shelf2, k * rackHeight);
+                            scenario.CreateRack(shelf1.Shelf_ID + "-" + k.ToString(), shelf1, k * rackHeight);
+                            scenario.CreateRack(shelf2.Shelf_ID + "-" + k.ToString(), shelf2, k * rackHeight);
                         }
                     }
                 }
@@ -85,14 +84,14 @@ namespace O2DESNet.Warehouse
 
         public void Run()
         {
-            //while (true)
-            //{
-            //    sim.Run(10000);
-            //    Console.Clear();
-            //    foreach (var item in sim.Status.VehicleCounters)
-            //        Console.WriteLine("CP{0}\t{1}", item.Key.Id, item.Value.TotalIncrementCount / (sim.ClockTime - DateTime.MinValue).TotalHours);
-            //    Console.ReadKey();
-            //}
+            sim.Run(TimeSpan.FromHours(24));
+        }
+
+        public void PrintStatistics()
+        {
+            Console.WriteLine("Total Picklists Completed: {0}", sim.Status.TotalPickListsCompleted);
+            Console.WriteLine("Total Pickjobs Completed: {0}", sim.Status.TotalPickJobsCompleted);
+            Console.WriteLine("Total Picking Time: {0}", sim.Status.TotalPickingTime);
         }
     }
 }
