@@ -34,7 +34,7 @@ namespace O2DESNet.Warehouse.Statics
         public double GetNextTravelTime(ControlPoint from, ControlPoint dest)
         {
             // In metres. From shelf to shelf.
-            var dist = from.GetDistanceTo(dest); // This GetDistanceTo is only for adjacent CP !!!!
+            var dist = from.GetDistanceTo(dest); // This is only for adjacent CP !!
 
             // In seconds
             return dist / AveMoveSpeed;

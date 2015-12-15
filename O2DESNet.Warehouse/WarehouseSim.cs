@@ -82,16 +82,21 @@ namespace O2DESNet.Warehouse
             }
         }
 
-        public void Run()
+        public void Run(double hours)
         {
-            sim.Run(TimeSpan.FromHours(24));
+            sim.Run(TimeSpan.FromHours(hours));
         }
 
         public void PrintStatistics()
         {
-            Console.WriteLine("Total Picklists Completed: {0}", sim.Status.TotalPickListsCompleted);
-            Console.WriteLine("Total Pickjobs Completed: {0}", sim.Status.TotalPickJobsCompleted);
-            Console.WriteLine("Total Picking Time: {0}", sim.Status.TotalPickingTime);
+            foreach (var type in sim.Scenario.NumPickers)
+            {
+                Console.WriteLine("-- For PickerType {0}, {1} pickers --", type.Key.PickerType_ID, sim.Scenario.NumPickers[type.Key]);
+                Console.WriteLine("Total Picklists Completed: {0}", sim.Status.TotalPickListsCompleted[type.Key]);
+                Console.WriteLine("Total Pickjobs Completed: {0}", sim.Status.TotalPickJobsCompleted[type.Key]);
+                Console.WriteLine("Average Picking Time: {0}", sim.Status.GetAveragePickListTime(type.Key));
+                Console.WriteLine("-------------------------------------");
+            }
         }
     }
 }

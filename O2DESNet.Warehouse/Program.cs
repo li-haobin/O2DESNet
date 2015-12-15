@@ -10,17 +10,17 @@ namespace O2DESNet.Warehouse
         {
             WarehouseSim whsim = new WarehouseSim("ZA");
 
-            //whsim.wh.ViewRacks();
-
-            //DisplayRouteTable(whsim.wh);
-            //DisplayPathingTable(whsim.wh);
-
-            whsim.Run();
+            whsim.Run(24);
             whsim.PrintStatistics();
 
             Console.WriteLine("Simulation End");
             Console.ReadKey();
         }
+
+        /// <summary>
+        /// For debugging purposes
+        /// </summary>
+        /// <param name="pm"></param>
 
         static void DisplayRouteTable(Scenario pm)
         {
