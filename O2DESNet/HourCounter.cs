@@ -4,7 +4,6 @@ namespace O2DESNet
 {
     public class HourCounter
     {
-        private O2DES _o2des;
         private DateTime _initialTime;
         public DateTime LastTime;
         public double LastCount { get; private set; }
@@ -28,20 +27,8 @@ namespace O2DESNet
         /// The average count on observation period
         /// </summary>
         public double AverageCount { get { return CumValue / TotalHours; } }
-        public HourCounter(DateTime? intialTime = null)
+        public HourCounter(DateTime initialTime)
         {
-            if (intialTime == null) Init(DateTime.MinValue);
-            else Init(intialTime.Value);
-        }
-        public HourCounter(O2DES o2des, DateTime? initialTime = null)
-        {
-            if (initialTime == null) Init(o2des.ClockTime);
-            else Init(initialTime.Value);
-            _o2des = o2des;
-        }
-        private void Init(DateTime initialTime)
-        {
-            _o2des = null;
             _initialTime = initialTime;
             LastTime = initialTime;
             LastCount = 0;
@@ -49,7 +36,6 @@ namespace O2DESNet
             TotalDecrementCount = 0;
             CumValue = 0;
         }
-        public void ObserveCount(double count) { ObserveCount(count, _o2des.ClockTime); }
         public void ObserveCount(double count, DateTime timestamp)
         {
             if (timestamp < LastTime)
@@ -60,7 +46,6 @@ namespace O2DESNet
             LastTime = timestamp;
             LastCount = count;
         }
-        public void ObserveChange(double change) { ObserveChange(change, _o2des.ClockTime); }
         public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
     }
 }

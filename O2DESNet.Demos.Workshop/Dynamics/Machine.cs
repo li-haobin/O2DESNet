@@ -1,4 +1,6 @@
-﻿namespace O2DESNet.Demos.Workshop
+﻿using O2DESNet.Demos.Workshop.Statics;
+
+namespace O2DESNet.Demos.Workshop.Dynamics
 {
     public class Machine
     {

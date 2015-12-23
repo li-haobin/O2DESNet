@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace O2DESNet.Template
+﻿namespace O2DESNet.Template
 {
-    public class Scenario
+    public class Scenario : O2DESNet.Scenario
     {
         // involve properties for all staitc Entity & Relationships
 

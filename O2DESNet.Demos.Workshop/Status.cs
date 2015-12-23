@@ -1,25 +1,24 @@
-﻿using System;
+﻿using O2DESNet.Demos.Workshop.Dynamics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace O2DESNet.Demos.Workshop
 {
-    internal class Status
+    public class Status:Status<Scenario>
     {
-        private Simulator _sim;
-        internal List<Machine> Machines { get; private set; }
-        internal List<Job> JobsInSystem { get; private set; }
-        internal List<Job> JobsDeparted { get; private set; }
-        internal List<Queue<Job>> Queues { get; private set; }
-        internal int JobCounter { get; private set; }
-        internal List<double> TimeSeries_JobHoursInSystem { get; private set; }
+        public List<Machine> Machines { get; private set; }
+        public List<Job> JobsInSystem { get; private set; }
+        public List<Job> JobsDeparted { get; private set; }
+        public List<Queue<Job>> Queues { get; private set; }
+        public int JobCounter { get; private set; }
+        public List<double> TimeSeries_JobHoursInSystem { get; private set; }
 
-        internal Status(Simulator simulation)
+        internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            _sim = simulation;
-            Machines = _sim.Scenario.MachineTypes.SelectMany(type => Enumerable.Range(0, type.Count)
+            Machines = Scenario.MachineTypes.SelectMany(type => Enumerable.Range(0, type.Count)
                 .Select(i => new Machine { Type = type, Processing = null })).ToList();
-            Queues = _sim.Scenario.MachineTypes.Select(t => new Queue<Job>()).ToList();
+            Queues = Scenario.MachineTypes.Select(t => new Queue<Job>()).ToList();
             for (int i = 0; i < Machines.Count; i++) Machines[i].Id = i;
             JobsInSystem = new List<Job>();
             JobsDeparted = new List<Job>();
@@ -32,9 +31,9 @@ namespace O2DESNet.Demos.Workshop
             return Machines.Where(m => m.Type.Id == typeIndex && m.IsIdle).FirstOrDefault();
         }
 
-        internal Job Generate_EnteringJob(Random rs)
+        internal Job Generate_EnteringJob(Random rs, DateTime timestamp)
         {
-            var job = new Job { Id = JobCounter++, Type = _sim.Scenario.Generate_JobType(rs), EnterTime = _sim.ClockTime, CurrentStage = 0 };
+            var job = new Job { Id = JobCounter++, Type = Scenario.Generate_JobType(rs), EnterTime = timestamp, CurrentStage = 0 };
             JobsInSystem.Add(job);
             return job;
         }
@@ -56,14 +55,13 @@ namespace O2DESNet.Demos.Workshop
             finishing.CurrentStage++;
             finishing.BeingProcessedBy = null;
             machine.Processing = null;
-            if (Queues[machine.Type.Id].Count > 0)
-                return Queues[machine.Type.Id].Dequeue();
+            if (Queues[machine.Type.Id].Count > 0) return Queues[machine.Type.Id].Dequeue();
             return null;
         }
 
-        internal void Depart(Job departing)
+        internal void LogDeparture(Job departing, DateTime timestamp)
         {
-            departing.ExitTime = _sim.ClockTime;
+            departing.ExitTime = timestamp;
             JobsDeparted.Add(departing);
             JobsInSystem.Remove(departing);
             TimeSeries_JobHoursInSystem.Add((departing.ExitTime - departing.EnterTime).TotalHours);

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using O2DESNet.Demos.Workshop.Statics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace O2DESNet.Demos.Workshop
 {
-    public class Scenario
+    public class Scenario : O2DESNet.Scenario
     {
         public List<MachineType> MachineTypes { get; private set; }
         public List<JobType> JobTypes { get; private set; }

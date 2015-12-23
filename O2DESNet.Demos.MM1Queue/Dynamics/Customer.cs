@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace O2DESNet.Demos.MM1Queue
+namespace O2DESNet.Demos.MM1Queue.Dynamics
 {
-    internal class Customer
+    public class Customer
     {
         private static int _count = 0;
         public int Id { get; private set; }

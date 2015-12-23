@@ -1,16 +1,15 @@
-﻿namespace O2DESNet.Demos.MM1Queue
+﻿using O2DESNet.Demos.MM1Queue.Dynamics;
+
+namespace O2DESNet.Demos.MM1Queue.Events
 {
-    internal class Departure : Event
+    internal class Departure : Event<Scenario, Status>
     {
-        internal Customer Customer { get; private set; }
-        internal Departure(Simulator sim, Customer customer) 
-            : base(sim) { Customer = customer; }
-        public override void Invoke()
+        internal Customer Customer { get; set; }
+        protected override void Invoke()
         {
-            _sim.Status.Depart(Customer);
-            if (_sim.Status.WaitingQueue.Count > 0)
-                new StartService(_sim, _sim.Status.WaitingQueue.Dequeue()).Invoke();
-            else _sim.Status.Serving = null;
+            Status.LogDeparture(Customer, Simulator.ClockTime);
+            if (Status.WaitingQueue.Count > 0) Execute(new StartService { Customer = Status.WaitingQueue.Dequeue() });
+            else Status.Serving = null;
         }
     }
 }

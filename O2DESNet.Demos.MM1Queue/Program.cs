@@ -26,7 +26,7 @@ namespace O2DESNet.Demos.MM1Queue
                 var scenario = new Scenario(TimeSpan.FromHours(1.0 / arrivalRate), TimeSpan.FromHours(1.0 / serviceRate));
                 for (int seed = 0; seed < nReplications; seed++)
                 {
-                    var sim = new Simulator(scenario, seed);
+                    var sim = new Simulator(new Status(scenario, seed));
                     var timestamp = DateTime.Now;
                     sim.Run(nEvents);
                     Console.WriteLine("{0}\t{1:0.0000000}\t{2:0.0000000}\t{3:0.0000000}\t{4:0.0000000}",

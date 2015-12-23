@@ -1,20 +1,13 @@
-﻿using System;
+﻿using O2DESNet.Demos.Workshop.Events;
 
 namespace O2DESNet.Demos.Workshop
 {
-    public class Simulator : O2DES
+    public class Simulator : Simulator<Scenario, Status>
     {
-        internal Scenario Scenario { get; private set; }
-        internal Status Status { get; private set; }
-        internal Random RS { get; private set; }
-
-        public Simulator(Scenario scenario, int seed)
+        public Simulator(Status status) : base(status)
         {
-            Scenario = scenario;
-            Status = new Status(this);
-            RS = new Random(seed);
             // schedule the initial event
-            ScheduleEvent(new Arrival(this), Scenario.Generate_InterArrivalTime(RS));
-        }       
+            Schedule(new Arrival(), Scenario.Generate_InterArrivalTime(DefaultRS));
+        }
     }
 }

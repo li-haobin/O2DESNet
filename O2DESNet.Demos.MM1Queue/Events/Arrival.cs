@@ -1,17 +1,16 @@
-﻿namespace O2DESNet.Demos.MM1Queue
+﻿using O2DESNet.Demos.MM1Queue.Dynamics;
+
+namespace O2DESNet.Demos.MM1Queue.Events
 {
-    internal class Arrival : Event
+    internal class Arrival : Event<Scenario, Status>
     {
-        internal Customer Customer { get; private set; }
-        internal Arrival(Simulator sim, Customer customer) : base(sim) { Customer = customer; }
-        public override void Invoke()
+        internal Customer Customer { get; set; }
+        protected override void Invoke()
         {
-            _sim.Status.Arrive(Customer);
-            if (_sim.Status.Serving == null) new StartService(_sim, Customer).Invoke();
-            else _sim.Status.WaitingQueue.Enqueue(Customer);
-            _sim.ScheduleEvent(
-                new Arrival(_sim, new Customer()), 
-                _sim.Scenario.Generate_InterArrivalTime(_sim.RS));
+            Status.LogArrival(Customer, ClockTime);
+            if (Status.Serving == null) Execute(new StartService { Customer = Customer });
+            else Status.WaitingQueue.Enqueue(Customer);
+            Schedule(new Arrival { Customer = new Customer() }, Scenario.InterArrivalTime(DefaultRS));
         }
     }
 }

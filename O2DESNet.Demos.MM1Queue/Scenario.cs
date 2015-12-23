@@ -3,7 +3,7 @@ using System;
 
 namespace O2DESNet.Demos.MM1Queue
 {
-    public class Scenario
+    public class Scenario : O2DESNet.Scenario
     {
         public TimeSpan ExpectedInterArrivalTime { get; private set; }
         public TimeSpan ExpectedServiceTime { get; private set; }
@@ -13,11 +13,11 @@ namespace O2DESNet.Demos.MM1Queue
             ExpectedServiceTime = expectedServiceTime;
         }
 
-        internal TimeSpan Generate_InterArrivalTime(Random rs)
+        internal TimeSpan InterArrivalTime(Random rs)
         {
             return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedInterArrivalTime.TotalHours));
         }
-        internal TimeSpan Generate_ServiceTime(Random rs)
+        internal TimeSpan ServiceTime(Random rs)
         {
             return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedServiceTime.TotalHours));
         }

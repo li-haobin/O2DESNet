@@ -1,16 +1,14 @@
-﻿namespace O2DESNet.Demos.MM1Queue
+﻿using O2DESNet.Demos.MM1Queue.Dynamics;
+
+namespace O2DESNet.Demos.MM1Queue.Events
 {
-    internal class StartService : Event
+    internal class StartService : Event<Scenario, Status>
     {
-        internal Customer Customer { get; private set; }
-        internal StartService(Simulator sim, Customer customer) 
-            : base(sim) { Customer = customer; }
-        public override void Invoke()
+        internal Customer Customer { get; set; }
+        protected override void Invoke()
         {
-            _sim.Status.Serving = Customer;
-            _sim.ScheduleEvent(
-                new Departure(_sim, Customer), 
-                _sim.Scenario.Generate_ServiceTime(_sim.RS));
+            Status.Serving = Customer;
+            Schedule(new Departure { Customer = Customer }, Scenario.ServiceTime(DefaultRS));
         }
     }
 }

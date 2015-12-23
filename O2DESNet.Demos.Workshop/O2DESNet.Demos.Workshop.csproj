@@ -54,9 +54,8 @@
   <ItemGroup>
     <Compile Include="Dynamics\Job.cs" />
     <Compile Include="Dynamics\Machine.cs" />
-    <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Status.cs" />
     <Compile Include="Events\Arrival.cs" />
-    <Compile Include="Events\Event.cs" />
     <Compile Include="Events\FinishProcess.cs" />
     <Compile Include="Events\StartProcess.cs" />
     <Compile Include="Program.cs" />
@@ -64,7 +63,7 @@
     <Compile Include="Simulator.cs" />
     <Compile Include="Statics\JobType.cs" />
     <Compile Include="Statics\MachineType.cs" />
-    <Compile Include="Statics\Scenario.cs" />
+    <Compile Include="Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

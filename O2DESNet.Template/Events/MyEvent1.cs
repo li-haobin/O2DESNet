@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace O2DESNet.Template
+﻿namespace O2DESNet.Template.Events
 {
-    internal class MyEvent1 : Event
+    internal class MyEvent1 : Event<Scenario, Status>
     {
         // include dynamic entities, i.e., loads, involving in the event
 
@@ -14,16 +8,13 @@ namespace O2DESNet.Template
         // internal Load_2 load_1 { get; private set; }
         // ...
 
-        internal MyEvent1(Simulator sim) : base(sim)
-        {
-            // also include loads in the constructor
-        }
-        public override void Invoke()
+        protected override void Invoke()
         {
             // updates _sim.Status if necessary
 
             // schedule subsequent events if necessary
-            // _sim.ScheduleEvent(new MyEvent2(_sim, new Load_2()), TimeSpan.FromHours(some_random_value));
+            // Schedule(new MyEvent2 {Load_2 = new Load_2()}, TimeSpan.FromHours(some_random_value));
+            // Execute(new MyEvent1 {Load_1 = new Load_1()});
         }
     }
 }

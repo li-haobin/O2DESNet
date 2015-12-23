@@ -1,19 +1,19 @@
-﻿using System;
+﻿using O2DESNet.Demos.Workshop.Dynamics;
+using System;
 
-namespace O2DESNet.Demos.Workshop
+namespace O2DESNet.Demos.Workshop.Events
 {
-    internal class FinishProcess : Event
+    internal class FinishProcess : Event<Scenario, Status>
     {
-        internal Job Job { get; private set; }
-        internal FinishProcess(Simulator sim, Job job) : base(sim) { Job = job; }
-        public override void Invoke()
+        internal Job Job { get; set; }
+        protected override void Invoke()
         {
-            Console.WriteLine("{0}: Job #{1} finishes process.", _sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Job.Id);
-            var waitingJob = _sim.Status.GetWaitingJob_onFinishProcess(Job);
-            if (waitingJob != null) new StartProcess(_sim, waitingJob).Invoke();
+            Console.WriteLine("{0}: Job #{1} finishes process.", ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Job.Id);
+            var waitingJob = Status.GetWaitingJob_onFinishProcess(Job);
+            if (waitingJob != null) Execute(new StartProcess { Job = waitingJob });
 
-            if (Job.CurrentMachineTypeIndex > 0) new StartProcess(_sim, Job).Invoke();
-            else _sim.Status.Depart(Job);
+            if (Job.CurrentMachineTypeIndex > 0) Execute(new StartProcess { Job = Job });
+            else Status.LogDeparture(Job, ClockTime);
         }
     }
 }

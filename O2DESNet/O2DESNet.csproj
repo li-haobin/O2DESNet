@@ -53,9 +53,12 @@
     <Compile Include="Distribution\Uniform.cs" />
     <Compile Include="Distribution\Exponential.cs" />
     <Compile Include="Distribution\Empirical.cs" />
-    <Compile Include="O2DES.cs" />
+    <Compile Include="Event.cs" />
+    <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HourCounter.cs" />
+    <Compile Include="Scenario.cs" />
+    <Compile Include="Status.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

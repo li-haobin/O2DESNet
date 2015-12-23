@@ -1,6 +1,7 @@
-﻿using System;
+﻿using O2DESNet.Demos.Workshop.Statics;
+using System;
 
-namespace O2DESNet.Demos.Workshop
+namespace O2DESNet.Demos.Workshop.Dynamics
 {
     public class Job
     {

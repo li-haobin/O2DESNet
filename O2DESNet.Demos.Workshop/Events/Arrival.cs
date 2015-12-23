@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace O2DESNet.Demos.Workshop
+namespace O2DESNet.Demos.Workshop.Events
 {
-    internal class Arrival : Event
+    internal class Arrival : Event<Scenario, Status>
     {
-        internal Arrival(Simulator sim) : base(sim) { }
-        public override void Invoke()
+        protected override void Invoke()
         {
-            var job = _sim.Status.Generate_EnteringJob(_sim.RS);
-            Console.WriteLine("{0}: Job #{1} (Type {2}) arrives.", _sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), job.Id, job.Type.Id);
-            new StartProcess(_sim, job).Invoke();
+            var job = Status.Generate_EnteringJob(DefaultRS, ClockTime);
+            Console.WriteLine("{0}: Job #{1} (Type {2}) arrives.", ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), job.Id, job.Type.Id);
+            Execute(new StartProcess { Job = job });
             // schedule the next arrival event
-            _sim.ScheduleEvent(new Arrival(_sim), _sim.Scenario.Generate_InterArrivalTime(_sim.RS));
+            Schedule(new Arrival(), Scenario.Generate_InterArrivalTime(DefaultRS));
         }
     }
 }

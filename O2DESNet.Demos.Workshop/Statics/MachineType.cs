@@ -1,4 +1,4 @@
-﻿namespace O2DESNet.Demos.Workshop
+﻿namespace O2DESNet.Demos.Workshop.Statics
 {
     public class MachineType
     {
