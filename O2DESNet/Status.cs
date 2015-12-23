@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace O2DESNet
 {
@@ -6,11 +7,32 @@ namespace O2DESNet
     {
         internal protected TScenario Scenario { get; private set; }
         internal protected Random DefaultRS { get; private set; }
-        public int Seed { get { return Seed; } set { Seed = value; DefaultRS = new Random(Seed); } }
+        private int _seed;
+        public int Seed { get { return _seed; } set { _seed = value; DefaultRS = new Random(_seed); } }
+        
         public Status(TScenario scenario, int seed = 0)
         {
             Scenario = scenario;
             Seed = seed;
+            Display = false;
         }
+
+        #region For Logging
+        private string _logFile;
+        public bool Display { get; set; }
+        public string LogFile
+        {
+            get { return _logFile; }
+            set
+            {
+                _logFile = value; if (_logFile != null) using (var sw = new StreamWriter(_logFile)) { };
+            }
+        }
+        public void Log(string format, params object[] args)
+        {
+            if (Display) Console.WriteLine(format, args);
+            if (LogFile != null) using (var sw = new StreamWriter(LogFile, true)) sw.WriteLine(format, args);
+        }
+        #endregion
     }
 }
