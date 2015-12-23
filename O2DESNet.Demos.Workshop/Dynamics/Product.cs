@@ -3,21 +3,21 @@ using System;
 
 namespace O2DESNet.Demos.Workshop.Dynamics
 {
-    public class Job
+    public class Product
     {
         public int Id { get; set; }
-        public JobType Type { get; set; }
+        public ProductType Type { get; set; }
         public DateTime EnterTime { get; set; }
         public DateTime ExitTime { get; set; }
         public int CurrentStage { get; set; }
         public Machine BeingProcessedBy { get; set; }
 
-        public int CurrentMachineTypeIndex
+        public WorkStation CurrentWorkStation
         {
             get
             {
-                if (CurrentStage < Type.MachineSequence.Count) return Type.MachineSequence[CurrentStage];
-                return -1;
+                if (CurrentStage < Type.JobSequence.Count) return Type.JobSequence[CurrentStage];
+                return null;
             }
         }
     }

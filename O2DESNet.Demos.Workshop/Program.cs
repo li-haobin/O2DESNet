@@ -6,7 +6,13 @@ namespace O2DESNet.Demos.Workshop
     {
         static void Main(string[] args)
         {
-            var sim = new Simulator(new Status(Scenario.GetExample(2, 5, 4, 3, 6), 0));
+            int seed = 0;
+            var sim = new Simulator(new Status(Scenario.GetExample_PedrielliZhu2015(2, 5, 4, 3, 6))
+            {
+                Seed = seed,
+                //Display = true,
+                LogFile = string.Format("workshop_log_{0}.txt", seed),
+            });
             sim.Run(TimeSpan.FromDays(30));
         }
     }

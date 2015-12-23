@@ -1,4 +1,5 @@
-﻿using O2DESNet.Demos.Workshop.Statics;
+﻿using MathNet.Numerics.Distributions;
+using O2DESNet.Demos.Workshop.Statics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,62 +8,70 @@ namespace O2DESNet.Demos.Workshop
 {
     public class Scenario : O2DESNet.Scenario
     {
-        public List<MachineType> MachineTypes { get; private set; }
-        public List<JobType> JobTypes { get; private set; }
-        public double JobArrivalRate_Hourly { get; set; }
+        public List<WorkStation> WorkStations { get; private set; }
+        public List<ProductType> ProductTypes { get; private set; }
+        public int MachineCapacity { get; set; }
 
-        public Scenario() { JobTypes = new List<JobType>(); }
+        public Scenario() { ProductTypes = new List<ProductType>(); }
 
-        public void SetMachineTypes(params int[] counts)
+        public void SetWorkStations(params int[] nMachines)
         {
-            MachineTypes = Enumerable.Range(0, counts.Count()).Select(index => new MachineType { Id = index, Count = counts[index] }).ToList();
+            WorkStations = Enumerable.Range(0, nMachines.Count()).Select(index => new WorkStation { Id = index + 1, N_Machines = nMachines[index] }).ToList();
         }
-
-        public void AddJobType(double frequence, double[] meanProcessTimes, int[] machineSequence)
+        
+        /// <param name="jobSequence">indices of work stations</param>
+        public void AddProductType(int[] jobSequence, double priority, 
+            Func<Random, TimeSpan> interArrivalTime, Func<Random, WorkStation, TimeSpan> processingTime)
         {
-            JobTypes.Add(new JobType
+            ProductTypes.Add(new ProductType
             {
-                Id = JobTypes.Count,
-                Frequence = frequence,
-                MachineSequence = machineSequence.ToList(),
-                MeanProcessingTimes = meanProcessTimes.ToList()
+                Id = ProductTypes.Count + 1,
+                JobSequence = jobSequence.Select(i => WorkStations[i]).ToList(),
+                Priority = priority,
+                InterArrivalTime = interArrivalTime,
+                ProcessingTime = processingTime
             });
         }
 
-        #region Random Generators
-        internal JobType Generate_JobType(Random rs)
+        public static Scenario GetExample_PedrielliZhu2015(params int[] nMachines)
         {
-            var sumFrequence = JobTypes.Sum(t => t.Frequence);
-            var p = rs.NextDouble() * sumFrequence;
-            double sum = 0;
-            for (int i = 0; i < JobTypes.Count; i++)
-            {
-                sum += JobTypes[i].Frequence;
-                if (p < sum) return JobTypes[i];
-            }
-            return null;
-        }
+            var scenario = new Scenario { MachineCapacity = 1 };
+            scenario.SetWorkStations(nMachines);
 
-        internal TimeSpan Generate_InterArrivalTime(Random rs)
-        {
-            return TimeSpan.FromHours(MathNet.Numerics.Distributions.Exponential.Sample(rs, JobArrivalRate_Hourly));
-        }
+            var JobArrivalRate_Hourly = 4.0;
+            double frequency;
+            int[] machineIndices;
+            double[] meanProcessingTimes_Hour;
 
-        internal TimeSpan Generate_ProcessingTime(int jobTypeIndex, int machineTypeIndex, Random rs)
-        {
-            return TimeSpan.FromHours(MathNet.Numerics.Distributions.Erlang
-                .Sample(rs, 2, 1 / JobTypes[jobTypeIndex].MeanProcessingTimes[machineTypeIndex]));
-        }
-        #endregion
+            Func<Random, double, TimeSpan> interArrivalTime =
+                (rs, freq) => TimeSpan.FromHours(Exponential.Sample(rs, JobArrivalRate_Hourly * freq));
+            Func<Random, WorkStation, double[], TimeSpan> processingTime =
+                (rs, ws, mpHours) => TimeSpan.FromHours(Erlang.Sample(rs, 2, 1 / mpHours[scenario.WorkStations.IndexOf(ws)]));
 
-        public static Scenario GetExample(params int[] machineCounts)
-        {
-            var scenario = new Scenario();
-            scenario.JobArrivalRate_Hourly = 4.0;
-            scenario.SetMachineTypes(machineCounts);
-            scenario.AddJobType(0.3, new double[] { 0.6, 0.85, 0.5, 0, 0.5 }, new int[] { 2, 0, 1, 4 });
-            scenario.AddJobType(0.5, new double[] { 0.8, 0, 0.75, 1.1, 0 }, new int[] { 3, 0, 2 });
-            scenario.AddJobType(0.2, new double[] { 0.7, 1.2, 1, 0.9, 0.25 }, new int[] { 1, 4, 0, 3, 2 });
+            // product type #1
+            frequency = 0.3;
+            meanProcessingTimes_Hour = new double[] { 0.6, 0.85, 0.5, 0, 0.5 };
+            machineIndices = new int[] { 2, 0, 1, 4 };
+            scenario.AddProductType(machineIndices, 0,
+                rs => interArrivalTime(rs, frequency),
+                (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
+
+            // product type #2
+            frequency = 0.5;
+            meanProcessingTimes_Hour = new double[] { 0.8, 0, 0.75, 1.1, 0 };
+            machineIndices = new int[] { 3, 0, 2 };
+            scenario.AddProductType(machineIndices, 0,
+                rs => interArrivalTime(rs, frequency),
+                (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
+
+            // product type #3
+            frequency = 0.2;
+            meanProcessingTimes_Hour = new double[] { 0.7, 1.2, 1, 0.9, 0.25 };
+            machineIndices = new int[] { 1, 4, 0, 3, 2 };
+            scenario.AddProductType(machineIndices, 0,
+                rs => interArrivalTime(rs, frequency),
+                (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
+
             return scenario;
         }
     }

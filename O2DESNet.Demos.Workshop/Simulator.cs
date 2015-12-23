@@ -6,8 +6,9 @@ namespace O2DESNet.Demos.Workshop
     {
         public Simulator(Status status) : base(status)
         {
-            // schedule the initial event
-            Schedule(new Arrival(), Scenario.Generate_InterArrivalTime(DefaultRS));
+            // schedule the initial events
+            foreach (var productType in Scenario.ProductTypes)
+                Schedule(new Arrive { ProductType = productType }, productType.InterArrivalTime(DefaultRS));
         }
     }
 }

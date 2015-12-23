@@ -52,17 +52,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dynamics\Job.cs" />
+    <Compile Include="Dynamics\Product.cs" />
     <Compile Include="Dynamics\Machine.cs" />
+    <Compile Include="Events\Depart.cs" />
     <Compile Include="Status.cs" />
-    <Compile Include="Events\Arrival.cs" />
+    <Compile Include="Events\Arrive.cs" />
     <Compile Include="Events\FinishProcess.cs" />
-    <Compile Include="Events\StartProcess.cs" />
+    <Compile Include="Events\AttemptToProcess.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulator.cs" />
-    <Compile Include="Statics\JobType.cs" />
-    <Compile Include="Statics\MachineType.cs" />
+    <Compile Include="Statics\ProductType.cs" />
+    <Compile Include="Statics\WorkStation.cs" />
     <Compile Include="Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
