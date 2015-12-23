@@ -33,6 +33,17 @@ namespace O2DESNet.Demos.Workshop
             });
         }
 
+        // as in MO2TOS paper
+        public static Scenario GetExample_Xu2015(params int[] nMachines)
+        {
+            var scenario = new Scenario { MachineCapacity = 2 };
+            scenario.SetWorkStations(nMachines);
+            Func<Random, TimeSpan> iidNormal = rs => TimeSpan.FromHours(Math.Max(0, Normal.Sample(rs, 1.0, 0.25)));
+            scenario.AddProductType(new int[] { 0, 1, 2, 4, 3, 2, 0 }, 1, rs => iidNormal(rs), (rs, ws) => iidNormal(rs));
+            scenario.AddProductType(new int[] { 1, 0, 3, 4, 2, 4, 3 }, 2, rs => iidNormal(rs), (rs, ws) => iidNormal(rs));
+            return scenario;
+        }
+
         public static Scenario GetExample_PedrielliZhu2015(params int[] nMachines)
         {
             var scenario = new Scenario { MachineCapacity = 1 };
@@ -40,7 +51,7 @@ namespace O2DESNet.Demos.Workshop
 
             var JobArrivalRate_Hourly = 4.0;
             double frequency;
-            int[] machineIndices;
+            int[] workStationIndices;
             double[] meanProcessingTimes_Hour;
 
             Func<Random, double, TimeSpan> interArrivalTime =
@@ -51,24 +62,24 @@ namespace O2DESNet.Demos.Workshop
             // product type #1
             frequency = 0.3;
             meanProcessingTimes_Hour = new double[] { 0.6, 0.85, 0.5, 0, 0.5 };
-            machineIndices = new int[] { 2, 0, 1, 4 };
-            scenario.AddProductType(machineIndices, 0,
+            workStationIndices = new int[] { 2, 0, 1, 4 };
+            scenario.AddProductType(workStationIndices, 0,
                 rs => interArrivalTime(rs, frequency),
                 (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
 
             // product type #2
             frequency = 0.5;
             meanProcessingTimes_Hour = new double[] { 0.8, 0, 0.75, 1.1, 0 };
-            machineIndices = new int[] { 3, 0, 2 };
-            scenario.AddProductType(machineIndices, 0,
+            workStationIndices = new int[] { 3, 0, 2 };
+            scenario.AddProductType(workStationIndices, 0,
                 rs => interArrivalTime(rs, frequency),
                 (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
 
             // product type #3
             frequency = 0.2;
             meanProcessingTimes_Hour = new double[] { 0.7, 1.2, 1, 0.9, 0.25 };
-            machineIndices = new int[] { 1, 4, 0, 3, 2 };
-            scenario.AddProductType(machineIndices, 0,
+            workStationIndices = new int[] { 1, 4, 0, 3, 2 };
+            scenario.AddProductType(workStationIndices, 0,
                 rs => interArrivalTime(rs, frequency),
                 (rs, ws) => processingTime(rs, ws, meanProcessingTimes_Hour));
 
