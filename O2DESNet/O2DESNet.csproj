@@ -50,10 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Distribution\Uniform.cs" />
-    <Compile Include="Distribution\Exponential.cs" />
-    <Compile Include="Distribution\Empirical.cs" />
+    <Compile Include="Distributions\Uniform.cs" />
+    <Compile Include="Distributions\Exponential.cs" />
+    <Compile Include="Distributions\Empirical.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="Replicators\MinSelector.cs" />
+    <Compile Include="Replicators\Replicator.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HourCounter.cs" />
