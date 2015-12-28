@@ -408,11 +408,10 @@ namespace O2DESNet.Warehouse.Statics
                 var pickingTime = TimeSpan.FromSeconds(double.Parse(data[2])); // Seconds per item
                 var numPickers = int.Parse(data[3]);
 
-                int capacity;
                 PickerType type;
 
-                if (int.TryParse(data[4], out capacity))
-                    type = new PickerType(id, moveSpd, pickingTime, capacity);
+                if (data.Count() > 4)
+                    type = new PickerType(id, moveSpd, pickingTime, int.Parse(data[4]));
                 else
                     type = new PickerType(id, moveSpd, pickingTime);
 
