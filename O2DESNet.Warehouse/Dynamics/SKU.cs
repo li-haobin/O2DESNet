@@ -70,7 +70,7 @@ namespace O2DESNet.Warehouse.Dynamics
                 throw new Exception("SKU not in rack");
 
             if (GetQtyAvailable(rack) < quantity)
-                throw new Exception("Shortage of item at rack");
+                throw new Exception("Shortage of item at rack for reservation");
 
             ReservedAtRack[rack] += quantity;
         }

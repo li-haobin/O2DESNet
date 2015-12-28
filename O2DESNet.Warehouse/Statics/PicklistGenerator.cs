@@ -45,6 +45,39 @@ namespace O2DESNet.Warehouse.Statics
             int count = 1;
             string filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
 
+            foreach (var pickerType in MasterPickList)
+            {
+                var type_ID = pickerType.Key.PickerType_ID;
+                var typePicklists = pickerType.Value;
+
+                foreach (var picklist in typePicklists)
+                {
+                    // One picklist one file
+                    using (StreamWriter output = new StreamWriter(filename))
+                    {
+                        output.WriteLine(type_ID); // First line is PickerType_ID
+                        foreach (var pickJob in picklist)
+                        {
+                            output.WriteLine("{0},{1},{2}", pickJob.item.SKU_ID, pickJob.rack.Rack_ID, pickJob.quantity);
+                        }
+                    }
+
+                    count++;
+                    filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
+                }
+            }
+        }
+        private static void CopyToScenario(Scenario scenario)
+        {
+            foreach(var type in scenario.MasterPickList.Keys)
+            {
+                scenario.MasterPickList[type].Clear();
+
+                if(MasterPickList.ContainsKey(type))
+                {
+                    scenario.MasterPickList[type] = new List<List<PickJob>>(MasterPickList[type]);
+                }
+            }
         }
 
         /// <summary>
@@ -53,6 +86,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="scenario"></param>
         private static void StrategyA(Scenario scenario)
         {
+            // Assume only one picker type
             const string pickerType_ID = "Strategy_A_Picker";
             PickerType type = scenario.GetPickerType[pickerType_ID];
             MasterPickList.Add(type, new List<List<PickJob>>());
@@ -67,13 +101,31 @@ namespace O2DESNet.Warehouse.Statics
                 if (MasterPickList[type].Last().Count + orders.First().items.Count > type.Capacity)
                     MasterPickList[type].Add(new List<PickJob>());
 
+                // Process items in current order
                 foreach (var item in orders.First().items)
                 {
-                    // Check item availability
-                    // Reserve item at location
-                    // Add to curPicklist:
-                    // MasterPickList[type].Last().Add(new PickJob(item, location));
+                    var locations = item.QtyAtRack.Keys.ToList();
+                    bool reserved = false;
+                    // Inventory reservation procedure
+                    while (locations.Count > 0 && !reserved)
+                    {
+                        // Check item availability
+                        var rack = locations.First();
+                        if (item.GetQtyAvailable(rack) > 0)
+                        {
+                            // Reserve item at location
+                            item.ReserveFromRack(rack);
+                            // Add to curPicklist
+                            MasterPickList[type].Last().Add(new PickJob(item, rack));
+                            reserved = true;
+                        }
+                        else
+                        {
+                            locations.RemoveAt(0);
+                        }
+                    }
 
+                    if (!reserved) throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
                 }
                 // Next order
                 orders.RemoveAt(0);
