@@ -22,13 +22,18 @@ namespace O2DESNet.Warehouse
         {
             wh = new Scenario(scenarioName);
 
+            // Generate layout
             // wh.ReadLayoutFiles();
             BasicBuilder(wh);
-            wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
 
+            // Init layout, SKU and pickers
+            wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
             wh.ReadSKUsFile();
             wh.ReadPickers();
-            wh.ReadMasterPickList();
+
+            // Only call after initialisation of layout, SKU and pickers
+            // PicklistGenerator.Generate(PicklistGenerator.Strategy.A, wh);
+            wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator ??
         }
 
         private void BasicBuilder(Scenario scenario)

@@ -12,34 +12,36 @@ namespace O2DESNet.Warehouse.Statics
     {
         public string Name { get; private set; }
 
-        /// <summary>
-        /// Parent Classes for Dijkstra
-        /// </summary>  
+        #region Parent Classes for Dijkstra
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack
+        #endregion
 
+        #region Pickers
+        /// <summary>
+        /// PickerType from picker type id string
+        /// </summary>
+        public Dictionary<string, PickerType> GetPickerType { get; private set; }
         /// <summary>
         /// Numbers of pickers of each type
         /// </summary>
-        public Dictionary<string, PickerType> GetPickerType { get; private set; }
         public Dictionary<PickerType, int> NumPickers { get; private set; }
         public List<Picker> AllPickers { get; private set; }
+        #endregion
 
-        /// <summary>
-        /// Layout lookup
-        /// </summary>
+        #region Layout Lookup - from ID to object
         public Dictionary<string, PathAisle> Aisles { get; private set; }
         public Dictionary<string, PathRow> Rows { get; private set; }
         public Dictionary<string, PathShelf> Shelves { get; private set; }
         public Dictionary<string, CPRack> Racks { get; private set; }
         public Dictionary<string, SKU> SKUs { get; private set; }
         public ControlPoint StartCP { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Pick Lists
-        /// </summary>
+        #region Picklists
         public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; set; }
         public Dictionary<PickerType, List<List<PickJob>>> CompletedPickLists { get; set; }
+        #endregion
 
         public Scenario(string name)
         {
@@ -55,7 +57,7 @@ namespace O2DESNet.Warehouse.Statics
             Shelves = new Dictionary<string, PathShelf>();
             Racks = new Dictionary<string, CPRack>();
             SKUs = new Dictionary<string, SKU>();
-            
+
 
             MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
             CompletedPickLists = new Dictionary<PickerType, List<List<PickJob>>>();
@@ -64,7 +66,7 @@ namespace O2DESNet.Warehouse.Statics
             StartCP = null;
             //ControlPoints.Add(StartCP);
 
-            
+
         }
 
         #region Build from CSV file
@@ -406,7 +408,13 @@ namespace O2DESNet.Warehouse.Statics
                 var pickingTime = TimeSpan.FromSeconds(double.Parse(data[2])); // Seconds per item
                 var numPickers = int.Parse(data[3]);
 
-                var type = new PickerType(id, moveSpd, pickingTime);
+                int capacity;
+                PickerType type;
+
+                if (int.TryParse(data[4], out capacity))
+                    type = new PickerType(id, moveSpd, pickingTime, capacity);
+                else
+                    type = new PickerType(id, moveSpd, pickingTime);
 
                 MasterPickList.Add(type, new List<List<PickJob>>());
                 CompletedPickLists.Add(type, new List<List<PickJob>>());

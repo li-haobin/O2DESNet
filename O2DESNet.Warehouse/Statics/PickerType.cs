@@ -13,9 +13,9 @@ namespace O2DESNet.Warehouse.Statics
         public string PickerType_ID { get; private set; }
         public double AveMoveSpeed { get; private set; } // metre per sec
         public TimeSpan AvePickTime{ get; private set; }
-        public double Capacity { get; private set; }
+        public int Capacity { get; private set; }
 
-        internal PickerType(string type_id, double aveMoveSpeed, TimeSpan avePickTime, double capacity = double.PositiveInfinity)
+        internal PickerType(string type_id, double aveMoveSpeed, TimeSpan avePickTime, int capacity = int.MaxValue)
         {
             Id = ++_count;
             if (aveMoveSpeed <= 0 || aveMoveSpeed == double.PositiveInfinity)
