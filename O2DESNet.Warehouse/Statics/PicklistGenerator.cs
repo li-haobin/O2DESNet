@@ -17,6 +17,7 @@ namespace O2DESNet.Warehouse.Statics
         public enum Strategy { A, B, C, D };
 
         public static Dictionary<string, Order> AllOrders { get; private set; }
+        public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
         #region Picklist generation
         /// <summary>
@@ -35,15 +36,48 @@ namespace O2DESNet.Warehouse.Statics
             if (strategy == Strategy.C) StrategyC(scenario);
 
             if (strategy == Strategy.D) StrategyD(scenario);
+
+            WriteToFiles(scenario);
+        }
+
+        private static void WriteToFiles(Scenario scenario)
+        {
+            int count = 1;
+            string filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
+
         }
 
         /// <summary>
-        /// No zoning no grouping. Sequential assignment of orders.
+        /// No zoning no grouping. Sequential assignment of orders. Only one PickerType.
         /// </summary>
         /// <param name="scenario"></param>
         private static void StrategyA(Scenario scenario)
         {
-            // filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
+            const string pickerType_ID = "Strategy_A_Picker";
+            PickerType type = scenario.GetPickerType[pickerType_ID];
+            MasterPickList.Add(type, new List<List<PickJob>>());
+
+            List<Order> orders = AllOrders.Values.ToList();
+
+            MasterPickList[type].Add(new List<PickJob>());
+
+            while (orders.Count > 0)
+            {
+                // If does not fit, create new picklist
+                if (MasterPickList[type].Last().Count + orders.First().items.Count > type.Capacity)
+                    MasterPickList[type].Add(new List<PickJob>());
+
+                foreach (var item in orders.First().items)
+                {
+                    // Check item availability
+                    // Reserve item at location
+                    // Add to curPicklist:
+                    // MasterPickList[type].Last().Add(new PickJob(item, location));
+
+                }
+                // Next order
+                orders.RemoveAt(0);
+            }
         }
         private static void StrategyB(Scenario scenario)
         {
