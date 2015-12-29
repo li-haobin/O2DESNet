@@ -33,7 +33,7 @@ namespace O2DESNet.Warehouse
 
             // Only call after initialisation of layout, SKU and pickers
             // PicklistGenerator.Generate(PicklistGenerator.Strategy.A, wh);
-            wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator ??
+            wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
         }
 
         private void BasicBuilder(Scenario scenario)

@@ -21,23 +21,24 @@ namespace O2DESNet.Warehouse.Statics
 
         #region Picklist generation
         /// <summary>
-        /// Generate picklists to FILE, based on given strategy name
+        /// Generate picklists to FILE, based on given strategy. Optional copy to scenario directly.
         /// </summary>
         /// <param name="strategy"></param>
         /// <param name="scenario"></param>
-        public static void Generate(Strategy strategy, Scenario scenario)
+        public static void Generate(Strategy strategy, Scenario scenario, bool copyToScenario = false)
         {
             if (AllOrders.Count == 0) throw new Exception("Orders have not been read! Read orders first.");
 
+            MasterPickList.Clear();
+
             if (strategy == Strategy.A) StrategyA(scenario);
-
             if (strategy == Strategy.B) StrategyB(scenario);
-
             if (strategy == Strategy.C) StrategyC(scenario);
-
             if (strategy == Strategy.D) StrategyD(scenario);
 
             WriteToFiles(scenario);
+
+            if (copyToScenario) CopyToScenario(scenario);
         }
 
         private static void WriteToFiles(Scenario scenario)
@@ -69,11 +70,11 @@ namespace O2DESNet.Warehouse.Statics
         }
         private static void CopyToScenario(Scenario scenario)
         {
-            foreach(var type in scenario.MasterPickList.Keys)
+            foreach (var type in scenario.MasterPickList.Keys)
             {
                 scenario.MasterPickList[type].Clear();
 
-                if(MasterPickList.ContainsKey(type))
+                if (MasterPickList.ContainsKey(type))
                 {
                     scenario.MasterPickList[type] = new List<List<PickJob>>(MasterPickList[type]);
                 }
@@ -81,7 +82,7 @@ namespace O2DESNet.Warehouse.Statics
         }
 
         /// <summary>
-        /// No zoning no grouping. Sequential assignment of orders. Only one PickerType.
+        /// Current strategy. Sequential assignment of orders. Only one PickerType.
         /// </summary>
         /// <param name="scenario"></param>
         private static void StrategyA(Scenario scenario)
@@ -98,11 +99,11 @@ namespace O2DESNet.Warehouse.Statics
             while (orders.Count > 0)
             {
                 // If does not fit, create new picklist
-                if (MasterPickList[type].Last().Count + orders.First().items.Count > type.Capacity)
+                if (MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
                     MasterPickList[type].Add(new List<PickJob>());
 
                 // Process items in current order
-                foreach (var item in orders.First().items)
+                foreach (var item in orders.First().Items)
                 {
                     var locations = item.QtyAtRack.Keys.ToList();
                     bool reserved = false;
@@ -130,21 +131,51 @@ namespace O2DESNet.Warehouse.Statics
                 // Next order
                 orders.RemoveAt(0);
             }
+
+            SortByLocation();
         }
+        /// <summary>
+        /// Hybrid Order Picking
+        /// </summary>
+        /// <param name="scenario"></param>
         private static void StrategyB(Scenario scenario)
         {
             throw new NotImplementedException("Strategy B not implemented!");
         }
+        /// <summary>
+        /// Hybrid Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
         private static void StrategyC(Scenario scenario)
         {
             throw new NotImplementedException("Strategy C not implemented!");
         }
+        /// <summary>
+        /// Pure Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
         private static void StrategyD(Scenario scenario)
         {
             throw new NotImplementedException("Strategy D not implemented!");
         }
-        #endregion
 
+        /// <summary>
+        /// Sort each picklist by location (PickJob.CPRack.Rack_ID)
+        /// </summary>
+        private static void SortByLocation()
+        {
+            foreach (var type in MasterPickList.Keys)
+            {
+                var typePicklists = MasterPickList[type];
+
+                for (int i = 0; i < typePicklists.Count; i++)
+                {
+                    typePicklists[i] = typePicklists[i].OrderBy(o => o.rack.Rack_ID).ToList();
+                }
+            }
+        }
+
+        #endregion
 
         #region Read Orders    
         /// <summary>
@@ -153,6 +184,8 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="filename"></param>
         public static void ReadOrders(string filename, Scenario scenario)
         {
+            AllOrders.Clear();
+
             filename = @"Orders\" + filename;
             if (!File.Exists(filename))
                 throw new Exception("Order file " + filename + " does not exist");
@@ -183,7 +216,7 @@ namespace O2DESNet.Warehouse.Statics
             }
 
             // Add SKU to order
-            AllOrders[order_id].items.Add(sku);
+            AllOrders[order_id].Items.Add(sku);
         }
         #endregion
     }
