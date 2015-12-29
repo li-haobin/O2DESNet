@@ -25,5 +25,23 @@ namespace O2DESNet.Warehouse.Statics
 
             SKUs = new List<SKU>();
         }
+
+        #region Zone Implementation
+        // Currently crude implementation using string
+
+        public string GetZone()
+        {
+            int idx = Rack_ID.IndexOf('-');
+
+            if (idx > 0) return Rack_ID.Substring(0, idx);
+            else return string.Empty;
+        }
+
+        public bool IsSameZone(CPRack other)
+        {
+            return GetZone() == other.GetZone();
+        }
+
+        #endregion
     }
 }

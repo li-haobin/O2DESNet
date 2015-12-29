@@ -15,6 +15,10 @@ namespace O2DESNet.Warehouse.Statics
     public static class PicklistGenerator
     {
         public enum Strategy { A, B, C, D };
+        const string A_PickerID = "Strategy_A_Picker";
+        const string C_PickerID_SingleItem = "Strategy_C_SingleItem";
+        const string C_PickerID_SingleZone = "Strategy_C_SingleZone";
+        const string C_PickerID_MultiZone = "Strategy_C_MultiZone";
 
         public static Dictionary<string, Order> AllOrders { get; private set; }
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
@@ -35,6 +39,8 @@ namespace O2DESNet.Warehouse.Statics
             if (strategy == Strategy.B) StrategyB(scenario);
             if (strategy == Strategy.C) StrategyC(scenario);
             if (strategy == Strategy.D) StrategyD(scenario);
+
+            SortByLocation();
 
             WriteToFiles(scenario);
 
@@ -81,7 +87,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             var types = scenario.MasterPickList.Keys.ToList();
 
-            for(int i = 0; i < types.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
                 scenario.MasterPickList[types[i]].Clear();
 
@@ -114,12 +120,88 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="scenario"></param>
         private static void StrategyA(Scenario scenario)
         {
-            // Assume only one picker type
-            const string pickerType_ID = "Strategy_A_Picker";
-            PickerType type = scenario.GetPickerType[pickerType_ID];
-            MasterPickList.Add(type, new List<List<PickJob>>());
-
             List<Order> orders = AllOrders.Values.ToList();
+
+            // Assume only one picker type A_Picker
+            GeneratePicklists(A_PickerID, orders, scenario);
+        }
+        /// <summary>
+        /// Hybrid Order Picking
+        /// </summary>
+        /// <param name="scenario"></param>
+        private static void StrategyB(Scenario scenario)
+        {
+            // Init orders
+            List<Order> orders = AllOrders.Values.ToList();
+
+            // Separate single item orders
+            List<Order> singleItemOrders = orders.ExtractAll(order => order.Items.Count == 1);
+
+            // Determine orders with items in a single zone
+            // Init zones of interest
+            HashSet<string> allZones = new HashSet<string>();
+            foreach (var order in orders)
+            {
+                foreach (var item in order.Items)
+                {
+                    allZones.UnionWith(item.GetFulfilmentZones());
+                }
+            }
+            // Find single-zone orders
+            Dictionary<string, List<Order>> singleZoneOrders = new Dictionary<string, List<Order>>();
+            foreach (var zone in allZones)
+            {
+                singleZoneOrders.Add(zone, new List<Order>());
+                for (int i = 0; i < orders.Count; i++)
+                {
+                    if (orders[i].IsFulfilledSingleZone(zone))
+                    {
+                        singleZoneOrders[zone].Add(orders[i]);
+                        orders.RemoveAt(i--);
+                    }
+                }
+            }
+            // Remaining order in List orders are multi-zone orders
+
+            // Now, generate the Picklists for each picker type
+            GeneratePicklists(C_PickerID_SingleItem, singleItemOrders, scenario);
+            GeneratePicklists(C_PickerID_MultiZone, orders, scenario);
+
+            foreach (var zoneOrders in singleZoneOrders.Values)
+            {
+                GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario);
+            }
+
+        }
+        /// <summary>
+        /// Hybrid Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
+        private static void StrategyC(Scenario scenario)
+        {
+            throw new NotImplementedException("Strategy C not implemented!");
+        }
+        /// <summary>
+        /// Pure Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
+        private static void StrategyD(Scenario scenario)
+        {
+            throw new NotImplementedException("Strategy D not implemented!");
+        }
+
+        /// <summary>
+        /// Generate picklists for specified picker type from given set of orders
+        /// </summary>
+        /// <param name="pickerType_ID"></param>
+        /// <param name="orders"></param>
+        /// <param name="scenario"></param>
+        private static void GeneratePicklists(string pickerType_ID, List<Order> orders, Scenario scenario)
+        {
+            var type = scenario.GetPickerType[pickerType_ID];
+
+            if (!MasterPickList.ContainsKey(type))
+                MasterPickList.Add(type, new List<List<PickJob>>());
 
             MasterPickList[type].Add(new List<PickJob>());
 
@@ -158,32 +240,6 @@ namespace O2DESNet.Warehouse.Statics
                 // Next order
                 orders.RemoveAt(0);
             }
-
-            SortByLocation();
-        }
-        /// <summary>
-        /// Hybrid Order Picking
-        /// </summary>
-        /// <param name="scenario"></param>
-        private static void StrategyB(Scenario scenario)
-        {
-            throw new NotImplementedException("Strategy B not implemented!");
-        }
-        /// <summary>
-        /// Hybrid Zone Picking
-        /// </summary>
-        /// <param name="scenario"></param>
-        private static void StrategyC(Scenario scenario)
-        {
-            throw new NotImplementedException("Strategy C not implemented!");
-        }
-        /// <summary>
-        /// Pure Zone Picking
-        /// </summary>
-        /// <param name="scenario"></param>
-        private static void StrategyD(Scenario scenario)
-        {
-            throw new NotImplementedException("Strategy D not implemented!");
         }
 
         /// <summary>
@@ -201,6 +257,20 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
         }
+        /// <summary>
+        /// List extension to extract elements defined by predicate
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="match"></param>
+        /// <returns></returns>
+        private static List<T> ExtractAll<T>(this List<T> source, Predicate<T> match)
+        {
+            List<T> extract = source.FindAll(match);
+            source.RemoveAll(match);
+            return extract;
+        }
+
 
         #endregion
 

@@ -39,7 +39,6 @@ namespace O2DESNet.Warehouse.Dynamics
                     rack.OnShelf.SKUs.Add(this, rack);
             }
         }
-
         public void PickFromRack(CPRack rack, int quantity = 1)
         {
             if (!QtyAtRack.ContainsKey(rack))
@@ -74,7 +73,6 @@ namespace O2DESNet.Warehouse.Dynamics
 
             ReservedAtRack[rack] += quantity;
         }
-
         public int GetQtyAvailable(CPRack rack)
         {
             if (!QtyAtRack.ContainsKey(rack))
@@ -82,5 +80,23 @@ namespace O2DESNet.Warehouse.Dynamics
 
             return QtyAtRack[rack] - ReservedAtRack[rack];
         }
+
+        #region Zone Implementation
+        public HashSet<string> GetFulfilmentZones()
+        {
+            HashSet<string> output = new HashSet<string>();
+            List<CPRack> locations = QtyAtRack.Keys.ToList();
+
+            foreach (var loc in locations)
+            {
+                if (QtyAtRack[loc] <= 0) throw new Exception("Zero quantity. Should have been removed from Dictionary.");
+
+                if (GetQtyAvailable(loc) > 0)
+                    output.Add(loc.GetZone());
+            }
+            
+            return output;
+        }
+        #endregion
     }
 }

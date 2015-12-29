@@ -17,5 +17,10 @@ namespace O2DESNet.Warehouse.Dynamics
             Order_ID = id;
             Items = new List<SKU>();
         }
+
+        public bool IsFulfilledSingleZone(string zone)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
