@@ -29,7 +29,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             if (AllOrders.Count == 0) throw new Exception("Orders have not been read! Read orders first.");
 
-            MasterPickList.Clear();
+            MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
 
             if (strategy == Strategy.A) StrategyA(scenario);
             if (strategy == Strategy.B) StrategyB(scenario);
@@ -40,9 +40,14 @@ namespace O2DESNet.Warehouse.Statics
 
             if (copyToScenario) CopyToScenario(scenario);
         }
-
+        /// <summary>
+        /// Write MasterPickList to files
+        /// </summary>
+        /// <param name="scenario"></param>
         private static void WriteToFiles(Scenario scenario)
         {
+            DeletePicklistFiles(scenario);
+
             int count = 1;
             string filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
 
@@ -68,18 +73,40 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
         }
+        /// <summary>
+        /// Copy MasterPickList to scenario.MasterPickList
+        /// </summary>
+        /// <param name="scenario"></param>
         private static void CopyToScenario(Scenario scenario)
         {
-            foreach (var type in scenario.MasterPickList.Keys)
-            {
-                scenario.MasterPickList[type].Clear();
+            var types = scenario.MasterPickList.Keys.ToList();
 
-                if (MasterPickList.ContainsKey(type))
+            for(int i = 0; i < types.Count; i++)
+            {
+                scenario.MasterPickList[types[i]].Clear();
+
+                if (MasterPickList.ContainsKey(types[i]))
                 {
-                    scenario.MasterPickList[type] = new List<List<PickJob>>(MasterPickList[type]);
+                    scenario.MasterPickList[types[i]] = new List<List<PickJob>>(MasterPickList[types[i]]);
                 }
             }
         }
+        private static void DeletePicklistFiles(Scenario scenario)
+        {
+            int count = 1;
+            string filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
+
+            while (File.Exists(filename))
+            {
+                File.Delete(filename);
+                count++;
+                filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
+            }
+
+        }
+        #endregion
+
+        #region Strategies
 
         /// <summary>
         /// Current strategy. Sequential assignment of orders. Only one PickerType.
@@ -179,14 +206,14 @@ namespace O2DESNet.Warehouse.Statics
 
         #region Read Orders    
         /// <summary>
-        /// CSV file in Orders folder
+        /// CSV file in Picklist folder
         /// </summary>
         /// <param name="filename"></param>
         public static void ReadOrders(string filename, Scenario scenario)
         {
-            AllOrders.Clear();
+            AllOrders = new Dictionary<string, Order>();
 
-            filename = @"Orders\" + filename;
+            filename = @"Picklist\" + filename;
             if (!File.Exists(filename))
                 throw new Exception("Order file " + filename + " does not exist");
 

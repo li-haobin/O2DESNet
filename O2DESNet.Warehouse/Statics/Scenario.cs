@@ -399,7 +399,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             string filename = @"Picklist\" + Name + "_Pickers.csv";
 
-            var pickerTypes = CSVToList(filename); // ID, move speed, pick time, numPickers
+            var pickerTypes = CSVToList(filename); // ID, move speed, pick time, numPickers, capacity
 
             foreach (var data in pickerTypes)
             {
@@ -410,6 +410,7 @@ namespace O2DESNet.Warehouse.Statics
 
                 PickerType type;
 
+                // For picker capacity
                 if (data.Count() > 4)
                     type = new PickerType(id, moveSpd, pickingTime, int.Parse(data[4]));
                 else
