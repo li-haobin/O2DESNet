@@ -166,20 +166,14 @@ namespace O2DESNet.Warehouse.Statics
             Dictionary<string, List<Order>> singleZoneOrders = new Dictionary<string, List<Order>>();
             foreach (var zone in allZones)
             {
-                List<Order> zoneOrders = orders.ExtractAll(order => order.IsSingleZoneFulfil(zone));
+                List<Order> zoneOrders = orders.ExtractAll(order => order.IsSingleZoneFulfil(zone)); // Potentially fulfiled in zone
+                
+                var unfilfilled = GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario, zone); // Reservation done here
+
+                orders.AddRange(unfilfilled); // Append back unfulfilled orders
+                zoneOrders = zoneOrders.Except(unfilfilled).ToList(); // Remove unfulfilled orders
+
                 singleZoneOrders.Add(zone, zoneOrders);
-
-                GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario, zone); // Reservation done here
-
-                //singleZoneOrders.Add(zone, new List<Order>());
-                //for (int i = 0; i < orders.Count; i++)
-                //{
-                //    if (orders[i].IsFulfilledSingleZone(zone))
-                //    {
-                //        singleZoneOrders[zone].Add(orders[i]);
-                //        orders.RemoveAt(i--);
-                //    }
-                //}
             }
 
             // Remaining order in List orders are multi-zone orders
@@ -212,54 +206,66 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="pickerType_ID"></param>
         /// <param name="orders"></param>
         /// <param name="scenario"></param>
-        private static void GeneratePicklists(string pickerType_ID, List<Order> orders, Scenario scenario, string zone = null)
+        private static List<Order> GeneratePicklists(string pickerType_ID, List<Order> orders, Scenario scenario, string zone = null)
         {
+            List<Order> unfulfilledOrders = new List<Order>();
+
             var type = scenario.GetPickerType[pickerType_ID];
 
             if (!MasterPickList.ContainsKey(type))
                 MasterPickList.Add(type, new List<List<PickJob>>());
 
-            MasterPickList[type].Add(new List<PickJob>());
-
             while (orders.Count > 0)
             {
-                // If does not fit, create new picklist
-                if (MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
+                if (zone != null && !orders.First().IsSingleZoneFulfil(zone))
+                {
+                    unfulfilledOrders.Add(orders.First());
+                }
+                else
+                {
                     MasterPickList[type].Add(new List<PickJob>());
 
-                // Process items in current order
-                foreach (var item in orders.First().Items)
-                {
-                    var locations = item.QtyAtRack.Keys.ToList();
-                    bool reserved = false;
-                    // Inventory reservation procedure
-                    while (locations.Count > 0 && !reserved)
+                    // If does not fit, create new picklist
+                    if (MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
+                        MasterPickList[type].Add(new List<PickJob>());
+
+                    // Process items in current order
+                    foreach (var item in orders.First().Items)
                     {
-                        // Check item availability
-                        var rack = locations.First(); // HERE! ONLY FROM DESIRED ZONE
-                        if (zone != null && zone != rack.GetZone()) locations.RemoveAt(0);
-                        else
+                        var locations = item.QtyAtRack.Keys.ToList();
+                        bool reserved = false;
+                        // Inventory reservation procedure
+                        while (locations.Count > 0 && !reserved)
                         {
-                            if (item.GetQtyAvailable(rack) > 0)
-                            {
-                                // Reserve item at location
-                                item.ReserveFromRack(rack);
-                                // Add to curPicklist
-                                MasterPickList[type].Last().Add(new PickJob(item, rack));
-                                reserved = true;
-                            }
+                            // Check item availability
+                            var rack = locations.First(); // HERE! ONLY FROM DESIRED ZONE
+                            if (zone != null && zone != rack.GetZone()) locations.RemoveAt(0);
                             else
                             {
-                                locations.RemoveAt(0);
+                                if (item.GetQtyAvailable(rack) > 0)
+                                {
+                                    // Reserve item at location
+                                    item.ReserveFromRack(rack);
+                                    // Add to curPicklist
+                                    MasterPickList[type].Last().Add(new PickJob(item, rack));
+                                    reserved = true;
+                                }
+                                else
+                                {
+                                    locations.RemoveAt(0);
+                                }
                             }
                         }
+
+                        if (!reserved) throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
                     }
 
-                    if (!reserved) throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
                 }
                 // Next order
                 orders.RemoveAt(0);
             }
+
+            return unfulfilledOrders;
         }
         /// <summary>
         /// List extension to extract elements defined by predicate

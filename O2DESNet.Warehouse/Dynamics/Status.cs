@@ -46,6 +46,8 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public TimeSpan GetAveragePickListTime(PickerType type)
         {
+            if (TotalPickListsCompleted[type] == 0) return TimeSpan.Zero;
+
             return TimeSpan.FromSeconds(TotalPickingTime[type].TotalSeconds / TotalPickListsCompleted[type]);
         }
     }
