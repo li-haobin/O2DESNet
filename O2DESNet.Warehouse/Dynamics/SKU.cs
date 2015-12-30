@@ -97,6 +97,11 @@ namespace O2DESNet.Warehouse.Dynamics
             
             return output;
         }
+
+        public bool IsFulfiledZone(string zone)
+        {
+            return GetFulfilmentZones().Contains(zone);
+        }
         #endregion
     }
 }

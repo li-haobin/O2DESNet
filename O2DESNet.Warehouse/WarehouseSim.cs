@@ -32,7 +32,7 @@ namespace O2DESNet.Warehouse
             wh.ReadPickers();
 
             // Only call after initialisation of layout, SKU and pickers
-            PicklistGenerator.ReadOrders("ZA_Orders.csv", wh);
+            PicklistGenerator.ReadOrders(wh, "ZA_Orders.csv");
             PicklistGenerator.Generate(PicklistGenerator.Strategy.B, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
         }
