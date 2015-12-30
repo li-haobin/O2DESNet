@@ -15,7 +15,16 @@ namespace O2DESNet.Warehouse.Statics
     public static class PicklistGenerator
     {
         public enum Strategy { A, B, C, D };
+
         const string A_PickerID = "Strategy_A_Picker";
+
+        const string B_PickerID_SingleItem = "Strategy_B_SingleItem";
+        const string B_PickerID_SingleZone = "Strategy_B_SingleZone";
+        const string B_PickerID_MultiZone = "Strategy_B_MultiZone";
+
+        const string D_PickerID_SingleItem = "Strategy_D_SingleItem";
+        const string D_PickerID_MultiItem = "Strategy_D_MultiItem";
+
         const string C_PickerID_SingleItem = "Strategy_C_SingleItem";
         const string C_PickerID_SingleZone = "Strategy_C_SingleZone";
         const string C_PickerID_MultiZone = "Strategy_C_MultiZone";
@@ -146,12 +155,69 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="scenario"></param>
         private static void StrategyB(Scenario scenario)
         {
-            // Init orders
             List<Order> orders = AllOrders.Values.ToList();
 
-            // Separate single item orders
             List<Order> singleItemOrders = orders.ExtractAll(order => order.Items.Count == 1);
 
+            GenerateSingleZoneOrders(scenario, orders);
+
+            // Remaining order in List orders are multi-zone orders
+            GeneratePicklists(B_PickerID_MultiZone, orders, scenario);
+            // Single-Item orders last
+            GeneratePicklists(B_PickerID_SingleItem, singleItemOrders, scenario);
+        }
+        /// <summary>
+        /// Hybrid Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
+        private static void StrategyC(Scenario scenario)
+        {
+            List<Order> orders = AllOrders.Values.ToList();
+
+            List<Order> singleItemOrders = orders.ExtractAll(order => order.Items.Count == 1);
+
+            GenerateSingleZoneOrders(scenario, orders);
+
+            // Split remaining orders into zones
+            GeneratePureZoneOrders(scenario, orders);
+
+            // Single-Item orders last
+            GeneratePicklists(C_PickerID_SingleItem, singleItemOrders, scenario);
+        }
+        /// <summary>
+        /// Pure Zone Picking
+        /// </summary>
+        /// <param name="scenario"></param>
+        private static void StrategyD(Scenario scenario)
+        {
+            List<Order> orders = AllOrders.Values.ToList();
+
+            List<Order> singleItemOrders = orders.ExtractAll(order => order.Items.Count == 1);
+
+            // Split remaining orders into zones
+            GeneratePureZoneOrders(scenario, orders);
+
+            // Single-Item orders last
+            GeneratePicklists(D_PickerID_SingleItem, singleItemOrders, scenario);
+        }
+
+        /// <summary>
+        /// Generate picklists for pure zone orders. No orders should remain.
+        /// </summary>
+        /// <param name="scenario"></param>
+        /// <param name="orders"></param>
+        private static void GeneratePureZoneOrders(Scenario scenario, List<Order> orders)
+        {
+            throw new NotImplementedException("Pure Zone not implemented!");
+        }
+
+        /// <summary>
+        /// Generate picklists for single zone orders. Remaining orders in List are unfulfilled.
+        /// </summary>
+        /// <param name="scenario"></param>
+        /// <param name="orders"></param>
+        private static void GenerateSingleZoneOrders(Scenario scenario, List<Order> orders)
+        {
             // Determine orders with items in a single zone
             // Init zones of interest
             HashSet<string> allZones = new HashSet<string>();
@@ -163,45 +229,18 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
             // Find single-zone orders
-            Dictionary<string, List<Order>> singleZoneOrders = new Dictionary<string, List<Order>>();
             foreach (var zone in allZones)
             {
                 List<Order> zoneOrders = orders.ExtractAll(order => order.IsSingleZoneFulfil(zone)); // Potentially fulfiled in zone
-                
-                var unfilfilled = GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario, zone); // Reservation done here
+
+                var unfilfilled = GeneratePicklists(B_PickerID_SingleZone, zoneOrders, scenario, zone); // Reservation done here
 
                 orders.AddRange(unfilfilled); // Append back unfulfilled orders
                 zoneOrders = zoneOrders.Except(unfilfilled).ToList(); // Remove unfulfilled orders
-
-                singleZoneOrders.Add(zone, zoneOrders);
             }
-
-            // Remaining order in List orders are multi-zone orders
-            GeneratePicklists(C_PickerID_MultiZone, orders, scenario);
-            // Single-Item orders last
-            GeneratePicklists(C_PickerID_SingleItem, singleItemOrders, scenario);
-
         }
         /// <summary>
-        /// Hybrid Zone Picking
-        /// </summary>
-        /// <param name="scenario"></param>
-        private static void StrategyC(Scenario scenario)
-        {
-            throw new NotImplementedException("Strategy C not implemented!");
-        }
-        /// <summary>
-        /// Pure Zone Picking
-        /// </summary>
-        /// <param name="scenario"></param>
-        private static void StrategyD(Scenario scenario)
-        {
-            throw new NotImplementedException("Strategy D not implemented!");
-        }
-
-        // Need to have optional generate only from certain zone for Strategy B
-        /// <summary>
-        /// Generate picklists for specified picker type from given set of orders
+        /// Generate picklists for specified picker type from given set of orders. Optional only from single zone. Return unfulfilled orders.
         /// </summary>
         /// <param name="pickerType_ID"></param>
         /// <param name="orders"></param>
