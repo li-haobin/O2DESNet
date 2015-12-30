@@ -18,9 +18,23 @@ namespace O2DESNet.Warehouse.Dynamics
             Items = new List<SKU>();
         }
 
-        public bool IsFulfilledSingleZone(string zone)
+        public bool IsSingleZoneFulfil(string zone)
         {
-            throw new NotImplementedException();
+            return GetSingleZoneFulfil().Contains(zone);
+        }
+
+        public HashSet<string> GetSingleZoneFulfil()
+        {
+            if (Items.Count == 0) throw new Exception("Order is empty.");
+
+            HashSet<string> output = new HashSet<string>(Items.First().GetFulfilmentZones());
+
+            foreach (var item in Items)
+            {
+                output.IntersectWith(item.GetFulfilmentZones());
+            }
+
+            return output;
         }
     }
 }

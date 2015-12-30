@@ -110,6 +110,21 @@ namespace O2DESNet.Warehouse.Statics
             }
 
         }
+        /// <summary>
+        /// Sort each picklist by location (PickJob.CPRack.Rack_ID)
+        /// </summary>
+        private static void SortByLocation()
+        {
+            foreach (var type in MasterPickList.Keys)
+            {
+                var typePicklists = MasterPickList[type];
+
+                for (int i = 0; i < typePicklists.Count; i++)
+                {
+                    typePicklists[i] = typePicklists[i].OrderBy(o => o.rack.Rack_ID).ToList();
+                }
+            }
+        }
         #endregion
 
         #region Strategies
@@ -151,26 +166,26 @@ namespace O2DESNet.Warehouse.Statics
             Dictionary<string, List<Order>> singleZoneOrders = new Dictionary<string, List<Order>>();
             foreach (var zone in allZones)
             {
-                singleZoneOrders.Add(zone, new List<Order>());
-                for (int i = 0; i < orders.Count; i++)
-                {
-                    if (orders[i].IsFulfilledSingleZone(zone))
-                    {
-                        singleZoneOrders[zone].Add(orders[i]);
-                        orders.RemoveAt(i--);
-                    }
-                }
+                List<Order> zoneOrders = orders.ExtractAll(order => order.IsSingleZoneFulfil(zone));
+                singleZoneOrders.Add(zone, zoneOrders);
+
+                GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario, zone); // Reservation done here
+
+                //singleZoneOrders.Add(zone, new List<Order>());
+                //for (int i = 0; i < orders.Count; i++)
+                //{
+                //    if (orders[i].IsFulfilledSingleZone(zone))
+                //    {
+                //        singleZoneOrders[zone].Add(orders[i]);
+                //        orders.RemoveAt(i--);
+                //    }
+                //}
             }
+
             // Remaining order in List orders are multi-zone orders
-
-            // Now, generate the Picklists for each picker type
-            GeneratePicklists(C_PickerID_SingleItem, singleItemOrders, scenario);
             GeneratePicklists(C_PickerID_MultiZone, orders, scenario);
-
-            foreach (var zoneOrders in singleZoneOrders.Values)
-            {
-                GeneratePicklists(C_PickerID_SingleZone, zoneOrders, scenario);
-            }
+            // Single-Item orders last
+            GeneratePicklists(C_PickerID_SingleItem, singleItemOrders, scenario);
 
         }
         /// <summary>
@@ -190,13 +205,14 @@ namespace O2DESNet.Warehouse.Statics
             throw new NotImplementedException("Strategy D not implemented!");
         }
 
+        // Need to have optional generate only from certain zone for Strategy B
         /// <summary>
         /// Generate picklists for specified picker type from given set of orders
         /// </summary>
         /// <param name="pickerType_ID"></param>
         /// <param name="orders"></param>
         /// <param name="scenario"></param>
-        private static void GeneratePicklists(string pickerType_ID, List<Order> orders, Scenario scenario)
+        private static void GeneratePicklists(string pickerType_ID, List<Order> orders, Scenario scenario, string zone = null)
         {
             var type = scenario.GetPickerType[pickerType_ID];
 
@@ -220,18 +236,22 @@ namespace O2DESNet.Warehouse.Statics
                     while (locations.Count > 0 && !reserved)
                     {
                         // Check item availability
-                        var rack = locations.First();
-                        if (item.GetQtyAvailable(rack) > 0)
-                        {
-                            // Reserve item at location
-                            item.ReserveFromRack(rack);
-                            // Add to curPicklist
-                            MasterPickList[type].Last().Add(new PickJob(item, rack));
-                            reserved = true;
-                        }
+                        var rack = locations.First(); // HERE! ONLY FROM DESIRED ZONE
+                        if (zone != null && zone != rack.GetZone()) locations.RemoveAt(0);
                         else
                         {
-                            locations.RemoveAt(0);
+                            if (item.GetQtyAvailable(rack) > 0)
+                            {
+                                // Reserve item at location
+                                item.ReserveFromRack(rack);
+                                // Add to curPicklist
+                                MasterPickList[type].Last().Add(new PickJob(item, rack));
+                                reserved = true;
+                            }
+                            else
+                            {
+                                locations.RemoveAt(0);
+                            }
                         }
                     }
 
@@ -239,22 +259,6 @@ namespace O2DESNet.Warehouse.Statics
                 }
                 // Next order
                 orders.RemoveAt(0);
-            }
-        }
-
-        /// <summary>
-        /// Sort each picklist by location (PickJob.CPRack.Rack_ID)
-        /// </summary>
-        private static void SortByLocation()
-        {
-            foreach (var type in MasterPickList.Keys)
-            {
-                var typePicklists = MasterPickList[type];
-
-                for (int i = 0; i < typePicklists.Count; i++)
-                {
-                    typePicklists[i] = typePicklists[i].OrderBy(o => o.rack.Rack_ID).ToList();
-                }
             }
         }
         /// <summary>
@@ -270,8 +274,6 @@ namespace O2DESNet.Warehouse.Statics
             source.RemoveAll(match);
             return extract;
         }
-
-
         #endregion
 
         #region Read Orders    
