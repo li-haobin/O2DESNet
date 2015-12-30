@@ -216,7 +216,7 @@ namespace O2DESNet.Warehouse.Statics
 
             foreach (var zone in allZones)
             {
-                var oneZone = items.ExtractAll(item => item.IsFulfiledZone(zone));
+                var oneZone = items.ExtractAll(item => item.IsFulfiledZone(zone)); // Potentially fulfilled in this zone
 
                 var unfulfilled = GeneratePicklistsFromItems(scenario, oneZone, pickerID, zone);
 
