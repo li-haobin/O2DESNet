@@ -54,6 +54,9 @@
     <Compile Include="Distributions\Exponential.cs" />
     <Compile Include="Distributions\Empirical.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="Optimizers\ArrayKey.cs" />
+    <Compile Include="Optimizers\DecisionSpace.cs" />
+    <Compile Include="Optimizers\Optimizer.cs" />
     <Compile Include="Replicators\MinSelector.cs" />
     <Compile Include="Replicators\Replicator.cs" />
     <Compile Include="Simulator.cs" />
