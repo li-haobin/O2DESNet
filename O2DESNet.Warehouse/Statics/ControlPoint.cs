@@ -53,5 +53,8 @@ namespace O2DESNet.Warehouse.Statics
 
             return dist;
         }
+
+        // Need another method GetDistanceTo which exploits the structure of a warehouse
+        // This is for quicker generation, without having to calculate Dijkstra graph
     }
 }

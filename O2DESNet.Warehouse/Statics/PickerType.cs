@@ -12,7 +12,7 @@ namespace O2DESNet.Warehouse.Statics
         public int Id { get; private set; }
         public string PickerType_ID { get; private set; }
         public double AveMoveSpeed { get; private set; } // metre per sec
-        public TimeSpan AvePickTime{ get; private set; }
+        public TimeSpan AvePickTime { get; private set; }
         public int Capacity { get; private set; }
 
         internal PickerType(string type_id, double aveMoveSpeed, TimeSpan avePickTime, int capacity = int.MaxValue)
@@ -31,10 +31,16 @@ namespace O2DESNet.Warehouse.Statics
             Capacity = capacity;
         }
 
+        /// <summary>
+        /// From shelf to shelf, generic. Does not exploit warehouse structure.
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="dest"></param>
+        /// <returns></returns>
         public double GetNextTravelTime(ControlPoint from, ControlPoint dest)
         {
-            // In metres. From shelf to shelf.
-            var dist = from.GetDistanceTo(dest); // This is only for adjacent CP !!
+            
+            var dist = from.GetDistanceTo(dest);
 
             // In seconds
             return dist / AveMoveSpeed;

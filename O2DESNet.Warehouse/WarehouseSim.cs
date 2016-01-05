@@ -26,26 +26,27 @@ namespace O2DESNet.Warehouse
             // wh.ReadLayoutFiles();
             BasicBuilder(wh);
 
-            // Init layout, SKU and pickers
-            wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
             wh.ReadSKUsFile();
             wh.ReadPickers();
-
-            // Only call after initialisation of layout, SKU and pickers
+              
+            // Only call after SKU and pickers
             PicklistGenerator.ReadOrders(wh, "ZA_Orders.csv");
             PicklistGenerator.Generate(PicklistGenerator.Strategy.D, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
+
+            // Last thing? Takes forever.
+            //wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
         }
 
         private void BasicBuilder(Scenario scenario)
         {
             // Dimensions in metres
 
-            string[] zone = { "A", "B", "C", "D", "E", "F", "Y", "Z" }; // In pairs
+            string[] zone = { "Y", "Z", "A", "B", "C", "D", "E", "F" }; // In pairs
             int numPairs = zone.Count() / 2;
-            int numRows = 2; //160
-            int numShelves = 2; //20
-            int numRacks = 2; //6
+            int numRows = 160; //160
+            int numShelves = 20; //20
+            int numRacks = 9; //9
             double interRowSpace = 1.7;
             double shelfWidth = 1.5;
             double rackHeight = 0.35;

@@ -128,7 +128,18 @@ namespace O2DESNet.Warehouse.Statics
             {
                 var sku = new SKU(data[0], data[1]);
                 for (int i = 2; i < data.Length; i++)
-                    AddToRack(sku, Racks[data[i]]);
+                {
+                    var rackID = data[i];
+                    // Trim to first 4 identifiers
+                    int dash = 0;
+                    for (int j = 0; j < 4; j++)
+                        dash = rackID.IndexOf('-', dash + 1);
+
+                    if (dash > 0)
+                        rackID = rackID.Substring(0, dash);
+
+                    AddToRack(sku, Racks[rackID]);
+                }
             }
         }
 

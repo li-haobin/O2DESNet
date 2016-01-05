@@ -32,6 +32,9 @@ namespace O2DESNet.Warehouse.Statics
         public static Dictionary<string, Order> AllOrders { get; private set; }
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
+        // For debug
+        public static List<string> MissingSKU { get; private set; }
+
         #region Picklist generation
         /// <summary>
         /// Generate picklists to FILE, based on given strategy. Optional copy to scenario directly.
@@ -404,6 +407,9 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="filename"></param>
         public static void ReadOrders(Scenario scenario, string filename)
         {
+            // For debug
+            MissingSKU = new List<string>();
+
             AllOrders = new Dictionary<string, Order>();
 
             filename = @"Picklist\" + filename;
@@ -423,20 +429,39 @@ namespace O2DESNet.Warehouse.Statics
                     AddOrCreateOrder(scenario, id, sku);
                 }
             }
+
+            // For debug, write Missing SKU into file
+            using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_MissingSKUs.csv"))
+            {
+                foreach(var sku_id in MissingSKU)
+                {
+                    sw.WriteLine(sku_id);
+                }
+            }
+
         }
         private static void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id)
         {
-            // Find SKU
-            var sku = scenario.SKUs[sku_id];
-
-            // New order
-            if (!AllOrders.ContainsKey(order_id))
+            if (!scenario.SKUs.ContainsKey(sku_id))
             {
-                AllOrders.Add(order_id, new Order(order_id));
+                // Record missing SKU
+                MissingSKU.Add(sku_id);
             }
+            else
+            {
 
-            // Add SKU to order
-            AllOrders[order_id].Items.Add(sku);
+                // Find SKU
+                var sku = scenario.SKUs[sku_id];
+
+                // New order
+                if (!AllOrders.ContainsKey(order_id))
+                {
+                    AllOrders.Add(order_id, new Order(order_id));
+                }
+
+                // Add SKU to order
+                AllOrders[order_id].Items.Add(sku);
+            }
         }
         #endregion
     }

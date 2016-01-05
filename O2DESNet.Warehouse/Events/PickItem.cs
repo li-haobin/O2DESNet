@@ -21,7 +21,7 @@ namespace O2DESNet.Warehouse.Events
             if (picker.PickList.Count > 0)
             {
                 var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
-                var duration = picker.GetTravelTime(shelfCP);
+                var duration = picker.GetTravelTime(_sim.Scenario, shelfCP);
                 _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
 
                 // Any status updates?
@@ -29,7 +29,7 @@ namespace O2DESNet.Warehouse.Events
             else
             {
                 // Completed all jobs, return to start location
-                var duration = picker.GetTravelTime(_sim.Scenario.StartCP);
+                var duration = picker.GetTravelTime(_sim.Scenario, _sim.Scenario.StartCP);
                 _sim.ScheduleEvent(new EndPick(_sim, picker), _sim.ClockTime.Add(duration));
             }
         }
