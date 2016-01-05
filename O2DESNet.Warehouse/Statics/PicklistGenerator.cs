@@ -33,7 +33,8 @@ namespace O2DESNet.Warehouse.Statics
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
         // For debug
-        public static List<string> MissingSKU { get; private set; }
+        public static List<string> MissingSKU { get; private set; } // SKU in order but missing in inventory
+        public static List<string> InsufficientSKU { get; private set; } // Insufficient inventory
 
         #region Picklist generation
         /// <summary>
@@ -57,6 +58,16 @@ namespace O2DESNet.Warehouse.Statics
             WriteToFiles(scenario);
 
             if (copyToScenario) CopyToScenario(scenario);
+
+            // For debug
+            using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_InsufficientSKUs.csv"))
+            {
+                foreach (var sku_id in InsufficientSKU)
+                {
+                    sw.WriteLine(sku_id);
+                }
+            }
+
         }
         /// <summary>
         /// Write MasterPickList to files
@@ -168,9 +179,6 @@ namespace O2DESNet.Warehouse.Statics
             // Single-Item orders last
             GeneratePicklistsFromOrders(scenario, singleItemOrders, B_PickerID_SingleItem);
         }
-
-
-
         /// <summary>
         /// Hybrid Zone Picking
         /// </summary>
@@ -295,7 +303,11 @@ namespace O2DESNet.Warehouse.Statics
 
                     // Process item
                     bool isReserved = ReserveItem(type, items.First(), zone);
-                    if (!isReserved) throw new Exception("No available quantity for reservation for SKU " + items.First().SKU_ID);
+                    if (!isReserved)
+                    {
+                        InsufficientSKU.Add(items.First().SKU_ID); // Add to insufficient
+                                                                   // throw new Exception("No available quantity for reservation for SKU " + items.First().SKU_ID);
+                    }
                 }
                 // Next item
                 items.RemoveAt(0);
@@ -334,7 +346,11 @@ namespace O2DESNet.Warehouse.Statics
                     {
                         bool isReserved = ReserveItem(type, item, zone);
 
-                        if (!isReserved) throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
+                        if (!isReserved)
+                        {
+                            InsufficientSKU.Add(item.SKU_ID); // Add to insufficient
+                                                              // throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
+                        }
                     }
 
                 }
@@ -409,6 +425,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             // For debug
             MissingSKU = new List<string>();
+            InsufficientSKU = new List<string>();
 
             AllOrders = new Dictionary<string, Order>();
 
@@ -433,7 +450,7 @@ namespace O2DESNet.Warehouse.Statics
             // For debug, write Missing SKU into file
             using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_MissingSKUs.csv"))
             {
-                foreach(var sku_id in MissingSKU)
+                foreach (var sku_id in MissingSKU)
                 {
                     sw.WriteLine(sku_id);
                 }
