@@ -10,7 +10,7 @@ namespace O2DESNet.Warehouse
         internal Status Status { get; private set; }
         internal Random RS { get; private set; } // use multiple random streams if necessary
 
-        public Simulator(Scenario scenario, int seed)
+        public Simulator(Scenario scenario, int seed = 0)
         {
             Scenario = scenario;
             Status = new Status(this);

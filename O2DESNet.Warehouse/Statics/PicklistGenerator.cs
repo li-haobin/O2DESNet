@@ -16,20 +16,21 @@ namespace O2DESNet.Warehouse.Statics
     {
         public enum Strategy { A, B, C, D };
 
-        const string A_PickerID = "Strategy_A_Picker";
+        public const string A_PickerID = "Strategy_A_Picker";
 
-        const string B_PickerID_SingleItem = "Strategy_B_SingleItem";
-        const string B_PickerID_SingleZone = "Strategy_B_SingleZone";
-        const string B_PickerID_MultiZone = "Strategy_B_MultiZone";
+        public const string B_PickerID_SingleItem = "Strategy_B_SingleItem";
+        public const string B_PickerID_SingleZone = "Strategy_B_SingleZone";
+        public const string B_PickerID_MultiZone = "Strategy_B_MultiZone";
 
-        const string D_PickerID_SingleItem = "Strategy_D_SingleItem";
-        const string D_PickerID_MultiItem = "Strategy_D_MultiItem";
+        public const string C_PickerID_SingleItem = "Strategy_C_SingleItem";
+        public const string C_PickerID_SingleZone = "Strategy_C_SingleZone";
+        public const string C_PickerID_MultiZone = "Strategy_C_MultiZone";
 
-        const string C_PickerID_SingleItem = "Strategy_C_SingleItem";
-        const string C_PickerID_SingleZone = "Strategy_C_SingleZone";
-        const string C_PickerID_MultiZone = "Strategy_C_MultiZone";
+        public const string D_PickerID_SingleItem = "Strategy_D_SingleItem";
+        public const string D_PickerID_MultiItem = "Strategy_D_MultiItem";
 
         public static Dictionary<string, Order> AllOrders { get; private set; }
+        public static Dictionary<PickerType, int> NumOrders { get; private set; }
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
         // For debug
@@ -42,11 +43,12 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         /// <param name="strategy"></param>
         /// <param name="scenario"></param>
-        public static void Generate(Strategy strategy, Scenario scenario, bool copyToScenario = false)
+        public static void Generate(Strategy strategy, Scenario scenario, bool copyToScenario = false, bool writeToFile = false)
         {
             if (AllOrders.Count == 0) throw new Exception("Orders have not been read! Read orders first.");
 
             MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
+            NumOrders = new Dictionary<PickerType, int>();
 
             if (strategy == Strategy.A) StrategyA(scenario);
             if (strategy == Strategy.B) StrategyB(scenario);
@@ -55,7 +57,7 @@ namespace O2DESNet.Warehouse.Statics
 
             SortByLocation();
 
-            WriteToFiles(scenario);
+            if (writeToFile) WriteToFiles(scenario);
 
             if (copyToScenario) CopyToScenario(scenario);
 
@@ -221,6 +223,10 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="orders"></param>
         private static void GeneratePureZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
+            var type = scenario.GetPickerType[pickerID];
+            if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
+            NumOrders[type] += orders.Count;
+
             HashSet<string> allZones = GetFulfilmentZones(orders);
 
             List<SKU> items = orders.SelectMany(order => order.Items).ToList(); // Flattening items from orders
@@ -242,6 +248,8 @@ namespace O2DESNet.Warehouse.Statics
         private static void GenerateSingleZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
             // Determine orders with items in a single zone
+
+            var type = scenario.GetPickerType[pickerID];
 
             HashSet<string> allZones = GetFulfilmentZones(orders);
             // Find single-zone orders
@@ -328,6 +336,8 @@ namespace O2DESNet.Warehouse.Statics
 
             var type = scenario.GetPickerType[pickerType_ID];
             if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
+            if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
+            NumOrders[type] += orders.Count;
 
             while (orders.Count > 0)
             {
@@ -357,6 +367,8 @@ namespace O2DESNet.Warehouse.Statics
                 // Next order
                 orders.RemoveAt(0);
             }
+
+            NumOrders[type] -= unfulfilledOrders.Count;
 
             return unfulfilledOrders;
         }

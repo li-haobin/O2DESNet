@@ -12,8 +12,6 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         private Simulator _sim;
 
-
-
         // Possible to discriminate by PickerType
         public Dictionary<PickerType, int> TotalPickJobsCompleted { get; private set; }
         public Dictionary<PickerType, int> TotalPickListsCompleted { get; private set; }

@@ -8,12 +8,16 @@ namespace O2DESNet.Warehouse
     {
         static void Main(string[] args)
         {
-            WarehouseSim whsim = new WarehouseSim("ZA");
+            WarehouseSim whsim;
 
-            whsim.Run(24);
-            whsim.PrintStatistics();
+            foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
+            {
+                whsim = new WarehouseSim("ZA", strategy);
+                whsim.Run(24);
+                whsim.PrintStatistics();
+            }
 
-            Console.WriteLine("Simulation End");
+            Console.WriteLine("\n:: Experiment End ::");
             Console.ReadKey();
         }
 
