@@ -17,6 +17,10 @@ namespace O2DESNet.Warehouse
                 whsim.PrintStatistics();
             }
 
+            //whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.A);
+            //whsim.Run(24);
+            //whsim.PrintStatistics();
+
             Console.WriteLine("\n:: Experiment End ::");
             Console.ReadKey();
         }

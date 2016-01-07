@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse
@@ -159,5 +160,7 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
             Console.WriteLine("-------------------------------------");
         }
+
+        
     }
 }

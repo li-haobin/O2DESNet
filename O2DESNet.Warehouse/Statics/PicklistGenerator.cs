@@ -34,6 +34,7 @@ namespace O2DESNet.Warehouse.Statics
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
         // For debug
+        public static HashSet<string> IncompleteOrder { get; private set; }
         public static List<string> MissingSKU { get; private set; } // SKU in order but missing in inventory
         public static List<string> InsufficientSKU { get; private set; } // Insufficient inventory
 
@@ -70,6 +71,7 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
 
+            // ResolveInsufficientSKU(scenario.Name);
         }
         /// <summary>
         /// Write MasterPickList to files
@@ -278,9 +280,9 @@ namespace O2DESNet.Warehouse.Statics
             {
                 List<Order> zoneOrders = orders.ExtractAll(order => order.IsSingleZoneFulfil(zone)); // Potentially fulfiled in zone
 
-                var unfilfilled = GeneratePicklistsFromOrders(scenario, zoneOrders, pickerID, zone); // Reservation done here
+                var unfulfilled = GeneratePicklistsFromOrders(scenario, zoneOrders, pickerID, zone); // Reservation done here
 
-                orders.AddRange(unfilfilled); // Append back unfulfilled orders
+                orders.AddRange(unfulfilled); // Append back unfulfilled orders
             }
         }
 
@@ -358,7 +360,7 @@ namespace O2DESNet.Warehouse.Statics
             var type = scenario.GetPickerType[pickerType_ID];
             if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
-            NumOrders[type] += orders.Count;
+            //NumOrders[type] += orders.Count;
 
             int orderCount = 0;
 
@@ -391,12 +393,13 @@ namespace O2DESNet.Warehouse.Statics
                     }
 
                     orderCount++;
+                    NumOrders[type]++;
                 }
                 // Next order
                 orders.RemoveAt(0);
             }
 
-            NumOrders[type] -= unfulfilledOrders.Count;
+            //NumOrders[type] -= unfulfilledOrders.Count;
 
             return unfulfilledOrders;
         }
@@ -464,6 +467,7 @@ namespace O2DESNet.Warehouse.Statics
         public static void ReadOrders(Scenario scenario, string filename)
         {
             // For debug
+            IncompleteOrder = new HashSet<string>();
             MissingSKU = new List<string>();
             InsufficientSKU = new List<string>();
 
@@ -487,6 +491,12 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
 
+            // Remove incomplete order
+            foreach(var order in IncompleteOrder)
+            {
+                AllOrders.Remove(order);
+            }
+
             // For debug, write Missing SKU into file
             using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_MissingSKUs.csv"))
             {
@@ -503,6 +513,7 @@ namespace O2DESNet.Warehouse.Statics
             {
                 // Record missing SKU
                 MissingSKU.Add(sku_id);
+                IncompleteOrder.Add(order_id);
             }
             else
             {
@@ -521,5 +532,54 @@ namespace O2DESNet.Warehouse.Statics
             }
         }
         #endregion
+
+        public static void ResolveInsufficientSKU(string scenarioName)
+        {
+            string insufficientFile = @"Picklist\" + scenarioName + "_InsufficientSKUs.csv";
+            string SKUFile = @"Layout\" + scenarioName + "_SKUs.csv";
+
+            Dictionary<string, int> InsufficientSKU = new Dictionary<string, int>();
+            Dictionary<string, string> Layout = new Dictionary<string, string>();
+
+            using (StreamReader sr = new StreamReader(insufficientFile))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (!InsufficientSKU.ContainsKey(line)) InsufficientSKU.Add(line, 0);
+
+                    InsufficientSKU[line]++;
+                }
+            }
+
+            if (InsufficientSKU.Count > 0)
+            {
+
+                using (StreamReader sr = new StreamReader(SKUFile))
+                {
+                    string line = sr.ReadLine();
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        var data = line.Split(',');
+                        string sku_id = data[0];
+                        string loc = data[2];
+
+                        if (!Layout.ContainsKey(sku_id)) Layout.Add(sku_id, loc);
+                    }
+                }
+
+                List<string> AdditionalSKU = new List<string>();
+
+                foreach (var sku in InsufficientSKU)
+                {
+                    for (int i = 0; i < sku.Value; i++)
+                    {
+                        AdditionalSKU.Add(sku.Key + ",," + Layout[sku.Key]);
+                    }
+                }
+
+                File.AppendAllLines(SKUFile, AdditionalSKU);
+            }
+        }
     }
 }
