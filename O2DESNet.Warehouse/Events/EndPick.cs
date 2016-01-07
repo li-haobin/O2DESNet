@@ -28,7 +28,7 @@ namespace O2DESNet.Warehouse.Events
 
             if (_sim.Scenario.MasterPickList[picker.Type].Count > 0)
             {
-                _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime);
+                _sim.ScheduleEvent(new StartPick(_sim, picker), _sim.ClockTime + picker.Type.UnloadingTime);
             }
         }
 

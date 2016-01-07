@@ -98,44 +98,64 @@ namespace O2DESNet.Warehouse
 
         public void PrintStatistics()
         {
+            Console.WriteLine("*********************************************************");
             Console.WriteLine("Number of orders = {0}", PicklistGenerator.AllOrders.Count);
 
             if (strategy == PicklistGenerator.Strategy.A)
             {
+                Console.WriteLine(":: Strategy A ::\n");
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.A_PickerID]);
             }
             if (strategy == PicklistGenerator.Strategy.B)
             {
-                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.B_PickerID_SingleItem]);
+                Console.WriteLine(":: Strategy B ::\n");
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.B_PickerID_SingleZone]);
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.B_PickerID_MultiZone]);
+                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.B_PickerID_SingleItem]);
             }
             if (strategy == PicklistGenerator.Strategy.C)
             {
-                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.C_PickerID_SingleItem]);
+                Console.WriteLine(":: Strategy C ::\n");
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.C_PickerID_SingleZone]);
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.C_PickerID_MultiZone]);
+                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.C_PickerID_SingleItem]);
             }
             if (strategy == PicklistGenerator.Strategy.D)
             {
-                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.D_PickerID_SingleItem]);
+                Console.WriteLine(":: Strategy D ::\n");
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.D_PickerID_MultiItem]);
+                PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.D_PickerID_SingleItem]);
             }
 
-            Console.WriteLine("Simulation run length: {0:hh\\:mm\\:ss}\n", sim.ClockTime - DateTime.MinValue);
+            Console.WriteLine("\nSimulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
+            Console.WriteLine("*********************************************************\n");
         }
 
         private void PrintTypeStatistics(PickerType type)
         {
             int totalPickList = sim.Status.TotalPickListsCompleted[type];
             int totalPickJob = sim.Status.TotalPickJobsCompleted[type];
-            double averageItems = 1.0 * totalPickJob / totalPickList;
+            double averateUtil;
 
-            Console.WriteLine("-- For PickerType {0}, {1} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
+            if (type.PickerType_ID == PicklistGenerator.A_PickerID ||
+                type.PickerType_ID == PicklistGenerator.B_PickerID_SingleZone ||
+                type.PickerType_ID == PicklistGenerator.B_PickerID_MultiZone ||
+                type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)  // Order-based
+            {
+                averateUtil = 1.0 * PicklistGenerator.NumOrders[type] / totalPickList;
+            }
+            else
+            {
+                // Item-based
+                averateUtil = 1.0 * totalPickJob / totalPickList;
+
+            }
+
+            Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
             Console.WriteLine("Number of orders: {0}", PicklistGenerator.NumOrders[type]);
             Console.WriteLine("Total Picklists Completed: {0}", totalPickList);
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);
-            Console.WriteLine("Average Number of Items per Cart: {0:0.00} ({1:P})", averageItems, averageItems / type.Capacity);
+            Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averateUtil, averateUtil / type.Capacity);
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
             Console.WriteLine("-------------------------------------");
         }

@@ -163,7 +163,7 @@ namespace O2DESNet.Warehouse.Statics
             List<Order> orders = AllOrders.Values.ToList();
 
             // Assume only one picker type A_Picker
-            GeneratePicklistsFromOrders(scenario, orders, A_PickerID);
+            GeneratePicklistsFromOrders(scenario, orders, A_PickerID); // Order-based
         }
         /// <summary>
         /// Hybrid Order Picking
@@ -174,12 +174,14 @@ namespace O2DESNet.Warehouse.Statics
             List<Order> orders = AllOrders.Values.ToList();
             List<Order> singleItemOrders = ExtractSingleItemOrders(orders);
 
-            GenerateSingleZoneOrders(scenario, orders, B_PickerID_SingleZone);
+            GenerateSingleZoneOrders(scenario, orders, B_PickerID_SingleZone); // Order-based
 
             // Remaining order in List orders are multi-zone orders
-            GeneratePicklistsFromOrders(scenario, orders, B_PickerID_MultiZone);
+            GeneratePicklistsFromOrders(scenario, orders, B_PickerID_MultiZone); // Order-based
+
             // Single-Item orders last
-            GeneratePicklistsFromOrders(scenario, singleItemOrders, B_PickerID_SingleItem);
+            //GeneratePicklistsFromOrders(scenario, singleItemOrders, B_PickerID_SingleItem);
+            GenerateSingleItemOrders(scenario, singleItemOrders, B_PickerID_SingleItem); // Item-based
         }
         /// <summary>
         /// Hybrid Zone Picking
@@ -191,14 +193,15 @@ namespace O2DESNet.Warehouse.Statics
 
             List<Order> singleItemOrders = ExtractSingleItemOrders(orders);
 
-            GenerateSingleZoneOrders(scenario, orders, C_PickerID_SingleZone);
+            GenerateSingleZoneOrders(scenario, orders, C_PickerID_SingleZone); // Order-based
 
             // Split remaining orders into zones
-            GeneratePureZoneOrders(scenario, orders, C_PickerID_MultiZone);
+            GeneratePureZoneOrders(scenario, orders, C_PickerID_MultiZone); // Item-based
 
             // Single-Item orders last
-            GeneratePicklistsFromOrders(scenario, singleItemOrders, C_PickerID_SingleItem);
-        }
+            //GeneratePicklistsFromOrders(scenario, singleItemOrders, C_PickerID_SingleItem);
+            GenerateSingleItemOrders(scenario, singleItemOrders, C_PickerID_SingleItem); // Item-based
+        } 
         /// <summary>
         /// Pure Zone Picking
         /// </summary>
@@ -210,14 +213,32 @@ namespace O2DESNet.Warehouse.Statics
             List<Order> singleItemOrders = ExtractSingleItemOrders(orders);
 
             // Split remaining orders into zones
-            GeneratePureZoneOrders(scenario, orders, D_PickerID_MultiItem);
+            GeneratePureZoneOrders(scenario, orders, D_PickerID_MultiItem); // Item-based
 
             // Single-Item orders last
-            GeneratePicklistsFromOrders(scenario, singleItemOrders, D_PickerID_SingleItem);
+            //GeneratePicklistsFromOrders(scenario, singleItemOrders, D_PickerID_SingleItem);
+            GenerateSingleItemOrders(scenario, singleItemOrders, D_PickerID_SingleItem); // Item-based
+
         }
 
         /// <summary>
-        /// Generate picklists for pure zone orders. No orders should remain.
+        /// Item-based.
+        /// </summary>
+        /// <param name="scenario"></param>
+        /// <param name="orders"></param>
+        /// <param name="pickerID"></param>
+        private static void GenerateSingleItemOrders(Scenario scenario, List<Order> orders, string pickerID)
+        {
+            var type = scenario.GetPickerType[pickerID];
+            List<SKU> singleItem = orders.SelectMany(o => o.Items).ToList();
+            var unfulfilled = GeneratePicklistsFromItems(scenario, singleItem, pickerID);
+
+            if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
+            NumOrders[type] = NumOrders[type]  + orders.Count - unfulfilled.Count;
+        }
+
+        /// <summary>
+        /// Item-based. Generate picklists for pure zone orders. No orders should remain.
         /// </summary>
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
@@ -241,7 +262,7 @@ namespace O2DESNet.Warehouse.Statics
             }
         }
         /// <summary>
-        /// Generate picklists for single zone orders. Remaining orders in List are unfulfilled.
+        /// Order-based. Generate picklists for single zone orders. Remaining orders in List are unfulfilled.
         /// </summary>
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
@@ -339,6 +360,8 @@ namespace O2DESNet.Warehouse.Statics
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             NumOrders[type] += orders.Count;
 
+            int orderCount = 0;
+
             while (orders.Count > 0)
             {
                 if (zone != null && !orders.First().IsSingleZoneFulfil(zone))
@@ -347,10 +370,14 @@ namespace O2DESNet.Warehouse.Statics
                 }
                 else
                 {
-                    // If does not fit, create new picklist
-                    if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
+                    // If does not fit, create new picklist, Capacity is number of orders.
+                    if (MasterPickList[type].Count == 0
+                         || orderCount >= type.Capacity) 
+                         // || MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
+                    {
                         MasterPickList[type].Add(new List<PickJob>());
-
+                        orderCount = 0;
+                    }
                     // Process items in current order
                     foreach (var item in orders.First().Items)
                     {
@@ -363,6 +390,7 @@ namespace O2DESNet.Warehouse.Statics
                         }
                     }
 
+                    orderCount++;
                 }
                 // Next order
                 orders.RemoveAt(0);

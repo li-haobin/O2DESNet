@@ -14,6 +14,7 @@ namespace O2DESNet.Warehouse.Statics
         public double AveMoveSpeed { get; private set; } // metre per sec
         public TimeSpan AvePickTime { get; private set; }
         public int Capacity { get; private set; }
+        public TimeSpan UnloadingTime { get; private set; }
 
         internal PickerType(string type_id, double aveMoveSpeed, TimeSpan avePickTime, int capacity = int.MaxValue)
         {
@@ -29,6 +30,8 @@ namespace O2DESNet.Warehouse.Statics
             AveMoveSpeed = aveMoveSpeed;
             AvePickTime = avePickTime;
             Capacity = capacity;
+
+            UnloadingTime = new TimeSpan(0, 1, 0);
         }
 
         /// <summary>
