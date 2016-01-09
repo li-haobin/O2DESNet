@@ -100,7 +100,7 @@ namespace O2DESNet.Warehouse
         public void PrintStatistics()
         {
             Console.WriteLine("*********************************************************");
-            Console.WriteLine("Number of orders = {0}", PicklistGenerator.AllOrders.Count);
+            //Console.WriteLine("Number of orders = {0}", PicklistGenerator.AllOrders.Count);
 
             if (strategy == PicklistGenerator.Strategy.A)
             {
@@ -141,8 +141,9 @@ namespace O2DESNet.Warehouse
             if (type.PickerType_ID == PicklistGenerator.A_PickerID ||
                 type.PickerType_ID == PicklistGenerator.B_PickerID_SingleZone ||
                 type.PickerType_ID == PicklistGenerator.B_PickerID_MultiZone ||
-                type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)  // Order-based
+                type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
             {
+                // Order-based
                 averateUtil = 1.0 * PicklistGenerator.NumOrders[type] / totalPickList;
             }
             else
@@ -154,13 +155,15 @@ namespace O2DESNet.Warehouse
 
             Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
             Console.WriteLine("Number of orders: {0}", PicklistGenerator.NumOrders[type]);
+            Console.WriteLine("Number of carts: {0}", sim.Scenario.NumPickers[type]);
             Console.WriteLine("Total Picklists Completed: {0}", totalPickList);
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);
             Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averateUtil, averateUtil / type.Capacity);
+            Console.WriteLine("Average Items per Cart: {0:0.00}", 1.0 * totalPickJob / totalPickList);
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
             Console.WriteLine("-------------------------------------");
         }
 
-        
+
     }
 }

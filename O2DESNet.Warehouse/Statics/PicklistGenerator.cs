@@ -33,6 +33,8 @@ namespace O2DESNet.Warehouse.Statics
         public static Dictionary<PickerType, int> NumOrders { get; private set; }
         public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
+        private static int orderCount = 0;
+
         // For debug
         public static HashSet<string> IncompleteOrder { get; private set; }
         public static List<string> MissingSKU { get; private set; } // SKU in order but missing in inventory
@@ -203,7 +205,7 @@ namespace O2DESNet.Warehouse.Statics
             // Single-Item orders last
             //GeneratePicklistsFromOrders(scenario, singleItemOrders, C_PickerID_SingleItem);
             GenerateSingleItemOrders(scenario, singleItemOrders, C_PickerID_SingleItem); // Item-based
-        } 
+        }
         /// <summary>
         /// Pure Zone Picking
         /// </summary>
@@ -236,7 +238,7 @@ namespace O2DESNet.Warehouse.Statics
             var unfulfilled = GeneratePicklistsFromItems(scenario, singleItem, pickerID);
 
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
-            NumOrders[type] = NumOrders[type]  + orders.Count - unfulfilled.Count;
+            NumOrders[type] = NumOrders[type] + orders.Count - unfulfilled.Count;
         }
 
         /// <summary>
@@ -336,6 +338,8 @@ namespace O2DESNet.Warehouse.Statics
                     bool isReserved = ReserveItem(type, items.First(), zone);
                     if (!isReserved)
                     {
+                        unfulfilledItems.Add(items.First()); // document as unfulfilled
+
                         InsufficientSKU.Add(items.First().SKU_ID); // Add to insufficient
                                                                    // throw new Exception("No available quantity for reservation for SKU " + items.First().SKU_ID);
                     }
@@ -362,7 +366,7 @@ namespace O2DESNet.Warehouse.Statics
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             //NumOrders[type] += orders.Count;
 
-            int orderCount = 0;
+            //int orderCount = 0; // BUG IS HERE
 
             while (orders.Count > 0)
             {
@@ -374,12 +378,15 @@ namespace O2DESNet.Warehouse.Statics
                 {
                     // If does not fit, create new picklist, Capacity is number of orders.
                     if (MasterPickList[type].Count == 0
-                         || orderCount >= type.Capacity) 
-                         // || MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
+                         || orderCount >= type.Capacity)
+                    // || MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
                     {
                         MasterPickList[type].Add(new List<PickJob>());
                         orderCount = 0;
                     }
+
+                    var prevPickJobCount = MasterPickList[type].Last().Count;
+
                     // Process items in current order
                     foreach (var item in orders.First().Items)
                     {
@@ -392,8 +399,12 @@ namespace O2DESNet.Warehouse.Statics
                         }
                     }
 
-                    orderCount++;
-                    NumOrders[type]++;
+                    if (MasterPickList[type].Last().Count > prevPickJobCount)
+                    {
+                        // Should only count if the order is processed
+                        orderCount++;
+                        NumOrders[type]++;
+                    }
                 }
                 // Next order
                 orders.RemoveAt(0);
@@ -492,7 +503,7 @@ namespace O2DESNet.Warehouse.Statics
             }
 
             // Remove incomplete order
-            foreach(var order in IncompleteOrder)
+            foreach (var order in IncompleteOrder)
             {
                 AllOrders.Remove(order);
             }
