@@ -17,6 +17,12 @@ namespace O2DESNet.Warehouse.Dynamics
         public Dictionary<PickerType, int> TotalPickListsCompleted { get; private set; }
         public Dictionary<PickerType, TimeSpan> TotalPickingTime { get; private set; }
 
+        public int NumActivePickers { get; private set; }
+        public int MaxActivePickers { get; private set; }
+        public TimeSpan AreaPickerTime { get; private set; }
+        public DateTime JumpTime { get; private set; }
+        public DateTime StartTime { get; private set; }
+
         internal Status(Simulator simulation)
         {
             _sim = simulation;
@@ -25,13 +31,53 @@ namespace O2DESNet.Warehouse.Dynamics
             TotalPickListsCompleted = new Dictionary<PickerType, int>();
             TotalPickingTime = new Dictionary<PickerType, TimeSpan>();
 
-            foreach(var type in _sim.Scenario.NumPickers)
+            NumActivePickers = 0;
+            MaxActivePickers = 0;
+            AreaPickerTime = TimeSpan.Zero;
+            JumpTime = _sim.ClockTime;
+            StartTime = _sim.ClockTime;
+
+            foreach (var type in _sim.Scenario.NumPickers)
             {
                 TotalPickJobsCompleted.Add(type.Key, 0);
                 TotalPickListsCompleted.Add(type.Key, 0);
                 TotalPickingTime.Add(type.Key, TimeSpan.Zero);
             }
 
+        }
+
+        public double GetAverageNumActivePickers()
+        {
+            var duration = JumpTime - StartTime;
+
+            return AreaPickerTime.Ticks / duration.Ticks;
+        }
+
+        private TimeSpan MultiplyTimeSpan(TimeSpan duration, int multiplier)
+        {
+            duration = TimeSpan.FromTicks(duration.Ticks * multiplier);
+            return duration;
+        }
+
+        private void AccrueAreaPickerTime()
+        {
+            AreaPickerTime += MultiplyTimeSpan(_sim.ClockTime - JumpTime, NumActivePickers);
+            JumpTime = _sim.ClockTime;
+        }
+
+        public void IncrementActivePicker()
+        {
+            AccrueAreaPickerTime();
+
+            NumActivePickers++;
+            if (NumActivePickers > MaxActivePickers) MaxActivePickers = NumActivePickers;
+        }
+
+        public void DecrementActivePicker()
+        {
+            AccrueAreaPickerTime();
+
+            NumActivePickers--;
         }
 
         public void CaptureCompletedPickList(Picker picker)

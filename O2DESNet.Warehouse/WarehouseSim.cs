@@ -128,7 +128,9 @@ namespace O2DESNet.Warehouse
                 PrintTypeStatistics(sim.Scenario.GetPickerType[PicklistGenerator.D_PickerID_SingleItem]);
             }
 
-            Console.WriteLine("\nSimulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
+            Console.WriteLine("");
+            Console.WriteLine("Ave / Max Active Pickers: {0} / {1}", sim.Status.GetAverageNumActivePickers(), sim.Status.MaxActivePickers);
+            Console.WriteLine("Simulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
             Console.WriteLine("*********************************************************\n");
         }
 

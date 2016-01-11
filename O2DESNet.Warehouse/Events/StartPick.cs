@@ -17,6 +17,8 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
+            
+
             // check start location
             if (picker.CurLocation != _sim.Scenario.StartCP) throw new Exception("Picker not at StartCP, unable to start picking job");
 
@@ -36,6 +38,7 @@ namespace O2DESNet.Warehouse.Events
                     _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
 
                     // Any status updates?
+                    _sim.Status.IncrementActivePicker();
                 }
                 else
                 {

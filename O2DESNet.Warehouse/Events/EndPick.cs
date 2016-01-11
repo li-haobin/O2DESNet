@@ -25,6 +25,7 @@ namespace O2DESNet.Warehouse.Events
             picker.EndTime = _sim.ClockTime;
             picker.IsIdle = true;
             _sim.Status.CaptureCompletedPickList(picker);
+            _sim.Status.DecrementActivePicker();
 
             if (_sim.Scenario.MasterPickList[picker.Type].Count > 0)
             {
