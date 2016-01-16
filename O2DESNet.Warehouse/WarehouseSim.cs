@@ -14,6 +14,7 @@ namespace O2DESNet.Warehouse
         public Simulator sim { get; private set; }
         public Scenario wh { get; private set; }
         public PicklistGenerator.Strategy? strategy { get; set; }
+        public PicklistGenerator generator { get; set; }
 
         public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null)
         {
@@ -25,12 +26,13 @@ namespace O2DESNet.Warehouse
         public void GeneratePicklist(PicklistGenerator.Strategy strategy)
         {
             this.strategy = strategy;
-            PicklistGenerator.Generate(strategy, wh, true);
+            generator.Generate(strategy, wh, true);
         }
 
         private void InitializeScenario(string scenarioName)
         {
             wh = new Scenario(scenarioName);
+            generator = new PicklistGenerator();
 
             // Generate layout //
             //wh.ReadLayoutFiles();
@@ -42,8 +44,8 @@ namespace O2DESNet.Warehouse
             wh.ReadPickers();
 
             // Only call after SKU and pickers
-            PicklistGenerator.ReadOrders(wh, "ZA_Orders.csv");
-            if (strategy != null) PicklistGenerator.Generate((PicklistGenerator.Strategy)strategy, wh, true);
+            generator.ReadOrders(wh, "ZA_Orders.csv");
+            if (strategy != null) generator.Generate((PicklistGenerator.Strategy)strategy, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
 
             wh.InitializeRouting();
@@ -157,7 +159,7 @@ namespace O2DESNet.Warehouse
                 type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
             {
                 // Order-based
-                averateUtil = 1.0 * PicklistGenerator.NumOrders[type] / totalPickList;
+                averateUtil = 1.0 * generator.NumOrders[type] / totalPickList;
             }
             else
             {
@@ -167,7 +169,7 @@ namespace O2DESNet.Warehouse
             }
 
             Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
-            Console.WriteLine("Number of orders: {0}", PicklistGenerator.NumOrders[type]);
+            Console.WriteLine("Number of orders: {0}", generator.NumOrders[type]);
             Console.WriteLine("Number of carts: {0}", sim.Scenario.NumPickers[type]);
             Console.WriteLine("Total Picklists Completed: {0}", totalPickList);
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);

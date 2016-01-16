@@ -8,11 +8,12 @@ using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     /// <summary>
-    /// Static class for generating picklists based on specified rule.
+    ///  class for generating picklists based on specified rule.
     /// Requires the use of Layout, SKU and inventory snapshot.
     /// </summary>
-    public static class PicklistGenerator
+    public class PicklistGenerator
     {
         public enum Strategy { A, B, C, D };
 
@@ -29,16 +30,21 @@ namespace O2DESNet.Warehouse.Statics
         public const string D_PickerID_SingleItem = "Strategy_D_SingleItem";
         public const string D_PickerID_MultiItem = "Strategy_D_MultiItem";
 
-        public static Dictionary<string, Order> AllOrders { get; private set; }
-        public static Dictionary<PickerType, int> NumOrders { get; private set; }
-        public static Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
+        public Dictionary<string, Order> AllOrders { get; private set; }
+        public Dictionary<PickerType, int> NumOrders { get; private set; }
+        public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
 
-        private static int orderCount = 0;
+        private int orderCount = 0;
 
         // For debug
-        public static HashSet<string> IncompleteOrder { get; private set; }
-        public static List<string> MissingSKU { get; private set; } // SKU in order but missing in inventory
-        public static List<string> InsufficientSKU { get; private set; } // Insufficient inventory
+        public HashSet<string> IncompleteOrder { get; private set; }
+        public List<string> MissingSKU { get; private set; } // SKU in order but missing in inventory
+        public List<string> InsufficientSKU { get; private set; } // Insufficient inventory
+
+        public PicklistGenerator()
+        {
+
+        }
 
         #region Picklist generation
         /// <summary>
@@ -46,7 +52,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         /// <param name="strategy"></param>
         /// <param name="scenario"></param>
-        public static void Generate(Strategy strategy, Scenario scenario, bool copyToScenario = false, bool writeToFile = false)
+        public void Generate(Strategy strategy, Scenario scenario, bool copyToScenario = false, bool writeToFile = false)
         {
             if (AllOrders.Count == 0) throw new Exception("Orders have not been read! Read orders first.");
 
@@ -79,7 +85,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Write MasterPickList to files
         /// </summary>
         /// <param name="scenario"></param>
-        private static void WriteToFiles(Scenario scenario)
+        private void WriteToFiles(Scenario scenario)
         {
             DeletePicklistFiles(scenario);
 
@@ -112,7 +118,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Copy MasterPickList to scenario.MasterPickList
         /// </summary>
         /// <param name="scenario"></param>
-        private static void CopyToScenario(Scenario scenario)
+        private void CopyToScenario(Scenario scenario)
         {
             var types = scenario.MasterPickList.Keys.ToList();
 
@@ -126,7 +132,7 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
         }
-        private static void DeletePicklistFiles(Scenario scenario)
+        private void DeletePicklistFiles(Scenario scenario)
         {
             int count = 1;
             string filename = @"Picklist\" + scenario.Name + "_Picklist_" + count.ToString() + ".csv";
@@ -142,7 +148,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <summary>
         /// Sort each picklist by location (PickJob.CPRack.Rack_ID)
         /// </summary>
-        private static void SortByLocation()
+        private void SortByLocation()
         {
             foreach (var type in MasterPickList.Keys)
             {
@@ -162,7 +168,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Current strategy. Sequential assignment of orders. Only one PickerType.
         /// </summary>
         /// <param name="scenario"></param>
-        private static void StrategyA(Scenario scenario)
+        private void StrategyA(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
 
@@ -173,7 +179,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Hybrid Order Picking
         /// </summary>
         /// <param name="scenario"></param>
-        private static void StrategyB(Scenario scenario)
+        private void StrategyB(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
             List<Order> singleItemOrders = ExtractSingleItemOrders(orders);
@@ -191,7 +197,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Hybrid Zone Picking
         /// </summary>
         /// <param name="scenario"></param>
-        private static void StrategyC(Scenario scenario)
+        private void StrategyC(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
 
@@ -210,7 +216,7 @@ namespace O2DESNet.Warehouse.Statics
         /// Pure Zone Picking
         /// </summary>
         /// <param name="scenario"></param>
-        private static void StrategyD(Scenario scenario)
+        private void StrategyD(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
 
@@ -231,7 +237,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
         /// <param name="pickerID"></param>
-        private static void GenerateSingleItemOrders(Scenario scenario, List<Order> orders, string pickerID)
+        private void GenerateSingleItemOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
             var type = scenario.GetPickerType[pickerID];
             List<SKU> singleItem = orders.SelectMany(o => o.Items).ToList();
@@ -246,7 +252,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
-        private static void GeneratePureZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
+        private void GeneratePureZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
             var type = scenario.GetPickerType[pickerID];
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
@@ -270,7 +276,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
-        private static void GenerateSingleZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
+        private void GenerateSingleZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
             // Determine orders with items in a single zone
 
@@ -293,7 +299,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         /// <param name="orders"></param>
         /// <returns></returns>
-        private static HashSet<string> GetFulfilmentZones(List<Order> orders)
+        private HashSet<string> GetFulfilmentZones(List<Order> orders)
         {
             // Init zones of interest
             HashSet<string> allZones = new HashSet<string>();
@@ -315,7 +321,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="pickerType_ID"></param>
         /// <param name="zone"></param>
         /// <returns></returns>
-        private static List<SKU> GeneratePicklistsFromItems(Scenario scenario, List<SKU> items, string pickerType_ID, string zone = null)
+        private List<SKU> GeneratePicklistsFromItems(Scenario scenario, List<SKU> items, string pickerType_ID, string zone = null)
         {
             List<SKU> unfulfilledItems = new List<SKU>();
 
@@ -357,7 +363,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="pickerType_ID"></param>
         /// <param name="orders"></param>
         /// <param name="scenario"></param>
-        private static List<Order> GeneratePicklistsFromOrders(Scenario scenario, List<Order> orders, string pickerType_ID, string zone = null)
+        private List<Order> GeneratePicklistsFromOrders(Scenario scenario, List<Order> orders, string pickerType_ID, string zone = null)
         {
             List<Order> unfulfilledOrders = new List<Order>();
 
@@ -422,7 +428,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="item"></param>
         /// <param name="zone"></param>
         /// <returns></returns>
-        private static bool ReserveItem(PickerType type, SKU item, string zone = null)
+        private bool ReserveItem(PickerType type, SKU item, string zone = null)
         {
             var locations = item.QtyAtRack.Keys.ToList();
             bool reserved = false;
@@ -451,7 +457,7 @@ namespace O2DESNet.Warehouse.Statics
 
             return reserved;
         }
-        private static List<Order> ExtractSingleItemOrders(List<Order> orders)
+        private List<Order> ExtractSingleItemOrders(List<Order> orders)
         {
             return orders.ExtractAll(order => order.Items.Count == 1);
         }
@@ -462,12 +468,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="source"></param>
         /// <param name="match"></param>
         /// <returns></returns>
-        private static List<T> ExtractAll<T>(this List<T> source, Predicate<T> match)
-        {
-            List<T> extract = source.FindAll(match);
-            source.RemoveAll(match);
-            return extract;
-        }
+        
         #endregion
 
         #region Read Orders    
@@ -475,7 +476,7 @@ namespace O2DESNet.Warehouse.Statics
         /// CSV file in Picklist folder
         /// </summary>
         /// <param name="filename"></param>
-        public static void ReadOrders(Scenario scenario, string filename)
+        public void ReadOrders(Scenario scenario, string filename)
         {
             // For debug
             IncompleteOrder = new HashSet<string>();
@@ -518,7 +519,7 @@ namespace O2DESNet.Warehouse.Statics
             }
 
         }
-        private static void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id)
+        private void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id)
         {
             if (!scenario.SKUs.ContainsKey(sku_id))
             {
@@ -544,7 +545,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         #endregion
 
-        public static void ResolveInsufficientSKU(string scenarioName)
+        public void ResolveInsufficientSKU(string scenarioName)
         {
             string insufficientFile = @"Picklist\" + scenarioName + "_InsufficientSKUs.csv";
             string SKUFile = @"Layout\" + scenarioName + "_SKUs.csv";
