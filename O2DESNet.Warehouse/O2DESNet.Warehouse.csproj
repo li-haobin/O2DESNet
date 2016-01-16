@@ -61,6 +61,7 @@
     <Compile Include="Events\ArriveLocation.cs" />
     <Compile Include="Events\StartPick.cs" />
     <Compile Include="Events\StartSim.cs" />
+    <Compile Include="LayoutBuilder.cs" />
     <Compile Include="Statics\PicklistGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

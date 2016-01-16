@@ -12,6 +12,7 @@ namespace O2DESNet.Warehouse.Statics
         public PathAisle AisleIn { get; private set; }
         public PathAisle AisleOut { get; private set; }
         public List<PathShelf> Shelves { get; set; }
+        public ControlPoint BaseCP { get; set; }
 
         public PathRow(string row_ID, double length, PathAisle aisleIn, PathAisle aisleOut, double maxSpeed, Direction direction)
             : base(length, maxSpeed, direction)

@@ -27,7 +27,10 @@ namespace O2DESNet.Warehouse
 
             // Generate layout
             // wh.ReadLayoutFiles();
-            BasicBuilder(wh);
+            //BasicBuilder(wh);
+
+            LayoutBuilder.ZABuilderEila(wh);
+            wh.InitializeRouting();
 
             wh.ReadSKUsFile();
             wh.ReadPickers();
@@ -37,10 +40,9 @@ namespace O2DESNet.Warehouse
             PicklistGenerator.Generate(strategy, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
 
-            // Last thing? Takes forever.
-            //wh.InitializeRouting(); // Probably need serialise... Since it's sort of constant. Just have to check if there is no change.
         }
 
+        // TODO: Build another layout based on Elia files
         private void BasicBuilder(Scenario scenario)
         {
             // Dimensions in metres
@@ -91,6 +93,8 @@ namespace O2DESNet.Warehouse
                 }
             }
         }
+
+
 
         public void Run(double hours)
         {
@@ -165,7 +169,6 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
             Console.WriteLine("-------------------------------------");
         }
-
 
     }
 }

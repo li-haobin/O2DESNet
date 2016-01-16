@@ -27,6 +27,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         // All time in seconds
 
+        // HACK: Exploits basic wareouse structure
         /// <summary>
         /// Exploits Basic Warehouse structure.
         /// </summary>

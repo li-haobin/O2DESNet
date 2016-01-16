@@ -13,7 +13,7 @@ namespace O2DESNet.Warehouse.Statics
         public string Name { get; private set; }
 
         #region Parent Classes for Dijkstra
-        public List<Path> Paths { get; private set; }
+        public List<Path> Paths { get; private set; } // Exludes PathShelf
         public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack
         #endregion
 
@@ -285,6 +285,7 @@ namespace O2DESNet.Warehouse.Statics
             Paths.Add(row);
             Rows.Add(row_ID, row);
             Connect(row, aisleIn, 0, inPos);
+            row.BaseCP = row.ControlPoints[0];
             if (aisleOut != null)
                 if (!double.IsNegativeInfinity(outPos))
                     Connect(row, aisleOut, row.Length, outPos);
@@ -442,8 +443,8 @@ namespace O2DESNet.Warehouse.Statics
         #region For Static Routing (Distance-Based), Using Dijkstra
         public void InitializeRouting()
         {
-            ConstructRoutingTables();
-            ConstructPathingTables();
+            //ConstructRoutingTables();
+            ConstructPathingTables(); // Pathing table is very fast to generate
         }
         private void ConstructRoutingTables()
         {

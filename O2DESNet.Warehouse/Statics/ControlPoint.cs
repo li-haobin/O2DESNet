@@ -23,6 +23,7 @@ namespace O2DESNet.Warehouse.Statics
         /// </summary>
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
         internal ControlPoint() { Id = ++_count; Positions = new Dictionary<Path, double>(); }
+
         /// <summary>
         /// Get distance to an adjacent control point
         /// </summary>
@@ -35,6 +36,7 @@ namespace O2DESNet.Warehouse.Statics
             return Math.Abs(next.Positions[path] - Positions[path]);
         }
 
+        // TODO: Generic distance routing with djikstra. Without running the whole initialisation
         public double GetDistanceTo(ControlPoint destination)
         {
             if (!RoutingTable.ContainsKey(destination))
