@@ -7,6 +7,7 @@ using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     public class PathShelf : Path
     {
         public string Shelf_ID { get; set; }

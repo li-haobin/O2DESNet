@@ -7,6 +7,7 @@ using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Events
 {
+    [Serializable]
     internal class PickItem : Event
     {
         internal Picker picker { get; private set; }

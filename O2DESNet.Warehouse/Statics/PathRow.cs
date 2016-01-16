@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     public class PathRow : Path
     {
         public string Row_ID { get; set; }

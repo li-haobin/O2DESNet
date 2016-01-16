@@ -7,6 +7,7 @@ using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse.Dynamics
 {
+    [Serializable]
     public class Order
     {
         public string Order_ID { get; set; }

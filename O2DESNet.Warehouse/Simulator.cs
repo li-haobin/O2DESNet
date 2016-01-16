@@ -4,6 +4,7 @@ using System;
 
 namespace O2DESNet.Warehouse
 {
+    [Serializable]
     public class Simulator : O2DES
     {
         internal Scenario Scenario { get; private set; }

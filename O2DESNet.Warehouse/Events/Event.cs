@@ -1,5 +1,8 @@
-﻿namespace O2DESNet.Warehouse
+﻿using System;
+
+namespace O2DESNet.Warehouse
 {
+    [Serializable]
     internal abstract class Event : IEvent
     {
         protected Simulator _sim { get; private set; }

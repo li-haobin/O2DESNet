@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     public abstract class Path
     {
         protected static int _count = 0;

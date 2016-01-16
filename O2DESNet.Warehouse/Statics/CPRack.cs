@@ -7,6 +7,7 @@ using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     public class CPRack : ControlPoint
     {
         public string Rack_ID { get; set; }

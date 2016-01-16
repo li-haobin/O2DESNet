@@ -8,6 +8,7 @@ using System.IO;
 
 namespace O2DESNet.Warehouse.Dynamics
 {
+    [Serializable]
     internal class Status
     {
         private Simulator _sim;

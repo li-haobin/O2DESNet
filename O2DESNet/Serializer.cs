@@ -38,7 +38,7 @@ namespace O2DESNet
         }
 
         // Convert an object to a byte array
-        private static byte[] ObjectToByteArray(object obj)
+        public static byte[] ObjectToByteArray(object obj)
         {
             if (obj == null)
                 return null;
@@ -49,7 +49,7 @@ namespace O2DESNet
         }
 
         // Convert a byte array to an Object
-        private static object ByteArrayToObject(byte[] arrBytes)
+        public static object ByteArrayToObject(byte[] arrBytes)
         {
             MemoryStream memStream = new MemoryStream();
             BinaryFormatter binForm = new BinaryFormatter();

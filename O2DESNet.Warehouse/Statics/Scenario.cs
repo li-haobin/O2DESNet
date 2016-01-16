@@ -8,6 +8,7 @@ using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse.Statics
 {
+    [Serializable]
     public class Scenario
     {
         public string Name { get; private set; }

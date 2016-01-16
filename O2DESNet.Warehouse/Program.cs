@@ -8,18 +8,34 @@ namespace O2DESNet.Warehouse
     {
         static void Main(string[] args)
         {
-            WarehouseSim whsim;
+            //WarehouseSim whsim_base = new WarehouseSim("ZA");
+            //var byteArray = Serializer.ObjectToByteArray(whsim_base);
 
-            foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
-            {
-                whsim = new WarehouseSim("ZA", strategy);
-                whsim.Run(24);
-                whsim.PrintStatistics();
-            }
+            //foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
+            //{
+            //    //WarehouseSim whsim = (WarehouseSim) Serializer.ByteArrayToObject(byteArray);
+            //    //whsim.GeneratePicklist(strategy);
 
-            //whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.A);
-            //whsim.Run(24);
-            //whsim.PrintStatistics();
+            //    WarehouseSim whsim = new WarehouseSim("ZA", strategy);
+            //    whsim.Run(24);
+            //    whsim.PrintStatistics();
+            //}
+
+            WarehouseSim whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.A);
+            whsim.Run(24);
+            whsim.PrintStatistics();
+
+            whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.B);
+            whsim.Run(24);
+            whsim.PrintStatistics();
+
+            whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.C);
+            whsim.Run(24);
+            whsim.PrintStatistics();
+
+            whsim = new WarehouseSim("ZA", PicklistGenerator.Strategy.D);
+            whsim.Run(24);
+            whsim.PrintStatistics();
 
             Console.WriteLine("\n:: Experiment End ::");
             Console.ReadKey();

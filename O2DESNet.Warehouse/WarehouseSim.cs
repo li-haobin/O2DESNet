@@ -8,38 +8,45 @@ using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse
 {
+    [Serializable]
     class WarehouseSim
     {
         public Simulator sim { get; private set; }
         public Scenario wh { get; private set; }
-        public PicklistGenerator.Strategy strategy { get; private set; }
+        public PicklistGenerator.Strategy? strategy { get; set; }
 
-        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy strategy)
+        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null)
         {
             this.strategy = strategy;
             InitializeScenario(scenarioName);
             sim = new Simulator(wh); // Only after warehouse has been built and initialised properly.
         }
 
+        public void GeneratePicklist(PicklistGenerator.Strategy strategy)
+        {
+            this.strategy = strategy;
+            PicklistGenerator.Generate(strategy, wh, true);
+        }
+
         private void InitializeScenario(string scenarioName)
         {
             wh = new Scenario(scenarioName);
 
-            // Generate layout
-            // wh.ReadLayoutFiles();
+            // Generate layout //
+            //wh.ReadLayoutFiles();
             //BasicBuilder(wh);
-
             LayoutBuilder.ZABuilderEila(wh);
-            wh.InitializeRouting();
+
 
             wh.ReadSKUsFile();
             wh.ReadPickers();
 
             // Only call after SKU and pickers
             PicklistGenerator.ReadOrders(wh, "ZA_Orders.csv");
-            PicklistGenerator.Generate(strategy, wh, true);
+            if (strategy != null) PicklistGenerator.Generate((PicklistGenerator.Strategy)strategy, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
 
+            wh.InitializeRouting();
         }
 
         // TODO: Build another layout based on Elia files
