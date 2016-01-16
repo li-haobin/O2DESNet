@@ -13,8 +13,8 @@ namespace O2DESNet.Warehouse.Statics
         public string Name { get; private set; }
 
         #region Parent Classes for Dijkstra
-        public List<Path> Paths { get; private set; } // Exludes PathShelf
-        public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack
+        public List<Path> Paths { get; private set; } // Exludes PathShelf & PathRow
+        public List<ControlPoint> ControlPoints { get; private set; } // Excludes CPRack & ShelfCP
         #endregion
 
         #region Pickers
@@ -282,7 +282,7 @@ namespace O2DESNet.Warehouse.Statics
             double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
         {
             var row = new PathRow(row_ID, length, aisleIn, aisleOut, maxSpeed, direction);
-            Paths.Add(row);
+            //Paths.Add(row); // Exclude PathRow from Dijkstra : for performance
             Rows.Add(row_ID, row);
             Connect(row, aisleIn, 0, inPos);
             row.BaseCP = row.ControlPoints[0];
@@ -305,6 +305,10 @@ namespace O2DESNet.Warehouse.Statics
             Shelves.Add(shelf_ID, shelf);
             Connect(shelf, row, 0, pos);
             shelf.BaseCP = shelf.ControlPoints[0];
+
+            ControlPoints.Remove(shelf.BaseCP); // Exclude shelfCP from Dijkstra : for performance
+            ControlPoint._count--; // Decrement _count
+
             return shelf;
         }
         /// <summary>
@@ -443,7 +447,7 @@ namespace O2DESNet.Warehouse.Statics
         #region For Static Routing (Distance-Based), Using Dijkstra
         public void InitializeRouting()
         {
-            //ConstructRoutingTables();
+            ConstructRoutingTables();
             ConstructPathingTables(); // Pathing table is very fast to generate
         }
         private void ConstructRoutingTables()

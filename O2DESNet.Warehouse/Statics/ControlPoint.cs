@@ -8,7 +8,7 @@ namespace O2DESNet.Warehouse.Statics
 {
     public class ControlPoint
     {
-        protected static int _count = 0;
+        public static int _count = 0;
         public int Id { get; private set; }
         /// <summary>
         /// Check for the position on each path

@@ -34,7 +34,7 @@ namespace O2DESNet.Warehouse.Dynamics
         /// <param name="scenario"></param>
         /// <param name="destination"></param>
         /// <returns></returns>
-        public TimeSpan GetTravelTime(Scenario scenario, ControlPoint destination) // Called by Event
+        public TimeSpan GetTravelTime_old(Scenario scenario, ControlPoint destination) // Called by Event
         {
             double moveSpeed = Type.AveMoveSpeed;
             double dist = 0;
@@ -87,6 +87,67 @@ namespace O2DESNet.Warehouse.Dynamics
 
                 // In metres. From shelf baseCP to shelf baseCP.
             }
+            return TimeSpan.FromSeconds(dist / moveSpeed);
+        }
+
+        /// <summary>
+        /// Exploit Warehouse Structure. Row connects to one aisle only. Routing done within aisle.
+        /// </summary>
+        /// <param name="scenario"></param>
+        /// <param name="destination"></param>
+        /// <returns></returns>
+        public TimeSpan GetTravelTime(Scenario scenario, ControlPoint destination)
+        {
+            double moveSpeed = Type.AveMoveSpeed;
+            double dist = 0;
+
+            if (CurLocation == scenario.StartCP || destination == scenario.StartCP)
+            {
+                // StartCP to Shelf
+                if (CurLocation == scenario.StartCP)
+                {
+                    PathRow destRow = (PathRow)destination.Positions.Keys.ToList().Where(path => path is PathRow).ToList().First();
+
+                    dist = CurLocation.GetDistanceTo(destRow.BaseCP) // StartCP to Row
+                        + destination.Positions[destRow]; // Row to Shelf
+                }
+                // Shelf to StartCP
+                else
+                {
+                    PathRow fromRow = (PathRow)CurLocation.Positions.Keys.ToList().Where(path => path is PathRow).ToList().First();
+
+                    dist = CurLocation.Positions[fromRow] // Shelf to Row
+                        + fromRow.BaseCP.GetDistanceTo(destination); // Row to StartCP
+                }
+            }
+            // Shelf to Shelf
+            else
+            {
+                // If same Shelf
+                if (CurLocation == destination)
+                    dist = 0;
+                else
+                {
+                    PathRow fromRow = (PathRow)CurLocation.Positions.Keys.ToList().Where(path => path is PathRow).ToList().First();
+
+                    // If same Row
+                    if (fromRow.ControlPoints.Contains(destination))
+                    {
+                        dist = Math.Abs(CurLocation.Positions[fromRow] - destination.Positions[fromRow]);
+                    }
+
+                    // To another row
+                    else
+                    {
+                        PathRow destRow = (PathRow)destination.Positions.Keys.ToList().Where(path => path is PathRow).ToList().First();
+
+                        dist = CurLocation.Positions[fromRow] // Shelf to Row
+                         + fromRow.BaseCP.GetDistanceTo(destRow.BaseCP) // Row to Row
+                         + destination.Positions[destRow]; // Row to Shelf
+                    }
+                }
+            }
+
             return TimeSpan.FromSeconds(dist / moveSpeed);
         }
 

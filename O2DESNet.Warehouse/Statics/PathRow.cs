@@ -17,6 +17,7 @@ namespace O2DESNet.Warehouse.Statics
         public PathRow(string row_ID, double length, PathAisle aisleIn, PathAisle aisleOut, double maxSpeed, Direction direction)
             : base(length, maxSpeed, direction)
         {
+            _count--; //Exclude Row from Dijkstra : for performance
             Row_ID = row_ID;
             AisleIn = aisleIn;
             AisleOut = aisleOut;
