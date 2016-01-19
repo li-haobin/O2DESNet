@@ -4,29 +4,34 @@ using System.Linq;
 
 namespace O2DESNet
 {
-    public abstract class O2DES
+    public abstract class Simulator<TScenario, TStatus>
+        where TScenario : Scenario
+        where TStatus : Status<TScenario>
     {
-        internal List<FutureEvent> FutureEventList;
+        public TStatus Status { get; private set; }
+        public TScenario Scenario { get { return Status.Scenario; } }
+        public Random DefaultRS { get { return Status.DefaultRS; } }
+        internal List<FutureEvent<TScenario, TStatus>> FutureEventList;
         public DateTime ClockTime { get; protected set; }
 
-        public O2DES()
+        public Simulator(TStatus status)
         {
+            Status = status;
             ClockTime = DateTime.MinValue;
-            FutureEventList = new List<FutureEvent>();
+            FutureEventList = new List<FutureEvent<TScenario, TStatus>>();
 
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
             TimeDilationScale = 1.0;
             #endregion
         }
-        public void ScheduleEvent(IEvent evnt, TimeSpan delay) { ScheduleEvent(evnt, ClockTime + delay); }
-        public void ScheduleEvent(IEvent evnt, DateTime time)
+        internal protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
+        internal protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time)
         {
-            FutureEventList.Add(new FutureEvent { ScheduledTime = time, Event = evnt });
-            FutureEventList.Sort(delegate (FutureEvent x, FutureEvent y)
-            {
-                return x.ScheduledTime.CompareTo(y.ScheduledTime);
-            });
+            if (evnt.Simulator == null) evnt.Simulator = this;
+            if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
+            FutureEventList.Add(new FutureEvent<TScenario, TStatus> { ScheduledTime = time, Event = evnt });
+            FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
         }
         protected bool ExecuteHeadEvent()
         {
@@ -88,7 +93,7 @@ namespace O2DESNet
         }
         private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(FutureEventList.First().ScheduledTime); } }
 
-        static private bool ExecuteHeadEvent_withTimeDilation(O2DES[] simulations)
+        static private bool ExecuteHeadEvent_withTimeDilation(Simulator<TScenario, TStatus>[] simulations)
         {
             var toExecute = simulations.Where(s => s.FutureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
@@ -100,18 +105,19 @@ namespace O2DESNet
             }
             return false;
         }
-        static public void Run_withTimeDilation(O2DES[] simulations, int eventCount)
+        static public void Run_withTimeDilation(Simulator<TScenario, TStatus>[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
         }
+
         #endregion
     }
 
-    internal class FutureEvent
+    internal class FutureEvent<TScenario, TStatus>
+        where TScenario : Scenario
+        where TStatus : Status<TScenario>
     {
         public DateTime ScheduledTime { get; set; }
-        public IEvent Event { get; set; }
-    }
-
-    public interface IEvent { void Invoke(); }
+        public Event<TScenario, TStatus> Event { get; set; }
+    }    
 }

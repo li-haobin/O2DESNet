@@ -4,22 +4,21 @@ namespace O2DESNet
 {
     public class HourCounter
     {
-        private O2DES _o2des;
         private DateTime _initialTime;
-        public DateTime CurrentTime;
-        public int CurrentCount { get; private set; }
+        public DateTime LastTime;
+        public double LastCount { get; private set; }
         /// <summary>
         /// Total number of increment observed
         /// </summary>
-        public int TotalIncrementCount { get; private set; }
+        public double TotalIncrementCount { get; private set; }
         /// <summary>
         /// Total number of decrement observed
         /// </summary>
-        public int TotalDecrementCount { get; private set; }
+        public double TotalDecrementCount { get; private set; }
         /// <summary>
         /// Total number of hours since the initial time.
         /// </summary>
-        public double TotalHours { get { return (CurrentTime - _initialTime).TotalHours; } }
+        public double TotalHours { get { return (LastTime - _initialTime).TotalHours; } }
         /// <summary>
         /// The cumulative count value on time in unit of hours
         /// </summary>
@@ -28,38 +27,25 @@ namespace O2DESNet
         /// The average count on observation period
         /// </summary>
         public double AverageCount { get { return CumValue / TotalHours; } }
-        public HourCounter(DateTime? intialTime = null)
+        public HourCounter(DateTime initialTime)
         {
-            if (intialTime == null) Init(DateTime.MinValue);
-            else Init(intialTime.Value);
-        }
-        public HourCounter(O2DES o2des)
-        {
-            Init(o2des.ClockTime);
-            _o2des = o2des;
-        }
-        private void Init(DateTime initialTime)
-        {
-            _o2des = null;
             _initialTime = initialTime;
-            CurrentTime = initialTime;
-            CurrentCount = 0;
+            LastTime = initialTime;
+            LastCount = 0;
             TotalIncrementCount = 0;
             TotalDecrementCount = 0;
             CumValue = 0;
         }
-        public void ObserveCount(int count) { ObserveCount(count, _o2des.ClockTime); }
-        public void ObserveCount(int count, DateTime timestamp)
+        public void ObserveCount(double count, DateTime timestamp)
         {
-            if (timestamp < CurrentTime)
+            if (timestamp < LastTime)
                 throw new Exception("Time of new count cannot be earlier than current time.");
-            if (count > CurrentCount) TotalIncrementCount += count - CurrentCount;
-            else TotalDecrementCount += CurrentCount - count;
-            CumValue += (timestamp - CurrentTime).TotalHours * CurrentCount;
-            CurrentTime = timestamp;
-            CurrentCount = count;
+            if (count > LastCount) TotalIncrementCount += count - LastCount;
+            else TotalDecrementCount += LastCount - count;
+            CumValue += (timestamp - LastTime).TotalHours * LastCount;
+            LastTime = timestamp;
+            LastCount = count;
         }
-        public void ObserveChange(int change) { ObserveChange(change, _o2des.ClockTime); }
-        public void ObserveChange(int change, DateTime timestamp) { ObserveCount(CurrentCount + change, timestamp); }
+        public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
     }
 }
