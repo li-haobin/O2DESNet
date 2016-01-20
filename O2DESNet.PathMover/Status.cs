@@ -1,15 +1,13 @@
-﻿using O2DESNet.PathMover.Statics;
+﻿using O2DESNet.PathMover.Dynamics;
+using O2DESNet.PathMover.Statics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover.Dynamics
+namespace O2DESNet.PathMover
 {
-    internal class Status
+    public class Status : Status<Scenario>
     {
-        internal Simulator _sim;   
         public Vehicle[] AllVehicles { get; private set; }
         public HashSet<Vehicle> OffVehicles { get; private set; }
         public Dictionary<ControlPoint, HashSet<Vehicle>> IncomingVehicles { get; private set; }
@@ -22,18 +20,15 @@ namespace O2DESNet.PathMover.Dynamics
         public int Count_CrossOvers = 0;
         public int Count_FailureToScheduleWithinBuffer = 0;
 
-        internal Status(Simulator simulation)
+        internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            _sim = simulation;
-            AllVehicles = _sim.Scenario.NumsVehicles.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Vehicle(this, item.Key))).ToArray();
+            AllVehicles = Scenario.NumsVehicles.SelectMany(item => Enumerable.Range(0, item.Value).Select(i => new Vehicle(this, item.Key))).ToArray();
             OffVehicles = new HashSet<Vehicle>(AllVehicles);
-            IncomingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
-            OutgoingVehicles = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
+            IncomingVehicles = Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
+            OutgoingVehicles = Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HashSet<Vehicle>());
             Conflicts_PassOver = AllVehicles.ToDictionary(v => v, v => new Dictionary<Vehicle, DateTime[]>());
             Conflicts_CrossOver = AllVehicles.ToDictionary(v => v, v => new Dictionary<Vehicle, DateTime>());
-            VehicleCounters = _sim.Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HourCounter(_sim));
+            VehicleCounters = Scenario.ControlPoints.ToDictionary(cp => cp, cp => new HourCounter(DateTime.MinValue));
         }
-
-        
     }
 }

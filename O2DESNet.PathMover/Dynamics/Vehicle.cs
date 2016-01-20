@@ -33,12 +33,12 @@ namespace O2DESNet.PathMover.Dynamics
 
         public List<ControlPoint> HistoricalPath { get; private set; }
 
-        internal void PutOn(ControlPoint controlPoint)
+        internal void PutOn(DateTime clockTime, ControlPoint controlPoint)
         {
             if (On)
                 throw new Exceptions.VechicleStatusError(this, "The vehicle is on already.");
             On = true;
-            LastTime = _status._sim.ClockTime;
+            LastTime = clockTime;
             LastControlPoint = controlPoint;
             NextControlPoint = null;
             Speed_ToNextControlPoint = 0;
@@ -46,19 +46,19 @@ namespace O2DESNet.PathMover.Dynamics
             Acceleration = 0;
             _status.OffVehicles.Remove(this);
             _status.OutgoingVehicles[controlPoint].Add(this);
-            _status.VehicleCounters[controlPoint].ObserveChange(1);
+            _status.VehicleCounters[controlPoint].ObserveChange(1, clockTime);
         }
-        internal void PutOff()
+        internal void PutOff(DateTime clockTime)
         {
             _status.OutgoingVehicles[LastControlPoint].Remove(this);
             _status.IncomingVehicles[NextControlPoint].Remove(this);
             _status.OffVehicles.Add(this);
-            _status.VehicleCounters[LastControlPoint].ObserveChange(-1);
+            _status.VehicleCounters[LastControlPoint].ObserveChange(-1, clockTime);
             LastControlPoint = null;
             NextControlPoint = null;
             On = false;
         }
-        internal void MoveToNext(ControlPoint nextControlPoint, double? targetSpeed = null, double? acceleration = null)
+        internal void MoveToNext(DateTime clockTime, ControlPoint nextControlPoint, double? targetSpeed = null, double? acceleration = null)
         {
             //HistoricalPath.Add(LastControlPoint);
             Distance_ToNextControlPoint = LastControlPoint.GetDistanceTo(nextControlPoint);
@@ -70,9 +70,9 @@ namespace O2DESNet.PathMover.Dynamics
 
             ForwardCalculate();
             //Console.WriteLine("{0}:\tV{1} moved CP{2} -> CP{3} at S{4:F4}/{5:F4} & A{6}", _status._sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Id, LastControlPoint.Id, NextControlPoint.Id, Speed, TargetSpeed, Acceleration);
-            _status.VehicleCounters[nextControlPoint].ObserveChange(1);
+            _status.VehicleCounters[nextControlPoint].ObserveChange(1, clockTime);
         }
-        internal void MoveToNext(ControlPoint nextControlPoint, double bufferTime, out bool withinBuffer)
+        internal void MoveToNext(DateTime clockTime, ControlPoint nextControlPoint, double bufferTime, out bool withinBuffer)
         {
             //HistoricalPath.Add(LastControlPoint);
             Distance_ToNextControlPoint = LastControlPoint.GetDistanceTo(nextControlPoint);
@@ -84,16 +84,16 @@ namespace O2DESNet.PathMover.Dynamics
 
             ForwardCalculate();
             //Console.WriteLine("{0}:\tV{1} moved CP{2} -> CP{3} at S{4:F4}/{5:F4} & A{6}", _status._sim.ClockTime.ToString("yyyy/MM/dd HH:mm:ss"), Id, LastControlPoint.Id, NextControlPoint.Id, Speed, TargetSpeed, Acceleration);
-            _status.VehicleCounters[nextControlPoint].ObserveChange(1);
+            _status.VehicleCounters[nextControlPoint].ObserveChange(1, clockTime);
         }
-        internal void Reach()
+        internal void Reach(DateTime clockTime)
         {
             Speed = Speed_ToNextControlPoint;
             _status.OutgoingVehicles[LastControlPoint].Remove(this);
-            _status.VehicleCounters[LastControlPoint].ObserveChange(-1);
+            _status.VehicleCounters[LastControlPoint].ObserveChange(-1, clockTime);
             _status.IncomingVehicles[NextControlPoint].Remove(this);
             _status.OutgoingVehicles[NextControlPoint].Add(this);
-            LastTime = _status._sim.ClockTime;
+            LastTime = clockTime;
             LastControlPoint = NextControlPoint;
             NextControlPoint = null;
         }

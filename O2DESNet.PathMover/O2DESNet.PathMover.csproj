@@ -45,9 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dynamics\Job.cs" />
-    <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Status.cs" />
     <Compile Include="Dynamics\Vehicle.cs" />
-    <Compile Include="Events\Event.cs" />
     <Compile Include="Events\CrossOver.cs" />
     <Compile Include="Events\PassOver.cs" />
     <Compile Include="Events\Move.cs" />
@@ -60,7 +59,7 @@
     <Compile Include="Methods\Dijkstra.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Statics\Path.cs" />
-    <Compile Include="Statics\Scenario.cs" />
+    <Compile Include="Scenario.cs" />
     <Compile Include="Statics\VehicleType.cs" />
   </ItemGroup>
   <ItemGroup>

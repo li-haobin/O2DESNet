@@ -39,7 +39,7 @@ namespace O2DESNet.PathMover
             pm.AddVehicles(vt2, 3);
 
             pm.Initialize();
-            var sim = new Simulator(pm, 0);
+            var sim = new Simulator(new Status(pm));
 
             while (true)
             {

@@ -1,13 +1,11 @@
 ﻿using O2DESNet.PathMover.Methods;
-using System;
+using O2DESNet.PathMover.Statics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover.Statics
+namespace O2DESNet.PathMover
 {
-   public class Scenario
+    public class Scenario : O2DESNet.Scenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
@@ -67,12 +65,12 @@ namespace O2DESNet.PathMover.Statics
         {
             ConstructRoutingTables();
             ConstructPathingTables();
-        }        
+        }
         private void ConstructRoutingTables()
         {
             foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
             var incompleteSet = ControlPoints.ToList();
-            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();            
+            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();
             while (incompleteSet.Count > 0)
             {
                 ConstructRoutingTables(incompleteSet.First().Id, edges);

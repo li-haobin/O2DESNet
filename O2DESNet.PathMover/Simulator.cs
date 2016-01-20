@@ -1,22 +1,12 @@
-﻿using O2DESNet.PathMover.Dynamics;
-using O2DESNet.PathMover.Statics;
-using System;
+﻿using O2DESNet.PathMover.Events;
 
 namespace O2DESNet.PathMover
 {
-    public class Simulator : O2DES
+    public class Simulator : Simulator<Scenario, Status>
     {
-        internal Scenario Scenario { get; private set; }
-        internal Status Status { get; private set; }
-        internal Random RS { get; private set; } // use multiple random streams if necessary
-
-        public Simulator(Scenario scenario, int seed)
+        public Simulator(Status status):base(status)
         {
-            Scenario = scenario;
-            Status = new Status(this);
-            RS = new Random(seed);
-
-            new Events.Start(this).Invoke();
+            Schedule(new Start(), ClockTime);
         }
     }
 }

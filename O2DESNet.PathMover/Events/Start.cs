@@ -1,19 +1,13 @@
-﻿using O2DESNet.PathMover.Dynamics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace O2DESNet.PathMover.Events
 {
-    internal class Start : Event
+    internal class Start : Event<Scenario, Status>
     {
-        internal Start(Simulator sim) : base(sim) { }
-        public override void Invoke()
+        protected override void Invoke()
         {
-            foreach (var vehicle in _sim.Status.AllVehicles)
-                _sim.ScheduleEvent(new Move(_sim, vehicle), TimeSpan.FromHours(_sim.RS.NextDouble()));
+            foreach (var vehicle in Status.AllVehicles)
+                Schedule(new Move { Vehicle = vehicle }, TimeSpan.FromHours(DefaultRS.NextDouble()));
         }
     }
 }
