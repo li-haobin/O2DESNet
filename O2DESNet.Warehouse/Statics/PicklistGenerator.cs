@@ -34,7 +34,7 @@ namespace O2DESNet.Warehouse.Statics
         public Dictionary<PickerType, int> NumOrders { get; private set; }
         public Dictionary<PickerType, List<PickList>> MasterPickList { get; private set; }
 
-        private int orderCount = 0;
+        public int orderCount { get; private set; }
 
         // For debug
         public HashSet<string> IncompleteOrder { get; private set; }
@@ -43,7 +43,23 @@ namespace O2DESNet.Warehouse.Statics
 
         public PicklistGenerator()
         {
+            orderCount = 0;
+        }
 
+        private int ReadMaxOrdersBatchSize(string filename)
+        {
+            int maxOrdersBatchSize;
+
+            using (StreamReader sr = new StreamReader(filename))
+            {
+                sr.ReadLine(); // Header
+
+                var line = sr.ReadLine();
+                var data = line.Split(',');
+                maxOrdersBatchSize = int.Parse(data[0]);
+            }
+
+            return maxOrdersBatchSize;
         }
 
         #region Picklist generation
@@ -254,7 +270,8 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="orders"></param>
         private void GeneratePureZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
-            int maxOrdersBatchSize = 50; // This should be an input parameter
+            string filename = @"Layout\" + scenario.Name + "_Consolidator.csv";
+            int maxOrdersBatchSize = ReadMaxOrdersBatchSize(filename); // This should be an input parameter
 
             var type = scenario.GetPickerType[pickerID];
             if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
@@ -290,7 +307,7 @@ namespace O2DESNet.Warehouse.Statics
                         items.AddRange(unfulfilled); // Append back unfulfilled items
                     }
 
-                    foreach(var picklist in scenario.OrderBatches.Last().PickLists)
+                    foreach (var picklist in scenario.OrderBatches.Last().PickLists)
                     {
                         scenario.WhichOrderBatch.Add(picklist, scenario.OrderBatches.Last());
                     }

@@ -25,6 +25,8 @@ namespace O2DESNet.Warehouse.Dynamics
         public DateTime StartTime { get; private set; }
 
         public List<int> OrderBatchesTotesCount { get; set; }
+        public int NumItemsSorted { get; set; }
+        public int MaxNumItemsSorted { get; set; }
 
         internal Status(Simulator simulation)
         {
@@ -46,6 +48,9 @@ namespace O2DESNet.Warehouse.Dynamics
                 TotalPickListsCompleted.Add(type.Key, 0);
                 TotalPickingTime.Add(type.Key, TimeSpan.Zero);
             }
+
+            NumItemsSorted = 0;
+            MaxNumItemsSorted = 0;
 
         }
 
@@ -123,6 +128,11 @@ namespace O2DESNet.Warehouse.Dynamics
         public double GetNumSortingStations()
         {
             return _sim.Scenario.Consolidator.AllSortingStations.Count;
+        }
+
+        public double GetAverageNumItemsSorted()
+        {
+            return 1.0 * NumItemsSorted / OrderBatch.GetTotalNumBatches();
         }
     }
 }

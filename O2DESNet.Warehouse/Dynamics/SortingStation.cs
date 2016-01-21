@@ -9,18 +9,25 @@ namespace O2DESNet.Warehouse.Dynamics
 {
     public class SortingStation
     {
+        private static int _count = 0;
+        public int sortingStationID { get; private set; }
+
         public OrderBatch orderBatch { get; set; }
         public List<PickList> picklists { get; set; }
         public bool isAvailable { get; set; }
         public double sortingRate { get; set; } // seconds per item
+        public int numItems { get; set; }
 
-        public SortingStation()
+        public SortingStation(double sortingRate)
         {
+            sortingStationID = ++_count;
+
             orderBatch = null;
             picklists = new List<PickList>();
             isAvailable = true;
+            numItems = 0;
 
-            sortingRate = 5.0; // Need to change to parameter
+            this.sortingRate = sortingRate; // Need to change to parameter
         }
 
         public bool IsReadyToSort()
@@ -39,6 +46,7 @@ namespace O2DESNet.Warehouse.Dynamics
             orderBatch = null;
             picklists.Clear();
             isAvailable = true;
+            numItems = 0;
         }
 
         /// <summary>
@@ -47,9 +55,14 @@ namespace O2DESNet.Warehouse.Dynamics
         /// <returns></returns>
         public double GetSortingTime()
         {
-            int numItems = picklists.Sum(l => l.pickJobs.Sum(j => j.quantity));
+            numItems = GetNumItemsToSort();
 
             return 1.0 * sortingRate * numItems / 60.0;
+        }
+
+        private int GetNumItemsToSort()
+        {
+            return picklists.Sum(l => l.pickJobs.Sum(j => j.quantity));
         }
     }
 }

@@ -20,6 +20,10 @@ namespace O2DESNet.Warehouse.Events
 
         public override void Invoke()
         {
+            int numItems = sortingStation.numItems;
+            _sim.Status.NumItemsSorted += numItems;
+            if (numItems > _sim.Status.MaxNumItemsSorted) _sim.Status.MaxNumItemsSorted = numItems;
+
             sortingStation.CompleteSorting();
         }
 

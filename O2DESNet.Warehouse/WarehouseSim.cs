@@ -147,13 +147,14 @@ namespace O2DESNet.Warehouse
             {
                 // Order Batching in Pure Zone for Consolidation
                 Console.WriteLine("");
-                Console.WriteLine("Number of Order Batches: {0}", OrderBatch.GetTotalNumBatches());
+                Console.WriteLine("Ave / Max Number of Items per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageNumItemsSorted(), sim.Status.MaxNumItemsSorted);
                 Console.WriteLine("Ave / Max Number of Totes per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
+                Console.WriteLine("Number of Order Batches: {0}", OrderBatch.GetTotalNumBatches());
                 Console.WriteLine("Number of Sorting Stations Utilised: {0}", sim.Status.GetNumSortingStations());
                 Console.WriteLine("");
             }
 
-            
+
 
             Console.WriteLine("Simulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
             Console.WriteLine("*********************************************************\n");
