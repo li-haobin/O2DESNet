@@ -31,13 +31,13 @@ namespace O2DESNet.Warehouse.Events
             {
                 picker.Picklist = _sim.Scenario.MasterPickList[picker.Type].First(); // Assign picklist
 
-                picker.PickListToComplete = new List<PickJob>(picker.Picklist); // Mutable
+                picker.PickJobsToComplete = new List<PickJob>(picker.Picklist.pickJobs); // Mutable
 
                 _sim.Scenario.MasterPickList[picker.Type].RemoveAt(0);
 
-                if (picker.PickListToComplete.Count > 0)
+                if (picker.PickJobsToComplete.Count > 0)
                 {
-                    var shelfCP = picker.PickListToComplete.First().rack.OnShelf.BaseCP;
+                    var shelfCP = picker.PickJobsToComplete.First().rack.OnShelf.BaseCP;
                     var duration = picker.GetTravelTime(_sim.Scenario, shelfCP);
                     _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
 

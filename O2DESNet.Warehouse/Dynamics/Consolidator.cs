@@ -13,7 +13,7 @@ namespace O2DESNet.Warehouse.Dynamics
         public Scenario Scenario { get; private set; }
 
         public List<OrderBatch> BatchesAwaitingConsolidation { get; private set; }
-        public List<List<PickJob>> PicklistsAwaitingConsolidation { get; private set; }
+        public List<PickList> PicklistsAwaitingConsolidation { get; private set; }
 
         public List<Order> ConsolidatedOrder { get; private set; }
 
@@ -22,11 +22,11 @@ namespace O2DESNet.Warehouse.Dynamics
         public Consolidator(Scenario scenario)
         {
             Scenario = scenario;
-            PicklistsAwaitingConsolidation = new List<List<PickJob>>();
+            PicklistsAwaitingConsolidation = new List<PickList>();
             AllSortingStations = new List<SortingStation>();
         }
 
-        public void ProcessCompletedPicklist(Simulator sim, List<PickJob> picklist)
+        public void ProcessCompletedPicklist(Simulator sim, PickList picklist)
         {
             if (BatchesAwaitingConsolidation == null)
                 BatchesAwaitingConsolidation = new List<OrderBatch>(Scenario.OrderBatches);
@@ -103,7 +103,7 @@ namespace O2DESNet.Warehouse.Dynamics
         /// </summary>
         /// <param name="picklist"></param>
         /// <returns></returns>
-        private OrderBatch GetOrderBatch(List<PickJob> picklist)
+        private OrderBatch GetOrderBatch(PickList picklist)
         {
             OrderBatch orderBatch = null;
 

@@ -18,7 +18,7 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            picker.CurLocation = picker.PickListToComplete.First().rack.OnShelf.BaseCP;
+            picker.CurLocation = picker.PickJobsToComplete.First().rack.OnShelf.BaseCP;
             var duration = picker.GetPickingTime();
             _sim.ScheduleEvent(new PickItem(_sim, picker), _sim.ClockTime.Add(duration));
         }

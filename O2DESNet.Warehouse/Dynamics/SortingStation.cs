@@ -10,14 +10,14 @@ namespace O2DESNet.Warehouse.Dynamics
     public class SortingStation
     {
         public OrderBatch orderBatch { get; set; }
-        public List<List<PickJob>> picklists { get; set; }
+        public List<PickList> picklists { get; set; }
         public bool isAvailable { get; set; }
         public double sortingRate { get; set; } // seconds per item
 
         public SortingStation()
         {
             orderBatch = null;
-            picklists = new List<List<PickJob>>();
+            picklists = new List<PickList>();
             isAvailable = true;
 
             sortingRate = 5.0; // Need to change to parameter
@@ -47,7 +47,7 @@ namespace O2DESNet.Warehouse.Dynamics
         /// <returns></returns>
         public double GetSortingTime()
         {
-            int numItems = picklists.Sum(l => l.Sum(j => j.quantity));
+            int numItems = picklists.Sum(l => l.pickJobs.Sum(j => j.quantity));
 
             return 1.0 * sortingRate * numItems / 60.0;
         }

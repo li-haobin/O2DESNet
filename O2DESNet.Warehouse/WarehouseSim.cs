@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using O2DESNet.Warehouse.Statics;
+using O2DESNet.Warehouse.Dynamics;
 
 namespace O2DESNet.Warehouse
 {
@@ -144,10 +145,15 @@ namespace O2DESNet.Warehouse
 
             if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
             {
-                Console.WriteLine("Ave / Max Orders Batch Tote Count: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
+                // Order Batching in Pure Zone for Consolidation
+                Console.WriteLine("");
+                Console.WriteLine("Number of Order Batches: {0}", OrderBatch.GetTotalNumBatches());
+                Console.WriteLine("Ave / Max Number of Totes per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
+                Console.WriteLine("Number of Sorting Stations Utilised: {0}", sim.Status.GetNumSortingStations());
+                Console.WriteLine("");
             }
 
-            Console.WriteLine("Number of Sorting Stations Utilised: {0}", sim.Status.GetNumSortingStations());
+            
 
             Console.WriteLine("Simulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
             Console.WriteLine("*********************************************************\n");

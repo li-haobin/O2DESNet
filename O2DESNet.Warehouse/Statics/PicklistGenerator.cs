@@ -32,7 +32,7 @@ namespace O2DESNet.Warehouse.Statics
 
         public Dictionary<string, Order> AllOrders { get; private set; }
         public Dictionary<PickerType, int> NumOrders { get; private set; }
-        public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; private set; }
+        public Dictionary<PickerType, List<PickList>> MasterPickList { get; private set; }
 
         private int orderCount = 0;
 
@@ -56,7 +56,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             if (AllOrders.Count == 0) throw new Exception("Orders have not been read! Read orders first.");
 
-            MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
+            MasterPickList = new Dictionary<PickerType, List<PickList>>();
             NumOrders = new Dictionary<PickerType, int>();
 
             if (strategy == Strategy.A) StrategyA(scenario);
@@ -103,7 +103,7 @@ namespace O2DESNet.Warehouse.Statics
                     using (StreamWriter output = new StreamWriter(filename))
                     {
                         output.WriteLine(type_ID); // First line is PickerType_ID
-                        foreach (var pickJob in picklist)
+                        foreach (var pickJob in picklist.pickJobs)
                         {
                             output.WriteLine("{0},{1},{2}", pickJob.item.SKU_ID, pickJob.rack.Rack_ID, pickJob.quantity);
                         }
@@ -156,7 +156,7 @@ namespace O2DESNet.Warehouse.Statics
 
                 for (int i = 0; i < typePicklists.Count; i++)
                 {
-                    typePicklists[i] = typePicklists[i].OrderBy(o => o.rack.Rack_ID).ToList();
+                    typePicklists[i].pickJobs = typePicklists[i].pickJobs.OrderBy(job => job.rack.Rack_ID).ToList();
                 }
             }
         }
@@ -257,7 +257,7 @@ namespace O2DESNet.Warehouse.Statics
             int maxOrdersBatchSize = 50; // This should be an input parameter
 
             var type = scenario.GetPickerType[pickerID];
-            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
+            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             NumOrders[type] += orders.Count;
 
@@ -278,7 +278,7 @@ namespace O2DESNet.Warehouse.Statics
                 if (allZones.Count > 0) // By right this should always happen, unless a whole batch contains insufficient SKU
                 {
                     scenario.OrderBatches.Add(new OrderBatch(ordersBatch));
-                    MasterPickList[type].Add(new List<PickJob>());
+                    MasterPickList[type].Add(new PickList());
                     scenario.OrderBatches.Last().PickLists.Add(MasterPickList[type].Last());
 
                     foreach (var zone in allZones)
@@ -361,7 +361,7 @@ namespace O2DESNet.Warehouse.Statics
             List<SKU> unfulfilledItems = new List<SKU>();
 
             var type = scenario.GetPickerType[pickerType_ID];
-            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
+            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
 
             while (items.Count > 0)
             {
@@ -372,9 +372,9 @@ namespace O2DESNet.Warehouse.Statics
                 else
                 {
                     // If does not fit, create new picklist
-                    if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().Count >= type.Capacity)
+                    if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().pickJobs.Count >= type.Capacity)
                     {
-                        MasterPickList[type].Add(new List<PickJob>());
+                        MasterPickList[type].Add(new PickList());
                         if (zone != null) scenario.OrderBatches.Last().PickLists.Add(MasterPickList[type].Last());
                     }
 
@@ -406,7 +406,7 @@ namespace O2DESNet.Warehouse.Statics
             List<Order> unfulfilledOrders = new List<Order>();
 
             var type = scenario.GetPickerType[pickerType_ID];
-            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
+            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             //NumOrders[type] += orders.Count;
 
@@ -425,11 +425,11 @@ namespace O2DESNet.Warehouse.Statics
                          || orderCount >= type.Capacity)
                     // || MasterPickList[type].Last().Count + orders.First().Items.Count > type.Capacity)
                     {
-                        MasterPickList[type].Add(new List<PickJob>());
+                        MasterPickList[type].Add(new PickList());
                         orderCount = 0;
                     }
 
-                    var prevPickJobCount = MasterPickList[type].Last().Count;
+                    var prevPickJobCount = MasterPickList[type].Last().pickJobs.Count;
 
                     // Process items in current order
                     foreach (var item in orders.First().Items)
@@ -443,7 +443,7 @@ namespace O2DESNet.Warehouse.Statics
                         }
                     }
 
-                    if (MasterPickList[type].Last().Count > prevPickJobCount)
+                    if (MasterPickList[type].Last().pickJobs.Count > prevPickJobCount)
                     {
                         // Should only count if the order is processed
                         orderCount++;

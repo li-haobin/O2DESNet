@@ -12,8 +12,8 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         public ControlPoint CurLocation { get; set; }
         public PickerType Type { get; private set; }
-        public List<PickJob> Picklist { get; set; }
-        public List<PickJob> PickListToComplete { get; set; }
+        public PickList Picklist { get; set; }
+        public List<PickJob> PickJobsToComplete { get; set; }
         public List<PickJob> CompletedJobs { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
@@ -23,7 +23,7 @@ namespace O2DESNet.Warehouse.Dynamics
         {
             CurLocation = null;
             Type = type;
-            PickListToComplete = new List<PickJob>();
+            PickJobsToComplete = new List<PickJob>();
             CompletedJobs = new List<PickJob>();
         }
 
@@ -169,14 +169,14 @@ namespace O2DESNet.Warehouse.Dynamics
         }
         public void PickItem()
         {
-            var pickJob = PickListToComplete.First();
+            var pickJob = PickJobsToComplete.First();
             if (CurLocation != pickJob.rack.OnShelf.BaseCP) throw new Exception("ERROR! Wrong location, halt pick");
 
             pickJob.item.PickFromRack(pickJob.rack, pickJob.quantity);
 
             CompletedJobs.Add(pickJob);
 
-            PickListToComplete.RemoveAt(0);
+            PickJobsToComplete.RemoveAt(0);
         }
 
         public int GetNumCompletedPickJobs()

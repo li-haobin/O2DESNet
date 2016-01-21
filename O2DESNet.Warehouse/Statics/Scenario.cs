@@ -41,13 +41,13 @@ namespace O2DESNet.Warehouse.Statics
         #endregion
 
         #region Picklists
-        public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; set; }
-        public Dictionary<PickerType, List<List<PickJob>>> CompletedPickLists { get; set; }
+        public Dictionary<PickerType, List<PickList>> MasterPickList { get; set; }
+        public Dictionary<PickerType, List<PickList>> CompletedPickLists { get; set; }
         #endregion
 
         #region For Consolidation
         public List<OrderBatch> OrderBatches { get; set; }
-        public Dictionary<List<PickJob>, OrderBatch> WhichOrderBatch { get; set; }
+        public Dictionary<PickList, OrderBatch> WhichOrderBatch { get; set; }
         public Consolidator Consolidator { get; set; }
         #endregion
 
@@ -67,11 +67,11 @@ namespace O2DESNet.Warehouse.Statics
             SKUs = new Dictionary<string, SKU>();
 
 
-            MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
-            CompletedPickLists = new Dictionary<PickerType, List<List<PickJob>>>();
+            MasterPickList = new Dictionary<PickerType, List<PickList>>();
+            CompletedPickLists = new Dictionary<PickerType, List<PickList>>();
 
             OrderBatches = new List<OrderBatch>();
-            WhichOrderBatch = new Dictionary<List<PickJob>, OrderBatch>();
+            WhichOrderBatch = new Dictionary<PickList, OrderBatch>();
             Consolidator = new Consolidator(this);
 
             // Starting location
@@ -401,7 +401,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             using (StreamReader sr = new StreamReader(filename))
             {
-                List<PickJob> picklist = new List<PickJob>();
+                PickList picklist = new PickList();
                 string line = sr.ReadLine();
 
                 string type_id = line.Split(',').First(); // First line is picker type id
@@ -444,8 +444,8 @@ namespace O2DESNet.Warehouse.Statics
                 else
                     type = new PickerType(id, moveSpd, pickingTime);
 
-                MasterPickList.Add(type, new List<List<PickJob>>());
-                CompletedPickLists.Add(type, new List<List<PickJob>>());
+                MasterPickList.Add(type, new List<PickList>());
+                CompletedPickLists.Add(type, new List<PickList>());
 
                 GetPickerType.Add(id, type);
                 NumPickers.Add(type, numPickers);

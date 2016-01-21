@@ -85,7 +85,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public void CaptureCompletedPickList(Picker picker)
         {
-            _sim.Scenario.CompletedPickLists[picker.Type].Add(picker.CompletedJobs);
+            _sim.Scenario.CompletedPickLists[picker.Type].Add(picker.Picklist);
             TotalPickingTime[picker.Type] += picker.GetTimeToCompletePickList();
             TotalPickJobsCompleted[picker.Type] += picker.GetNumCompletedPickJobs();
             TotalPickListsCompleted[picker.Type]++;

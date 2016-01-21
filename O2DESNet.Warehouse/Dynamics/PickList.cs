@@ -24,5 +24,25 @@ namespace O2DESNet.Warehouse.Dynamics
             orderBatch = null;
             picker = null;
         }
+
+        public void Add(PickJob pickjob)
+        {
+            pickJobs.Add(pickjob);
+        }
+
+        public PickJob First()
+        {
+            return pickJobs.First();
+        }
+
+        public void RemoveAt(int index)
+        {
+            pickJobs.RemoveAt(0);
+        }
+
+        public int Count
+        {
+            get { return pickJobs.Count; }
+        }
     }
 }

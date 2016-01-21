@@ -13,13 +13,18 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public int BatchID { get; private set; }
         public List<Order> Orders { get; set; }
-        public List<List<PickJob>> PickLists { get; set; }
+        public List<PickList> PickLists { get; set; }
 
         public OrderBatch(List<Order> orders)
         {
             BatchID = ++_count;
             Orders = orders;
-            PickLists = new List<List<PickJob>>();
+            PickLists = new List<PickList>();
+        }
+
+        public static int GetTotalNumBatches()
+        {
+            return _count;
         }
     }
 }
