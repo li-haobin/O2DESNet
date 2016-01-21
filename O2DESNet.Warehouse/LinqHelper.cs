@@ -14,5 +14,12 @@ namespace O2DESNet.Warehouse
             source.RemoveAll(match);
             return extract;
         }
+
+        public static List<T> ExtractRange<T>(this List<T> source, int index, int count)
+        {
+            List<T> extract = source.GetRange(index, count);
+            source.RemoveRange(index, count);
+            return extract;
+        }
     }
 }

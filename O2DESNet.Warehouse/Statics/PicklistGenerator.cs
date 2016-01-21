@@ -128,7 +128,7 @@ namespace O2DESNet.Warehouse.Statics
 
                 if (MasterPickList.ContainsKey(types[i]))
                 {
-                    scenario.MasterPickList[types[i]] = new List<List<PickJob>>(MasterPickList[types[i]]);
+                    scenario.MasterPickList[types[i]] = MasterPickList[types[i]];
                 }
             }
         }
@@ -254,21 +254,54 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="orders"></param>
         private void GeneratePureZoneOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
+            int maxOrdersBatchSize = 50; // This should be an input parameter
+
             var type = scenario.GetPickerType[pickerID];
+            if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<List<PickJob>>());
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             NumOrders[type] += orders.Count;
 
-            HashSet<string> allZones = GetFulfilmentZones(orders);
-
-            List<SKU> items = orders.SelectMany(order => order.Items).ToList(); // Flattening items from orders
-
-            foreach (var zone in allZones)
+            while (orders.Count > 0)
             {
-                var oneZone = items.ExtractAll(item => item.IsFulfiledZone(zone)); // Potentially fulfilled in this zone
+                orders = orders.OrderBy(o => o.GetFulfilmentZones().Count).ToList(); // Increasing fragmentation
 
-                var unfulfilled = GeneratePicklistsFromItems(scenario, oneZone, pickerID, zone);
+                // Start of batch
+                // Get first min(maxOrderPerBatch, orders.Count)
+                int batchQty = Math.Min(maxOrdersBatchSize, orders.Count);
+                List<Order> ordersBatch = orders.ExtractRange(0, batchQty);
 
-                items.AddRange(unfulfilled); // Append back unfulfilled items
+                HashSet<string> allZones = GetFulfilmentZones(ordersBatch);
+                // This is where order information is lost
+                List<SKU> items = ordersBatch.SelectMany(order => order.Items).ToList(); // Flattening items from orders
+
+                int startPickListCount = MasterPickList[type].Count;
+                if (allZones.Count > 0) // By right this should always happen, unless a whole batch contains insufficient SKU
+                {
+                    scenario.OrderBatches.Add(new OrderBatch(ordersBatch));
+                    MasterPickList[type].Add(new List<PickJob>());
+                    scenario.OrderBatches.Last().PickLists.Add(MasterPickList[type].Last());
+
+                    foreach (var zone in allZones)
+                    {
+                        var oneZone = items.ExtractAll(item => item.IsFulfiledZone(zone)); // Potentially fulfilled in this zone
+
+                        var unfulfilled = GeneratePicklistsFromItems(scenario, oneZone, pickerID, zone);
+
+                        items.AddRange(unfulfilled); // Append back unfulfilled items
+                    }
+
+                    foreach(var picklist in scenario.OrderBatches.Last().PickLists)
+                    {
+                        scenario.WhichOrderBatch.Add(picklist, scenario.OrderBatches.Last());
+                    }
+                }
+
+                // End of batch
+                int numPickListGenerated = MasterPickList[type].Count - startPickListCount;
+
+                // Any order remaining means insufficient
+                if (items.Count > 0) //throw new Exception("There are still item left!");
+                    InsufficientSKU.AddRange(items.Select(i => i.SKU_ID));
             }
         }
         /// <summary>
@@ -323,6 +356,8 @@ namespace O2DESNet.Warehouse.Statics
         /// <returns></returns>
         private List<SKU> GeneratePicklistsFromItems(Scenario scenario, List<SKU> items, string pickerType_ID, string zone = null)
         {
+            // Pure zone calls this method with zone != null
+
             List<SKU> unfulfilledItems = new List<SKU>();
 
             var type = scenario.GetPickerType[pickerType_ID];
@@ -338,7 +373,10 @@ namespace O2DESNet.Warehouse.Statics
                 {
                     // If does not fit, create new picklist
                     if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().Count >= type.Capacity)
+                    {
                         MasterPickList[type].Add(new List<PickJob>());
+                        if (zone != null) scenario.OrderBatches.Last().PickLists.Add(MasterPickList[type].Last());
+                    }
 
                     // Process item
                     bool isReserved = ReserveItem(type, items.First(), zone);
@@ -468,7 +506,7 @@ namespace O2DESNet.Warehouse.Statics
         /// <param name="source"></param>
         /// <param name="match"></param>
         /// <returns></returns>
-        
+
         #endregion
 
         #region Read Orders    
@@ -518,6 +556,8 @@ namespace O2DESNet.Warehouse.Statics
                 }
             }
 
+
+            scenario.Orders = new Dictionary<string, Order>(AllOrders);
         }
         private void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id)
         {
@@ -529,7 +569,6 @@ namespace O2DESNet.Warehouse.Statics
             }
             else
             {
-
                 // Find SKU
                 var sku = scenario.SKUs[sku_id];
 
@@ -539,8 +578,14 @@ namespace O2DESNet.Warehouse.Statics
                     AllOrders.Add(order_id, new Order(order_id));
                 }
 
+                var order = AllOrders[order_id];
+
                 // Add SKU to order
-                AllOrders[order_id].Items.Add(sku);
+                order.Items.Add(sku);
+
+                // Add order to SKU
+                if (!sku.QtyForOrder.ContainsKey(order)) sku.QtyForOrder.Add(order, 0);
+                sku.QtyForOrder[order]++;
             }
         }
         #endregion

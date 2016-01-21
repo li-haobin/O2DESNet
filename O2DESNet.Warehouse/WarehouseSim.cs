@@ -103,8 +103,6 @@ namespace O2DESNet.Warehouse
             }
         }
 
-
-
         public void Run(double hours)
         {
             sim.Run(TimeSpan.FromHours(hours));
@@ -143,6 +141,14 @@ namespace O2DESNet.Warehouse
 
             Console.WriteLine("");
             Console.WriteLine("Ave / Max Active Pickers: {0} / {1}", sim.Status.GetAverageNumActivePickers(), sim.Status.MaxActivePickers);
+
+            if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
+            {
+                Console.WriteLine("Ave / Max Orders Batch Tote Count: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
+            }
+
+            Console.WriteLine("Number of Sorting Stations Utilised: {0}", sim.Status.GetNumSortingStations());
+
             Console.WriteLine("Simulation run length: {0:hh\\:mm\\:ss}", sim.ClockTime - DateTime.MinValue);
             Console.WriteLine("*********************************************************\n");
         }
@@ -165,7 +171,6 @@ namespace O2DESNet.Warehouse
             {
                 // Item-based
                 averateUtil = 1.0 * totalPickJob / totalPickList;
-
             }
 
             Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);

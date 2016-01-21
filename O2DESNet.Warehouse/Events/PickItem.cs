@@ -19,9 +19,9 @@ namespace O2DESNet.Warehouse.Events
         public override void Invoke()
         {
             picker.PickItem();
-            if (picker.PickList.Count > 0)
+            if (picker.PickListToComplete.Count > 0)
             {
-                var shelfCP = picker.PickList.First().rack.OnShelf.BaseCP;
+                var shelfCP = picker.PickListToComplete.First().rack.OnShelf.BaseCP;
                 var duration = picker.GetTravelTime(_sim.Scenario, shelfCP);
                 _sim.ScheduleEvent(new ArriveLocation(_sim, picker), _sim.ClockTime.Add(duration));
 

@@ -14,6 +14,7 @@ namespace O2DESNet.Warehouse.Dynamics
         public string Description { get; private set; }
         public Dictionary<CPRack, int> QtyAtRack { get; private set; } // This makes it dynamic actually...
         public Dictionary<CPRack, int> ReservedAtRack { get; private set; } // For PicklistGenerator virtual reservation
+        public Dictionary<Order, int> QtyForOrder { get; private set; } // For consolidation
 
         public SKU(string sku_id, string description = "")
         {
@@ -21,6 +22,7 @@ namespace O2DESNet.Warehouse.Dynamics
             Description = description;
             QtyAtRack = new Dictionary<CPRack, int>();
             ReservedAtRack = new Dictionary<CPRack, int>();
+            QtyForOrder = new Dictionary<Order, int>();
         }
 
         public void AddToRack(CPRack rack, int quantity = 1)

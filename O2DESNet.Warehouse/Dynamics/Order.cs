@@ -12,6 +12,7 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         public string Order_ID { get; set; }
         public List<SKU> Items { get; set; }
+        public Dictionary<SKU, int> QtyRequired { get; set; }
 
         public Order(string id)
         {
@@ -36,6 +37,34 @@ namespace O2DESNet.Warehouse.Dynamics
             }
 
             return output;
+        }
+
+        public HashSet<string> GetFulfilmentZones()
+        {
+            if (Items.Count == 0) throw new Exception("Order is empty.");
+
+            HashSet<string> output = new HashSet<string>();
+
+            foreach (var item in Items)
+            {
+                output.UnionWith(item.GetFulfilmentZones());
+            }
+
+            return output;
+        }
+
+        public void CountQtyRequired()
+        {
+            if (QtyRequired == null)
+            {
+                QtyRequired = new Dictionary<SKU, int>();
+
+                foreach (var item in Items)
+                {
+                    if (!QtyRequired.ContainsKey(item)) QtyRequired.Add(item, 0);
+                    QtyRequired[item]++;
+                }
+            }
         }
     }
 }

@@ -37,11 +37,18 @@ namespace O2DESNet.Warehouse.Statics
         public Dictionary<string, CPRack> Racks { get; private set; }
         public Dictionary<string, SKU> SKUs { get; private set; }
         public ControlPoint StartCP { get; set; }
+        public Dictionary<string, Order> Orders { get; set; }
         #endregion
 
         #region Picklists
         public Dictionary<PickerType, List<List<PickJob>>> MasterPickList { get; set; }
         public Dictionary<PickerType, List<List<PickJob>>> CompletedPickLists { get; set; }
+        #endregion
+
+        #region For Consolidation
+        public List<OrderBatch> OrderBatches { get; set; }
+        public Dictionary<List<PickJob>, OrderBatch> WhichOrderBatch { get; set; }
+        public Consolidator Consolidator { get; set; }
         #endregion
 
         public Scenario(string name)
@@ -62,6 +69,10 @@ namespace O2DESNet.Warehouse.Statics
 
             MasterPickList = new Dictionary<PickerType, List<List<PickJob>>>();
             CompletedPickLists = new Dictionary<PickerType, List<List<PickJob>>>();
+
+            OrderBatches = new List<OrderBatch>();
+            WhichOrderBatch = new Dictionary<List<PickJob>, OrderBatch>();
+            Consolidator = new Consolidator(this);
 
             // Starting location
             StartCP = null;

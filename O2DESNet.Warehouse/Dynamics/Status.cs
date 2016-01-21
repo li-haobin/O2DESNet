@@ -24,6 +24,8 @@ namespace O2DESNet.Warehouse.Dynamics
         public DateTime JumpTime { get; private set; }
         public DateTime StartTime { get; private set; }
 
+        public List<int> OrderBatchesTotesCount { get; set; }
+
         internal Status(Simulator simulation)
         {
             _sim = simulation;
@@ -87,6 +89,9 @@ namespace O2DESNet.Warehouse.Dynamics
             TotalPickingTime[picker.Type] += picker.GetTimeToCompletePickList();
             TotalPickJobsCompleted[picker.Type] += picker.GetNumCompletedPickJobs();
             TotalPickListsCompleted[picker.Type]++;
+
+            // Send to consolidation
+            _sim.Scenario.Consolidator.ProcessCompletedPicklist(_sim, picker.Picklist);
         }
 
         public TimeSpan GetAveragePickListTime(PickerType type)
@@ -94,6 +99,30 @@ namespace O2DESNet.Warehouse.Dynamics
             if (TotalPickListsCompleted[type] == 0) return TimeSpan.Zero;
 
             return TimeSpan.FromSeconds(TotalPickingTime[type].TotalSeconds / TotalPickListsCompleted[type]);
+        }
+
+        private void CalculateOrderBatchesTotes()
+        {
+            OrderBatchesTotesCount = _sim.Scenario.OrderBatches.Select(b => b.PickLists.Count).ToList();
+        }
+
+        public int GetMaxOrderBatchesTotesCount()
+        {
+            if (OrderBatchesTotesCount == null) CalculateOrderBatchesTotes();
+
+            return OrderBatchesTotesCount.Max();
+        }
+
+        public double GetAverageOrderBatchesTotesCount()
+        {
+            if (OrderBatchesTotesCount == null) CalculateOrderBatchesTotes();
+
+            return OrderBatchesTotesCount.Average();
+        }
+
+        public double GetNumSortingStations()
+        {
+            return _sim.Scenario.Consolidator.AllSortingStations.Count;
         }
     }
 }

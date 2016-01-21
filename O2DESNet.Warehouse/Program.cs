@@ -10,17 +10,32 @@ namespace O2DESNet.Warehouse
         {
             //WarehouseSim whsim_base = new WarehouseSim("ZA");
             //var byteArray = Serializer.ObjectToByteArray(whsim_base);
+            //WarehouseSim whsim = (WarehouseSim) Serializer.ByteArrayToObject(byteArray);
+            //whsim.GeneratePicklist(strategy);
 
-            //foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
-            //{
-            //    //WarehouseSim whsim = (WarehouseSim) Serializer.ByteArrayToObject(byteArray);
-            //    //whsim.GeneratePicklist(strategy);
+            //ExperimentRunAllStrategies();
 
-            //    WarehouseSim whsim = new WarehouseSim("ZA", strategy);
-            //    whsim.Run(24);
-            //    whsim.PrintStatistics();
-            //}
+            ExperimentSelectStrategy();
 
+            Console.WriteLine("\n:: Experiment End ::");
+            Console.ReadKey();
+        }
+
+        private static void ExperimentRunAllStrategies()
+        {
+            WarehouseSim whsim = null;
+
+            foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
+            {
+                whsim = new WarehouseSim("ZA", strategy);
+                whsim.Run(24);
+                whsim.PrintStatistics();
+                whsim = null;
+            }
+        }
+
+        private static void ExperimentSelectStrategy()
+        {
             WarehouseSim whsim;
 
             Console.Write("Strategy to implement? (A/B/C/D) ");
@@ -34,10 +49,6 @@ namespace O2DESNet.Warehouse
 
             whsim.Run(24);
             whsim.PrintStatistics();
-
-
-            Console.WriteLine("\n:: Experiment End ::");
-            Console.ReadKey();
         }
 
         /// <summary>

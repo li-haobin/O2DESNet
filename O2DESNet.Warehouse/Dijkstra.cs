@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -36,6 +37,16 @@ namespace O2DESNet.Warehouse
             var weights = Edges.Select(e => e.Distance).ToArray();
             var ptr = dijkstra_algorithm(
                 NumNodes, Edges.Length, ref fromIndices[0], ref toIndices[0], ref weights[0]);
+
+            //var DLL = Assembly.LoadFile(dll);
+
+            //foreach (Type type in DLL.GetExportedTypes())
+            //{
+            //    var c = Activator.CreateInstance(type);
+            //    type.InvokeMember("dijkstra_algorithm", BindingFlags.InvokeMethod, null, c, new object[] {NumNodes, Edges.Length,
+            //        fromIndices, toIndices, weights });
+            //}
+
             Parents = new int[NumNodes];
             Marshal.Copy(ptr, Parents, 0, NumNodes);
             release_memory(ptr);

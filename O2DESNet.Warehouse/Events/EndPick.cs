@@ -19,7 +19,7 @@ namespace O2DESNet.Warehouse.Events
         public override void Invoke()
         {
             // Check
-            if (picker.PickList.Count > 0) throw new Exception("There are still items to pick!");
+            if (picker.PickListToComplete.Count > 0) throw new Exception("There are still items to pick!");
 
             // Just status update
             picker.CurLocation = _sim.Scenario.StartCP;
