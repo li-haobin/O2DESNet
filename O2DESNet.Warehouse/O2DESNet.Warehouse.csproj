@@ -56,6 +56,7 @@
     <Compile Include="Dynamics\OrderBatch.cs" />
     <Compile Include="Dynamics\PickJob.cs" />
     <Compile Include="Dynamics\Picker.cs" />
+    <Compile Include="Dynamics\PickList.cs" />
     <Compile Include="Dynamics\SortingStation.cs" />
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Events\CompleteSorting.cs" />
