@@ -9,7 +9,7 @@ namespace O2DESNet.Warehouse.Statics
     [Serializable]
     public abstract class Path
     {
-        protected static int _count = 0;
+        public static int _count = 0;
         public int Id { get; private set; }
         public double Length { get; private set; }
         public double SpeedLimit { get; private set; }

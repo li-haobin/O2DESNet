@@ -19,6 +19,9 @@ namespace O2DESNet.Warehouse
 
         public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null)
         {
+            ControlPoint._count = 0;
+            Statics.Path._count = 0;
+
             this.strategy = strategy;
             InitializeScenario(scenarioName);
             sim = new Simulator(wh); // Only after warehouse has been built and initialised properly.

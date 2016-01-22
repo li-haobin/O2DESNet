@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using O2DESNet.Warehouse.DijkstraSP;
 
 namespace O2DESNet.Warehouse.Statics
 {
@@ -25,6 +26,8 @@ namespace O2DESNet.Warehouse.Statics
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
         internal ControlPoint() { Id = ++_count; Positions = new Dictionary<Path, double>(); }
 
+        public DijkstraSP.DijkstraSP ShortestPath { get; private set; }
+
         /// <summary>
         /// Get distance to an adjacent control point
         /// </summary>
@@ -37,8 +40,19 @@ namespace O2DESNet.Warehouse.Statics
             return Math.Abs(next.Positions[path] - Positions[path]);
         }
 
-        // TODO: Generic distance routing with djikstra. Without running the whole initialisation
+        // Generic routing with Dijkstra. Need to initialise DijkstraSP.
         public double GetDistanceTo(ControlPoint destination)
+        {
+            return ShortestPath.DistTo(destination.Id);
+        }
+
+        public void InitShortestPath(EdgeWeightedDigraph graph)
+        {
+            ShortestPath = new DijkstraSP.DijkstraSP(graph, Id);
+        }
+
+        // TODO: Generic distance routing with djikstra. Without running the whole initialisation
+        public double GetDistanceTo_old(ControlPoint destination)
         {
             if (!RoutingTable.ContainsKey(destination))
                 throw new Exceptions.InfeasibleTravelling(
@@ -56,6 +70,7 @@ namespace O2DESNet.Warehouse.Statics
 
             return dist;
         }
+
 
         // Need another method GetDistanceTo which exploits the structure of a warehouse
         // This is for quicker generation, without having to calculate Dijkstra graph

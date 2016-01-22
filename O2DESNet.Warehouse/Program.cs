@@ -13,11 +13,12 @@ namespace O2DESNet.Warehouse
             //WarehouseSim whsim = (WarehouseSim) Serializer.ByteArrayToObject(byteArray);
             //whsim.GeneratePicklist(strategy);
 
-            //ExperimentRunAllStrategies();
+            ExperimentRunAllStrategies();
 
-            ExperimentSelectStrategy();
+            //ExperimentSelectStrategy();
 
             Console.WriteLine("\n:: Experiment End ::");
+            Console.WriteLine("\nEnter any key to exit...");
             Console.ReadKey();
         }
 
@@ -27,6 +28,7 @@ namespace O2DESNet.Warehouse
 
             foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
             {
+                Console.WriteLine("Running Strategy {0} ...", strategy.ToString());
                 whsim = new WarehouseSim("ZA", strategy);
                 whsim.Run(24);
                 whsim.PrintStatistics();

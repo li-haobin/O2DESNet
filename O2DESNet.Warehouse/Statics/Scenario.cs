@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using O2DESNet.Warehouse.Dynamics;
+using O2DESNet.Warehouse.DijkstraSP;
 
 namespace O2DESNet.Warehouse.Statics
 {
@@ -459,19 +460,31 @@ namespace O2DESNet.Warehouse.Statics
         #region For Static Routing (Distance-Based), Using Dijkstra
         public void InitializeRouting()
         {
-            ConstructRoutingTables();
-            ConstructPathingTables(); // Pathing table is very fast to generate
+            ConstructDijkstraSP();
+
+            //ConstructRoutingTables();
+            //ConstructPathingTables(); // Pathing table is very fast to generate
         }
         private void ConstructRoutingTables()
         {
             foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
-            var incompleteSet = ControlPoints.ToList();
+            var incompleteSet = ControlPoints.ToList(); // Mutable list
+
+            // Original
             var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();
             while (incompleteSet.Count > 0)
             {
                 ConstructRoutingTables(incompleteSet.First().Id, edges);
                 incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
             }
+
+            // DijkstraSP implementation
+            //var graph = CreateGraph();
+            //while (incompleteSet.Count > 0)
+            //{
+            //    ConstructRoutingTables(incompleteSet.First().Id, graph);
+            //    incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
+            //}
         }
         private void ConstructRoutingTables(int sourceIndex, Dijkstra.Edge[] edges)
         {
@@ -516,6 +529,44 @@ namespace O2DESNet.Warehouse.Statics
                 if (path.Direction != Direction.Backward) edges.Add(new Dijkstra.Edge(from, to, length));
                 if (path.Direction != Direction.Forward) edges.Add(new Dijkstra.Edge(to, from, length));
             }
+            return edges;
+        }
+
+        private void ConstructDijkstraSP()
+        {
+            var graph = CreateGraph();
+            foreach (var cp in ControlPoints)
+            {
+                cp.InitShortestPath(graph);
+            }
+        }
+        private EdgeWeightedDigraph CreateGraph()
+        {
+            EdgeWeightedDigraph Graph = new EdgeWeightedDigraph(ControlPoints.Count+1);
+
+            var edges = Paths.SelectMany(path => GetDirectedEdges(path)).ToList();
+
+            foreach (var edge in edges)
+            {
+                Graph.AddEdge(edge);
+            }
+
+            return Graph;
+        }
+        private List<DirectedEdge> GetDirectedEdges(Path path)
+        {
+            var edges = new List<DirectedEdge>();
+
+            // For each control point in path
+            for (int i = 0; i < path.ControlPoints.Count - 1; i++)
+            {
+                var length = path.ControlPoints[i + 1].Positions[path] - path.ControlPoints[i].Positions[path];
+                var from = path.ControlPoints[i].Id;
+                var to = path.ControlPoints[i + 1].Id;
+                if (path.Direction != Direction.Backward) edges.Add(new DirectedEdge(from, to, length));
+                if (path.Direction != Direction.Forward) edges.Add(new DirectedEdge(to, from, length));
+            }
+
             return edges;
         }
         #endregion
