@@ -52,6 +52,9 @@ namespace O2DESNet.Warehouse.Statics
         public Consolidator Consolidator { get; set; }
         #endregion
 
+        // For Debug
+        public List<string> UnassignableSKUs { get; private set; }
+
         public Scenario(string name)
         {
             Name = name;
@@ -74,6 +77,8 @@ namespace O2DESNet.Warehouse.Statics
             OrderBatches = new List<OrderBatch>();
             WhichOrderBatch = new Dictionary<PickList, OrderBatch>();
             Consolidator = new Consolidator(this);
+
+            UnassignableSKUs = new List<string>();
 
             // Starting location
             StartCP = null;
@@ -151,9 +156,31 @@ namespace O2DESNet.Warehouse.Statics
                     if (dash > 0)
                         rackID = rackID.Substring(0, dash);
 
-                    AddToRack(sku, Racks[rackID]);
+                    // If location does not exist.
+                    if (!Racks.ContainsKey(rackID))
+                        RecordUnassignableSKU(sku.SKU_ID, rackID);
+                    else
+                        AddToRack(sku, Racks[rackID]);
                 }
             }
+
+            OutputUnassignableSKU();
+        }
+
+        private void OutputUnassignableSKU()
+        {
+            using (StreamWriter sw = new StreamWriter(@"Layout\" + Name + "_UnassignableSKUs.csv"))
+            {
+                foreach (var line in UnassignableSKUs)
+                {
+                    sw.WriteLine(line);
+                }
+            }
+        }
+
+        private void RecordUnassignableSKU(string SKU_ID, string rackID)
+        {
+            UnassignableSKUs.Add(rackID + "," + SKU_ID);
         }
 
         public void ReadSKUsFile()
@@ -542,7 +569,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         private EdgeWeightedDigraph CreateGraph()
         {
-            EdgeWeightedDigraph Graph = new EdgeWeightedDigraph(ControlPoints.Count+1);
+            EdgeWeightedDigraph Graph = new EdgeWeightedDigraph(ControlPoints.Count + 1);
 
             var edges = Paths.SelectMany(path => GetDirectedEdges(path)).ToList();
 
