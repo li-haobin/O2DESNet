@@ -13,6 +13,7 @@ namespace O2DESNet.Replicators
     {
         public List<TScenario> Scenarios { get; private set; }
         public Dictionary<TScenario, List<double[]>> Objectives { get; private set; }
+        public List<double> GetObjectives(TScenario scenario, int objIndex) { return Objectives[scenario].Select(o => o[objIndex]).ToList(); }
         public long TotalBudget { get { return Objectives.Sum(i => i.Value.Count); } }
         protected Action<TScenario, int> Evaluate { get; private set; }
         internal int InitBudget { get; private set; }

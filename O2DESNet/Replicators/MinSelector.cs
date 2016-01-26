@@ -27,7 +27,7 @@ namespace O2DESNet.Replicators
         {
             get
             {
-                return Objectives.Aggregate((s0, s1) => s0.Value.Select(o => o[0]).Mean() <= s1.Value.Select(o => o[0]).Mean() ? s0 : s1).Key;
+                return Objectives.Aggregate((s0, s1) => GetObjectives(s0.Key, 0).Mean() <= GetObjectives(s1.Key, 0).Mean() ? s0 : s1).Key;
             }
         }
         public TScenario[] InDifferentScenarios {
@@ -42,8 +42,8 @@ namespace O2DESNet.Replicators
 
         private double ProbLessThan(TScenario sc, double mean, double sqrStdErr, double threshold)
         {
-            var diff = Objectives[sc].Select(o => o[0]).Mean() - mean;
-            var err = Math.Sqrt(Objectives[sc].Select(o => o[0]).Variance() / Objectives[sc].Count + sqrStdErr);
+            var diff = GetObjectives(sc, 0).Mean() - mean;
+            var err = Math.Sqrt(GetObjectives(sc, 0).Variance() / Objectives[sc].Count + sqrStdErr);
             return Normal.CDF(diff, err, threshold);
         }
 
@@ -54,8 +54,8 @@ namespace O2DESNet.Replicators
             get
             {
                 var optimum = Optimum;
-                var minMean = Objectives[optimum].Select(o => o[0]).Mean();
-                var sqrStdErr = Objectives[optimum].Select(o => o[0]).Variance() / Objectives[optimum].Count;
+                var minMean = GetObjectives(optimum, 0).Mean();
+                var sqrStdErr = GetObjectives(optimum, 0).Variance() / Objectives[optimum].Count;
                 double pcs = 1.0;
                 foreach (var sc in Scenarios.Except(InDifferentScenarios)) if (sc != optimum)
                         pcs *= 1 - ProbLessThan(sc, minMean, sqrStdErr, 0);
@@ -67,8 +67,8 @@ namespace O2DESNet.Replicators
         {
             var scenarios = Scenarios.Except(InDifferentScenarios).ToList();
             var ratios = OCBARatios(
-                scenarios.Select(sc => Objectives[sc].Select(o => o[0]).Mean()).ToArray(),
-                scenarios.Select(sc => Objectives[sc].Select(o => o[0]).StandardDeviation()).ToArray());
+                scenarios.Select(sc => GetObjectives(sc, 0).Mean()).ToArray(),
+                scenarios.Select(sc => GetObjectives(sc, 0).StandardDeviation()).ToArray());
             Alloc(budget, Enumerable.Range(0, scenarios.Count).ToDictionary(i => scenarios[i], i => ratios[i]));
         }
 
@@ -92,13 +92,13 @@ namespace O2DESNet.Replicators
 
         public override void Display()
         {
-            Scenarios.Sort((s1, s2) => Objectives[s2].Select(o => o[0]).Mean().CompareTo(Objectives[s1].Select(o => o[0]).Mean()));
+            Scenarios.Sort((s1, s2) => GetObjectives(s2, 0).Mean().CompareTo(GetObjectives(s1, 0).Mean()));
 
             Console.WriteLine("mean\tstddev\t#reps");
             foreach (var sc in Scenarios)
             {
-                var objectives = Objectives[sc];
-                Console.Write("{0:F4}\t{1:F4}\t{2}\t", objectives.Select(o => o[0]).Mean(), objectives.Select(o => o[0]).StandardDeviation(), objectives.Count);
+                var objectives = GetObjectives(sc, 0);
+                Console.Write("{0:F4}\t{1:F4}\t{2}\t", objectives.Mean(), objectives.StandardDeviation(), objectives.Count);
                 if (sc == Optimum) Console.Write("*");
                 if (InDifferentScenarios.Contains(sc)) Console.Write("-");
                 Console.WriteLine();

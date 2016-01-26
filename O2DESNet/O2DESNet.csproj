@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>O2DESNet</RootNamespace>
     <AssemblyName>O2DESNet</AssemblyName>
@@ -32,8 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject>O2DESNet.Benchmarks.Test</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -50,14 +49,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchmarks\Benchmark.cs" />
+    <Compile Include="Benchmarks\DTLZ.cs" />
+    <Compile Include="Benchmarks\Test.cs" />
+    <Compile Include="Benchmarks\ZDT.cs" />
     <Compile Include="Distributions\Uniform.cs" />
     <Compile Include="Distributions\Exponential.cs" />
     <Compile Include="Distributions\Empirical.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="MultiObjective\ParetoOptimality.cs" />
     <Compile Include="Optimizers\ArrayKey.cs" />
     <Compile Include="Optimizers\DecisionSpace.cs" />
     <Compile Include="Optimizers\Optimizer.cs" />
     <Compile Include="Replicators\MinSelector.cs" />
+    <Compile Include="Replicators\ParetoFinder.cs" />
     <Compile Include="Replicators\Replicator.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
