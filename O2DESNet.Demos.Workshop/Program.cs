@@ -16,7 +16,7 @@ namespace O2DESNet.Demos.Workshop
                 constrStatus: (scenario, seed) => new Status(scenario, seed),
                 constrSimulator: status => new Simulator(status),
                 terminate: status => status.TimeSeries_ProductHoursInSystem.Count >= 100,
-                objective: status => status.TimeSeries_ProductHoursInSystem.Average(),
+                objectives: status => new double[] { status.TimeSeries_ProductHoursInSystem.Average() },
                 inDifferentZone: 0.1,
                 discrete: true
                 );
@@ -40,7 +40,7 @@ namespace O2DESNet.Demos.Workshop
                 constrStatus: (scenario, seed) => new Status(scenario, seed),
                 constrSimulator: status => new Simulator(status),
                 terminate: status => status.TimeSeries_ProductHoursInSystem.Count >= 50,
-                objective: status => status.TimeSeries_ProductHoursInSystem.Average());
+                objectives: status => new double[] { status.TimeSeries_ProductHoursInSystem.Average() });
 
             // initialize
             minSelector.EqualAlloc(100);
@@ -51,7 +51,7 @@ namespace O2DESNet.Demos.Workshop
                 //minSelector.EqualAlloc(90);
                 minSelector.OCBAlloc(90);
                 //Console.ReadKey();
-                foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Statistics[sc].Count);
+                foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Objectives[sc].Count);
                 Console.WriteLine();
             }
 
@@ -60,7 +60,7 @@ namespace O2DESNet.Demos.Workshop
             {
                 Console.Write("{0}\t", minSelector.PCS);
                 minSelector.OCBAlloc(90);
-                foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Statistics[sc].Count);
+                foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Objectives[sc].Count);
                 Console.WriteLine();
             }
         }

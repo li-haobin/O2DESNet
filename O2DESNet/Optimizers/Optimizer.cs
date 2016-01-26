@@ -25,7 +25,7 @@ namespace O2DESNet.Optimizers
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, double> objective,
+            Func<TStatus, double[]> objectives,
             double inDifferentZone = 0,
             bool discrete = false,
             int seed = 0)
@@ -37,7 +37,7 @@ namespace O2DESNet.Optimizers
             Scenarios = new Dictionary<ArrayKey<double>, TScenario>();
             Decisions = new Dictionary<TScenario, double[]>();
             Replicator = new MinSelector<TScenario, TStatus, TSimulator>(
-                new TScenario[] { }, constrStatus, constrSimulator, terminate, objective, inDifferentZone);
+                new TScenario[] { }, constrStatus, constrSimulator, terminate, objectives, inDifferentZone);
         }
 
         public void Iterate(int sampleSize, int budget)

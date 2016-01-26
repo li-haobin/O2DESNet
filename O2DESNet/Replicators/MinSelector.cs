@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.Distributions;
+using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,28 +16,34 @@ namespace O2DESNet.Replicators
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, double> objective,
+            Func<TStatus, double[]> objectives, // only the 1st objective is minimized
             double inDifferentZone = 0) :
-            base(scenarios, constrStatus, constrSimulator, terminate, objective)
+            base(scenarios, constrStatus, constrSimulator, terminate, objectives)
         { InDifferentZone = inDifferentZone; }
 
         private double _IDZConfidenceLevel = 0.99;
         public double InDifferentZone { get; private set; }
-        public TScenario Optimum { get { return Statistics.Aggregate((s0, s1) => s0.Value.Mean <= s1.Value.Mean ? s0 : s1).Key; } }
+        public TScenario Optimum
+        {
+            get
+            {
+                return Objectives.Aggregate((s0, s1) => s0.Value.Select(o => o[0]).Mean() <= s1.Value.Select(o => o[0]).Mean() ? s0 : s1).Key;
+            }
+        }
         public TScenario[] InDifferentScenarios {
             get
             {
                 var optimum = Optimum;
                 return Scenarios.Where(sc => sc != optimum && ProbLessThan(
-                    sc, Statistics[optimum].Mean, Statistics[optimum].Variance / Statistics[optimum].Count, InDifferentZone)
+                    sc, Objectives[optimum].Select(o => o[0]).Mean(), Objectives[optimum].Select(o => o[0]).Variance() / Objectives[optimum].Count, InDifferentZone)
                     > _IDZConfidenceLevel).ToArray();
             }
         }
 
         private double ProbLessThan(TScenario sc, double mean, double sqrStdErr, double threshold)
         {
-            var diff = Statistics[sc].Mean - mean;
-            var err = Math.Sqrt(Statistics[sc].Variance / Statistics[sc].Count + sqrStdErr);
+            var diff = Objectives[sc].Select(o => o[0]).Mean() - mean;
+            var err = Math.Sqrt(Objectives[sc].Select(o => o[0]).Variance() / Objectives[sc].Count + sqrStdErr);
             return Normal.CDF(diff, err, threshold);
         }
 
@@ -47,8 +54,8 @@ namespace O2DESNet.Replicators
             get
             {
                 var optimum = Optimum;
-                var minMean = Statistics[optimum].Mean;
-                var sqrStdErr = Statistics[optimum].Variance / Statistics[optimum].Count;
+                var minMean = Objectives[optimum].Select(o => o[0]).Mean();
+                var sqrStdErr = Objectives[optimum].Select(o => o[0]).Variance() / Objectives[optimum].Count;
                 double pcs = 1.0;
                 foreach (var sc in Scenarios.Except(InDifferentScenarios)) if (sc != optimum)
                         pcs *= 1 - ProbLessThan(sc, minMean, sqrStdErr, 0);
@@ -60,8 +67,8 @@ namespace O2DESNet.Replicators
         {
             var scenarios = Scenarios.Except(InDifferentScenarios).ToList();
             var ratios = OCBARatios(
-                scenarios.Select(sc => Statistics[sc].Mean).ToArray(),
-                scenarios.Select(sc => Statistics[sc].StandardDeviation).ToArray());
+                scenarios.Select(sc => Objectives[sc].Select(o => o[0]).Mean()).ToArray(),
+                scenarios.Select(sc => Objectives[sc].Select(o => o[0]).StandardDeviation()).ToArray());
             Alloc(budget, Enumerable.Range(0, scenarios.Count).ToDictionary(i => scenarios[i], i => ratios[i]));
         }
 
@@ -85,13 +92,13 @@ namespace O2DESNet.Replicators
 
         public override void Display()
         {
-            Scenarios.Sort((s1, s2) => Statistics[s2].Mean.CompareTo(Statistics[s1].Mean));
+            Scenarios.Sort((s1, s2) => Objectives[s2].Select(o => o[0]).Mean().CompareTo(Objectives[s1].Select(o => o[0]).Mean()));
 
             Console.WriteLine("mean\tstddev\t#reps");
             foreach (var sc in Scenarios)
             {
-                var stats = Statistics[sc];
-                Console.Write("{0:F4}\t{1:F4}\t{2}\t", stats.Mean, stats.StandardDeviation, stats.Count);
+                var objectives = Objectives[sc];
+                Console.Write("{0:F4}\t{1:F4}\t{2}\t", objectives.Select(o => o[0]).Mean(), objectives.Select(o => o[0]).StandardDeviation(), objectives.Count);
                 if (sc == Optimum) Console.Write("*");
                 if (InDifferentScenarios.Contains(sc)) Console.Write("-");
                 Console.WriteLine();
