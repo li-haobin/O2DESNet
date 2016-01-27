@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>O2DESNet.Benchmarks.Test</StartupObject>
+    <StartupObject>O2DESNet.Benchmarks.TestProgram</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -51,7 +51,7 @@
   <ItemGroup>
     <Compile Include="Benchmarks\Benchmark.cs" />
     <Compile Include="Benchmarks\DTLZ.cs" />
-    <Compile Include="Benchmarks\Test.cs" />
+    <Compile Include="Benchmarks\TestProgram.cs" />
     <Compile Include="Benchmarks\ZDT.cs" />
     <Compile Include="Distributions\Uniform.cs" />
     <Compile Include="Distributions\Exponential.cs" />
@@ -62,6 +62,8 @@
     <Compile Include="Optimizers\DecisionSpace.cs" />
     <Compile Include="Optimizers\Optimizer.cs" />
     <Compile Include="Replicators\MinSelector.cs" />
+    <Compile Include="Replicators\MOCBA.cs" />
+    <Compile Include="Replicators\OCBA.cs" />
     <Compile Include="Replicators\ParetoFinder.cs" />
     <Compile Include="Replicators\Replicator.cs" />
     <Compile Include="Simulator.cs" />

@@ -7,9 +7,9 @@ namespace O2DESNet.Benchmarks
     {
         public ZDTx(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels)
         {
-            NumObjectives = 2;
+            NObjectives = 2;
             // feasibility check
-            bool feasible = Dimension > 0 && noiseLevels.Length == NumObjectives;
+            bool feasible = Dimension > 0 && noiseLevels.Length == NObjectives;
             foreach (double x in decisions) if (x < 0 || x > 1) { feasible = false; break; }
             if (!feasible) throw new Exception("Problem setting is infeasible.");
         }
@@ -19,7 +19,7 @@ namespace O2DESNet.Benchmarks
     public class ZDT1 : ZDTx
     {
         public ZDT1(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels) { }
-        internal override double[] CalObjectives()
+        public override double[] CalObjectives()
         {
             double f1, f2, g, h;
             f1 = Decisions.First();
@@ -33,7 +33,7 @@ namespace O2DESNet.Benchmarks
     public class ZDT2 : ZDTx
     {
         public ZDT2(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels) { }
-        internal override double[] CalObjectives()
+        public override double[] CalObjectives()
         {
             double f1, f2, g, h;
             f1 = Decisions.First();
@@ -47,7 +47,7 @@ namespace O2DESNet.Benchmarks
     public class ZDT3 : ZDTx
     {
         public ZDT3(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels) { }
-        internal override double[] CalObjectives()
+        public override double[] CalObjectives()
         {
             double f1, f2, g, h;
             f1 = Decisions.First();
@@ -62,7 +62,7 @@ namespace O2DESNet.Benchmarks
     public class ZDT4 : ZDTx
     {
         public ZDT4(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels) { }
-        internal override double[] CalObjectives()
+        public override double[] CalObjectives()
         {
             double f1, f2, g, h;
             f1 = Decisions.First();
@@ -81,7 +81,7 @@ namespace O2DESNet.Benchmarks
     public class ZDT6 : ZDTx
     {
         public ZDT6(double[] decisions, double[] noiseLevels) : base(decisions, noiseLevels) { }
-        internal override double[] CalObjectives()
+        public override double[] CalObjectives()
         {
             double x1, f1, f2, g, h;
             x1 = Decisions.First();

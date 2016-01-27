@@ -16,9 +16,10 @@ namespace O2DESNet.Replicators
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, double[]> objectives, // only the 1st objective is minimized
-            double inDifferentZone = 0) :
-            base(scenarios, constrStatus, constrSimulator, terminate, objectives)
+            Func<TStatus, double> objective,
+            double inDifferentZone = 0,
+            bool inParallel = true) :
+            base(scenarios, constrStatus, constrSimulator, terminate, status => new double[] { objective(status) }, inParallel)
         { InDifferentZone = inDifferentZone; }
 
         private double _IDZConfidenceLevel = 0.99;
@@ -62,34 +63,7 @@ namespace O2DESNet.Replicators
                 return pcs;
             }
         }
-
-        public void OCBAlloc(int budget)
-        {
-            var scenarios = Scenarios.Except(InDifferentScenarios).ToList();
-            var ratios = OCBARatios(
-                scenarios.Select(sc => GetObjectives(sc, 0).Mean()).ToArray(),
-                scenarios.Select(sc => GetObjectives(sc, 0).StandardDeviation()).ToArray());
-            Alloc(budget, Enumerable.Range(0, scenarios.Count).ToDictionary(i => scenarios[i], i => ratios[i]));
-        }
-
-        /// <summary>
-        /// Get budget allocation ratios by to OCBA rule, given mean and sigma values for all conigurations
-        /// </summary>
-        private static double[] OCBARatios(double[] means, double[] sigmas)
-        {
-            var indices = Enumerable.Range(0, means.Count()).ToList();
-            var min = means.Min();
-            var minIndices = indices.Where(i => means[i] == min).ToArray();
-            if (minIndices.Count() < indices.Count())
-            {
-                var ratios = indices.Select(i => Math.Pow(sigmas[i] / (means[i] - min), 2)).ToArray();
-                foreach (var i in minIndices) ratios[i] = sigmas[i] * Math.Sqrt(indices.Except(minIndices).Sum(j => Math.Pow(ratios[j] / sigmas[j], 2)));
-                var sum = ratios.Sum();
-                return ratios.Select(r => r / sum).ToArray();
-            }
-            return Enumerable.Repeat(1.0 / indices.Count, indices.Count).ToArray();
-        }
-
+        
         public override void Display()
         {
             Scenarios.Sort((s1, s2) => GetObjectives(s2, 0).Mean().CompareTo(GetObjectives(s1, 0).Mean()));

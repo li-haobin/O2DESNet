@@ -6,7 +6,7 @@ namespace O2DESNet.Benchmarks
     public abstract class Benchmark : Scenario
     {
         public int Dimension { get; protected set; }
-        public int NumObjectives { get; protected set; }
+        public int NObjectives { get; protected set; }
         public double[] Decisions { get; private set; }
         /// <summary>
         /// standard deviation of noise term for all objectives
@@ -27,11 +27,11 @@ namespace O2DESNet.Benchmarks
         /// </summary>
         internal virtual double[] GenNoises(Random rs)
         {
-            return Enumerable.Range(0, NumObjectives).Select(l => MathNet.Numerics.Distributions.Normal.Sample(rs, 0, NoiseLevels[l])).ToArray();
+            return Enumerable.Range(0, NObjectives).Select(l => MathNet.Numerics.Distributions.Normal.Sample(rs, 0, NoiseLevels[l])).ToArray();
         }
         internal virtual double[][] CalGradients()
         {
-            return Enumerable.Range(0, NumObjectives).Select(l => Enumerable.Range(0, Dimension).Select(i => 0.0).ToArray()).ToArray();
+            return Enumerable.Range(0, NObjectives).Select(l => Enumerable.Range(0, Dimension).Select(i => 0.0).ToArray()).ToArray();
         }
     }
 

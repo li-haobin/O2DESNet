@@ -16,7 +16,7 @@ namespace O2DESNet.Demos.Workshop
                 constrStatus: (scenario, seed) => new Status(scenario, seed),
                 constrSimulator: status => new Simulator(status),
                 terminate: status => status.TimeSeries_ProductHoursInSystem.Count >= 100,
-                objectives: status => new double[] { status.TimeSeries_ProductHoursInSystem.Average() },
+                objective: status => status.TimeSeries_ProductHoursInSystem.Average(),
                 inDifferentZone: 0.1,
                 discrete: true
                 );
@@ -31,7 +31,9 @@ namespace O2DESNet.Demos.Workshop
 
         static void Test_Replicator(string[] args)
         {
-            var minSelector = new MinSelector<Scenario, Status, Simulator>(
+            var minSelector =
+                new OCBA<Scenario, Status, Simulator>(
+                //new MinSelector<Scenario, Status, Simulator>(
                 scenarios: new Scenario[] {
                     Scenario.GetExample_Xu2015(7, 3, 7, 9, 6),
                     Scenario.GetExample_Xu2015(3, 6, 5, 5, 7),
@@ -40,16 +42,16 @@ namespace O2DESNet.Demos.Workshop
                 constrStatus: (scenario, seed) => new Status(scenario, seed),
                 constrSimulator: status => new Simulator(status),
                 terminate: status => status.TimeSeries_ProductHoursInSystem.Count >= 50,
-                objectives: status => new double[] { status.TimeSeries_ProductHoursInSystem.Average() });
+                objective: status => status.TimeSeries_ProductHoursInSystem.Average());
 
             // initialize
-            minSelector.EqualAlloc(100);
+            minSelector.Alloc(100);
 
             for (int i = 0; i < 50; i++)
             {
                 Console.Write("{0}\t", minSelector.PCS);
                 //minSelector.EqualAlloc(90);
-                minSelector.OCBAlloc(90);
+                minSelector.Alloc(90);
                 //Console.ReadKey();
                 foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Objectives[sc].Count);
                 Console.WriteLine();
@@ -59,7 +61,7 @@ namespace O2DESNet.Demos.Workshop
             for (int i = 0; i < 50; i++)
             {
                 Console.Write("{0}\t", minSelector.PCS);
-                minSelector.OCBAlloc(90);
+                minSelector.Alloc(90);
                 foreach (var sc in minSelector.Scenarios) Console.Write("{0},", minSelector.Objectives[sc].Count);
                 Console.WriteLine();
             }

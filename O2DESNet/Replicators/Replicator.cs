@@ -17,13 +17,15 @@ namespace O2DESNet.Replicators
         public long TotalBudget { get { return Objectives.Sum(i => i.Value.Count); } }
         protected Action<TScenario, int> Evaluate { get; private set; }
         internal int InitBudget { get; private set; }
+        public bool InParallel { get; set; }
 
         public Replicator(
             IEnumerable<TScenario> scenarios, 
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, double[]> objectives)
+            Func<TStatus, double[]> objectives,
+            bool inParallel = true)
         {
             Scenarios = new List<TScenario>();
             Objectives = new Dictionary<TScenario, List<double[]>>();
@@ -33,6 +35,7 @@ namespace O2DESNet.Replicators
                 while (!terminate(simulator.Status)) simulator.Run(1);
                 Objectives[scenario].Add(objectives(simulator.Status));
             };
+            InParallel = inParallel;
             InitBudget = 3;
             AddRange(scenarios);
         }
@@ -75,14 +78,14 @@ namespace O2DESNet.Replicators
         {
             while (asgmnt.Sum(i => i.Value) > 0)
             {
-                var counts = asgmnt.Keys.ToDictionary(sc => sc, sc => (int)Objectives[sc].Count);
-                Parallel.ForEach(asgmnt.Keys, sc => { Parallel.For(0, asgmnt[sc], i => { Evaluate(sc, counts[sc] + i); }); });
-                //foreach (var sc in asgmnt.Keys) for (int i = 0; i < asgmnt[sc]; i++) Evaluate(sc, counts[sc] + i); // non-parallelized
-                foreach (var sc in asgmnt.Keys.ToArray()) asgmnt[sc] -= (int)Objectives[sc].Count - counts[sc];
-            }            
+                var counts = asgmnt.Keys.ToDictionary(sc => sc, sc => Objectives[sc].Count);
+                if (InParallel) Parallel.ForEach(asgmnt.Keys, sc => { Parallel.For(0, asgmnt[sc], i => { Evaluate(sc, counts[sc] + i); }); });
+                else foreach (var sc in asgmnt.Keys) for (int i = 0; i < asgmnt[sc]; i++) Evaluate(sc, counts[sc] + i); // non-parallelized
+                foreach (var sc in asgmnt.Keys.ToArray()) asgmnt[sc] -= Objectives[sc].Count - counts[sc];
+            }
         }
 
-        public void EqualAlloc(int budget) { Alloc(budget, Scenarios.ToDictionary(sc => sc, sc => 1.0)); }
+        public virtual void Alloc(int budget) { Alloc(budget, Scenarios.ToDictionary(sc => sc, sc => 1.0)); }
 
         public virtual void Display()
         {
