@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Explorers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,12 @@ namespace O2DESNet.Benchmarks
             bool feasible = Dimension > 0 && NObjectives > 0;
             foreach (double x in decisions) if (x < 0 || x > 1) { feasible = false; break; }
             if (!feasible) throw new Exception("Problem setting is infeasible.");
+        }
+        public static DecisionSpace DecisionSpace(int dim)
+        {
+            return new DecisionSpace(
+                Enumerable.Range(0, dim).Select(i => 0.0).ToArray(),
+                Enumerable.Range(0, dim).Select(i => 1.0).ToArray());
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Explorers;
+using System;
 using System.Linq;
 
 namespace O2DESNet.Benchmarks
@@ -43,7 +44,7 @@ namespace O2DESNet.Benchmarks
         public int RunLength { get; internal set; }
         public Status(Benchmark scenario, int seed) : base(scenario, seed)
         {
-            Seed = new Optimizers.ArrayKey<double>(Scenario.Decisions).GetHashCode() + seed; // prevent CRN (common random number)
+            Seed = new ArrayKey<double>(Scenario.Decisions).GetHashCode() + seed; // prevent CRN (common random number)
             var objs = scenario.CalObjectives();
             var noises = scenario.GenNoises(DefaultRS);
             Objectives = Enumerable.Range(0, objs.Length).Select(i => objs[i] + noises[i]).ToArray();

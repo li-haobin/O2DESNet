@@ -1,4 +1,4 @@
-﻿using O2DESNet.Optimizers;
+﻿using O2DESNet.Explorers;
 using O2DESNet.Replicators;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace O2DESNet.Demos.Workshop
     {
         static void Main(string[] args)
         {
-            var optimizer = new Optimizer<Scenario, Status, Simulator>(
+            var randomSearch = new RandomSearch<Scenario, Status, Simulator>(
                 decisionSpace: new DecisionSpace(new double[] { 2, 2, 2, 2, 2 }, new double[] { 10, 10, 10, 10, 10 }),
                 constrScenario: decision => Scenario.GetExample_Xu2015(decision.Select(d => (int)d).ToArray()),
                 constrStatus: (scenario, seed) => new Status(scenario, seed),
@@ -23,8 +23,8 @@ namespace O2DESNet.Demos.Workshop
             while (true)
             {
                 Console.Clear();
-                optimizer.Iterate(10, 100);
-                optimizer.Replicator.Display();
+                randomSearch.Iterate(10, 100);
+                randomSearch.Replicator.Display();
                 Console.ReadKey();
             }
         }

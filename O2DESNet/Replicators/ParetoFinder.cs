@@ -24,15 +24,16 @@ namespace O2DESNet.Replicators
             base(scenarios, constrStatus, constrSimulator, terminate, objectives, inParallel)
         { }
 
-        public TScenario[] Optima
+        public TScenario[] ParetoSet
         {
             get
             {
+                if (Scenarios.Count == 0) return new TScenario[] { };
                 var nObjs = Objectives.Values.First().First().Length;
                 return ParetoOptimality.GetParetoSet(Scenarios.ToArray(),
                     (s1, s2) => ParetoOptimality.Dominate(
-                        Enumerable.Range(0, nObjs).Select(l => GetObjectives(s1, l).Mean()).ToArray(),
-                        Enumerable.Range(0, nObjs).Select(l => GetObjectives(s2, l).Mean()).ToArray()));
+                        Enumerable.Range(0, nObjs).Select(l => GetObjEvaluations(s1, l).Mean()).ToArray(),
+                        Enumerable.Range(0, nObjs).Select(l => GetObjEvaluations(s2, l).Mean()).ToArray()));
             }
         }        
     }

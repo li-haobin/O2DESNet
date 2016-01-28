@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace O2DESNet.Optimizers
+namespace O2DESNet
 {
     internal class ArrayKey<T>
     {

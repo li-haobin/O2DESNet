@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Explorers;
+using System;
 using System.Linq;
 
 namespace O2DESNet.Benchmarks
@@ -14,6 +15,12 @@ namespace O2DESNet.Benchmarks
             if (!feasible) throw new Exception("Problem setting is infeasible.");
         }
         protected int m { get { return Dimension; } }
+        public static DecisionSpace DecisionSpace(int dim)
+        {
+            return new DecisionSpace(
+                Enumerable.Range(0, dim).Select(i => 0.0).ToArray(),
+                Enumerable.Range(0, dim).Select(i => 1.0).ToArray());
+        }
     }
 
     public class ZDT1 : ZDTx

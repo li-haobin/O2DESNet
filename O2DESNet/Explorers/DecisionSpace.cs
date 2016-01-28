@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace O2DESNet.Optimizers
+namespace O2DESNet.Explorers
 {
     public class DecisionSpace
     {
         public int Dimension { get; private set; }
+        /// <summary>
+        /// Indices of all coordinates
+        /// </summary>
+        internal int[] Coords { get; private set; }
         public double[] Lowerbounds { get; private set; }
         public double[] Upperbounds { get; private set; }
         public List<List<double>> Constraints { get; private set; }
@@ -18,6 +22,7 @@ namespace O2DESNet.Optimizers
             Lowerbounds = lbs.ToArray();
             Upperbounds = ubs.ToArray();
             Constraints = new List<List<double>>();
+            Coords = Enumerable.Range(0, Dimension).ToArray();
         }
 
         public void AddCstrLe(IEnumerable<double> coeffs, double bound)

@@ -13,7 +13,18 @@ namespace O2DESNet.Replicators
     {
         public List<TScenario> Scenarios { get; private set; }
         public Dictionary<TScenario, List<double[]>> Objectives { get; private set; }
-        public List<double> GetObjectives(TScenario scenario, int objIndex) { return Objectives[scenario].Select(o => o[objIndex]).ToList(); }
+        /// <summary>
+        /// Get list of evaluation results for given scenario and objective index
+        /// </summary>
+        public List<double> GetObjEvaluations(TScenario scenario, int objIndex) { return Objectives[scenario].Select(o => o[objIndex]).ToList(); }
+        /// <summary>
+        /// Get mean values for all objectives of given scenario
+        /// </summary>
+        public double[] GetObjMeans(TScenario scenario)
+        {
+            var nObjs = Objectives[scenario].First().Length;
+            return Enumerable.Range(0, nObjs).Select(i => Objectives[scenario].Select(o => o[i]).Mean()).ToArray();
+        }
         public long TotalBudget { get { return Objectives.Sum(i => i.Value.Count); } }
         protected Action<TScenario, int> Evaluate { get; private set; }
         internal int InitBudget { get; private set; }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Benchmarks
 {
-    class TestProgram
+    class TestMOCBA
     {
         static void Main(string[] args)
         {
@@ -69,7 +69,7 @@ namespace O2DESNet.Benchmarks
         {
             Console.Clear();
             foreach (var s in paretoFinder.Scenarios) Console.WriteLine("{0},{1} -> {2},{3}",
-                s.CalObjectives()[0], s.CalObjectives()[1], paretoFinder.GetObjectives(s, 0).Mean(), paretoFinder.GetObjectives(s, 1).Mean());
+                s.CalObjectives()[0], s.CalObjectives()[1], paretoFinder.GetObjEvaluations(s, 0).Mean(), paretoFinder.GetObjEvaluations(s, 1).Mean());
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace O2DESNet.Benchmarks
             var nObjs = paretoFinder.Scenarios.First().NObjectives;
             var trueSet = new HashSet<Benchmark>(ParetoOptimality.GetParetoSet(paretoFinder.Scenarios.ToArray(),
                 (s1, s2) => ParetoOptimality.Dominate(s1.CalObjectives(), s2.CalObjectives())));
-            var observed = new HashSet<Benchmark>(paretoFinder.Optima);
+            var observed = new HashSet<Benchmark>(paretoFinder.ParetoSet);
             int nTypeI = 0, nTypeII = 0;
             foreach (var s in trueSet) if (!observed.Contains(s)) nTypeI++; // false positive (reject wrongly)
             foreach (var s in observed) if (!trueSet.Contains(s)) nTypeII++; // false negative (failed to reject)

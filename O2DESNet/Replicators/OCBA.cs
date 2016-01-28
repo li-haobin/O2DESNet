@@ -27,8 +27,8 @@ namespace O2DESNet.Replicators
         {
             var scenarios = Scenarios.Except(InDifferentScenarios).ToList();
             var ratios = OCBARatios(
-                scenarios.Select(sc => GetObjectives(sc, 0).Mean()).ToArray(),
-                scenarios.Select(sc => GetObjectives(sc, 0).StandardDeviation()).ToArray());
+                scenarios.Select(sc => GetObjEvaluations(sc, 0).Mean()).ToArray(),
+                scenarios.Select(sc => GetObjEvaluations(sc, 0).StandardDeviation()).ToArray());
             Alloc(budget, Enumerable.Range(0, scenarios.Count).ToDictionary(i => scenarios[i], i => ratios[i]));
         }
 

@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>O2DESNet.Benchmarks.TestProgram</StartupObject>
+    <StartupObject>O2DESNet.Benchmarks.TestMOCOMPASS</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.7.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -51,16 +51,21 @@
   <ItemGroup>
     <Compile Include="Benchmarks\Benchmark.cs" />
     <Compile Include="Benchmarks\DTLZ.cs" />
-    <Compile Include="Benchmarks\TestProgram.cs" />
+    <Compile Include="Benchmarks\TestMOCBA.cs" />
+    <Compile Include="Benchmarks\TestMOCOMPASS.cs" />
     <Compile Include="Benchmarks\ZDT.cs" />
+    <Compile Include="Distributions\PolarSampling.cs" />
     <Compile Include="Distributions\Uniform.cs" />
     <Compile Include="Distributions\Exponential.cs" />
     <Compile Include="Distributions\Empirical.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="Explorers\MoCompass.cs" />
+    <Compile Include="Common\Vector.cs" />
+    <Compile Include="Explorers\RandomSearch.cs" />
     <Compile Include="MultiObjective\ParetoOptimality.cs" />
-    <Compile Include="Optimizers\ArrayKey.cs" />
-    <Compile Include="Optimizers\DecisionSpace.cs" />
-    <Compile Include="Optimizers\Optimizer.cs" />
+    <Compile Include="Common\ArrayKey.cs" />
+    <Compile Include="Explorers\DecisionSpace.cs" />
+    <Compile Include="Explorers\Explorer.cs" />
     <Compile Include="Replicators\MinSelector.cs" />
     <Compile Include="Replicators\MOCBA.cs" />
     <Compile Include="Replicators\OCBA.cs" />

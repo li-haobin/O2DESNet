@@ -36,7 +36,7 @@ namespace O2DESNet.Replicators
                     {
                         var j = GetJ(h);
                         var l = GetL(h, j);
-                        budgetAllocation.Add(h, Math.Pow(GetObjectives(h, l).StandardDeviation() / Delta(h, j, l), 2));
+                        budgetAllocation.Add(h, Math.Pow(GetObjEvaluations(h, l).StandardDeviation() / Delta(h, j, l), 2));
                     }
                     foreach (var d in SB)
                     {
@@ -44,7 +44,7 @@ namespace O2DESNet.Replicators
                         foreach (var h in Theta_d(d))
                         {
                             var l = GetL(h, d);
-                            sum += Math.Pow(budgetAllocation[h] * GetObjectives(d, l).StandardDeviation() / GetObjectives(h, l).StandardDeviation(), 2);
+                            sum += Math.Pow(budgetAllocation[h] * GetObjEvaluations(d, l).StandardDeviation() / GetObjEvaluations(h, l).StandardDeviation(), 2);
                         }
                         budgetAllocation.Add(d, Math.Sqrt(sum));
                     }
@@ -57,14 +57,14 @@ namespace O2DESNet.Replicators
         //Eq6.40
         private double Delta(TScenario i, TScenario j, int l)
         {
-            return GetObjectives(j, l).Mean() - GetObjectives(i, l).Mean();
+            return GetObjEvaluations(j, l).Mean() - GetObjEvaluations(i, l).Mean();
         }
 
         private double GetInnerValue(TScenario i, TScenario j, int l)
         {
             var delta_ijl = Delta(i, j, l);
-            var sigma_il = GetObjectives(i, l).StandardDeviation();
-            var sigma_jl = GetObjectives(j, l).StandardDeviation();
+            var sigma_il = GetObjEvaluations(i, l).StandardDeviation();
+            var sigma_jl = GetObjEvaluations(j, l).StandardDeviation();
             return delta_ijl * Math.Abs(delta_ijl) / (sigma_il * sigma_il + sigma_jl * sigma_jl);
         }
 
