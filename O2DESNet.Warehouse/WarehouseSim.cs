@@ -153,7 +153,8 @@ namespace O2DESNet.Warehouse
                 Console.WriteLine("Ave / Max Number of Items per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageNumItemsSorted(), sim.Status.MaxNumItemsSorted);
                 Console.WriteLine("Ave / Max Number of Totes per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
                 Console.WriteLine("Number of Order Batches: {0}", OrderBatch.GetTotalNumBatches());
-                Console.WriteLine("Number of Sorting Stations Utilised: {0}", sim.Status.GetNumSortingStations());
+                Console.WriteLine("Sorting Buffer Size: {0}", sim.Status.GetNumSortingStations());
+                Console.WriteLine("Max Active Sorting Stations: {0}", sim.Status.MaxActiveSorters);
                 Console.WriteLine("");
             }
 
@@ -194,5 +195,15 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("-------------------------------------");
         }
 
+        public void OutputRacks()
+        {
+            using (StreamWriter sw = new StreamWriter(@"Layout\" + wh.Name + "_PhysicalLayout.csv"))
+            {
+                foreach (var rack in wh.Racks.Keys)
+                {
+                    sw.WriteLine(rack);
+                }
+            }
+        }
     }
 }

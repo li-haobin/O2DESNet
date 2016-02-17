@@ -27,6 +27,8 @@ namespace O2DESNet.Warehouse.Dynamics
         public List<int> OrderBatchesTotesCount { get; set; }
         public int NumItemsSorted { get; set; }
         public int MaxNumItemsSorted { get; set; }
+        public int NumActiveSorters { get; private set; }
+        public int MaxActiveSorters { get; private set; }
 
         internal Status(Simulator simulation)
         {
@@ -51,6 +53,8 @@ namespace O2DESNet.Warehouse.Dynamics
 
             NumItemsSorted = 0;
             MaxNumItemsSorted = 0;
+            NumActiveSorters = 0;
+            MaxActiveSorters = 0;
 
         }
 
@@ -86,6 +90,20 @@ namespace O2DESNet.Warehouse.Dynamics
             AccrueAreaPickerTime();
 
             NumActivePickers--;
+        }
+
+        public void IncrementActiveSorter()
+        {
+
+            NumActiveSorters++;
+            if (NumActiveSorters > MaxActiveSorters) MaxActiveSorters = NumActiveSorters;
+        }
+
+        public void DecrementActiveSorter()
+        {
+
+
+            NumActiveSorters--;
         }
 
         public void CaptureCompletedPickList(Picker picker)

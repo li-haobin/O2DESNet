@@ -24,7 +24,21 @@ namespace O2DESNet.Warehouse.Events
             _sim.Status.NumItemsSorted += numItems;
             if (numItems > _sim.Status.MaxNumItemsSorted) _sim.Status.MaxNumItemsSorted = numItems;
 
-            sortingStation.CompleteSorting();
+            // Shift to during Scheduling for "Virtual" SortingStation
+            // sortingStation.CompleteSorting();
+
+            // Check ReadyToQueue
+            if(_sim.Scenario.Consolidator.ReadyToSort.Count > 0)
+            {
+                var toSortNext = _sim.Scenario.Consolidator.ReadyToSort.Dequeue();
+                toSortNext.CompleteSorting();
+                _sim.ScheduleEvent(new CompleteSorting(_sim, toSortNext), TimeSpan.FromMinutes(toSortNext.GetSortingTime()));
+            }
+            else
+            {
+                _sim.Scenario.Consolidator.NumSortersAvailable++;
+                _sim.Status.DecrementActiveSorter();
+            }
         }
 
         public override void Backtrack()

@@ -16,8 +16,12 @@ namespace O2DESNet.Warehouse.Dynamics
         public string filename { get; private set; }
         public double sortingRate { get; private set; }
 
-        public List<OrderBatch> BatchesAwaitingConsolidation { get; private set; }
-        public List<PickList> PicklistsAwaitingConsolidation { get; private set; }
+        // TODO: Read this value
+        public int NumSortersAvailable { get; set; }
+        public Queue<SortingStation> ReadyToSort { get; set; }
+
+        public List<OrderBatch> BatchesToProcess { get; private set; } // What is this for?
+        public List<PickList> PickListsArrived { get; private set; } // What is this for?
         public List<SortingStation> AllSortingStations { get; set; }
 
 
@@ -26,13 +30,14 @@ namespace O2DESNet.Warehouse.Dynamics
         {
             Scenario = scenario;
             filename = @"Layout\" + scenario.Name + "_Consolidator.csv";
-            PicklistsAwaitingConsolidation = new List<PickList>();
+            PickListsArrived = new List<PickList>();
             AllSortingStations = new List<SortingStation>();
+            ReadyToSort = new Queue<SortingStation>();
 
-            ReadSortingRate();
+            ReadConsolidatorParameters();
         }
 
-        private void ReadSortingRate()
+        private void ReadConsolidatorParameters()
         {
             using (StreamReader sr = new StreamReader(filename))
             {
@@ -41,21 +46,22 @@ namespace O2DESNet.Warehouse.Dynamics
                 var line = sr.ReadLine();
                 var data = line.Split(',');
                 sortingRate = double.Parse(data[1]);
+                NumSortersAvailable = int.Parse(data[2]);
             }
         }
 
         public void ProcessCompletedPicklist(Simulator sim, PickList picklist)
         {
-            if (BatchesAwaitingConsolidation == null)
-                BatchesAwaitingConsolidation = new List<OrderBatch>(Scenario.OrderBatches);
+            if (BatchesToProcess == null)
+                BatchesToProcess = new List<OrderBatch>(Scenario.OrderBatches);
 
             var orderBatch = GetOrderBatch(picklist);
             if (orderBatch != null) // To consolidate
             {
-                PicklistsAwaitingConsolidation.Add(picklist);
+                PickListsArrived.Add(picklist);
                 var sortingStation = GetSortingStationFor(orderBatch);
 
-                // No sorting station for this orderBatch
+                // No sorting station assigned for this orderBatch
                 if (sortingStation == null)
                 {
                     sortingStation = GetOrCreateAvailableSortingStation();
@@ -66,8 +72,18 @@ namespace O2DESNet.Warehouse.Dynamics
 
                 if (sortingStation.IsReadyToSort())
                 {
-                    // Schedule Sorting-complete event...
-                    sim.ScheduleEvent(new CompleteSorting(sim, sortingStation), TimeSpan.FromMinutes(sortingStation.GetSortingTime()));
+                    if (NumSortersAvailable > 0)
+                    {
+                        NumSortersAvailable--;
+                        sim.Status.IncrementActiveSorter();
+
+                        sortingStation.CompleteSorting(); // "Virtually" cleared
+                        sim.ScheduleEvent(new CompleteSorting(sim, sortingStation), TimeSpan.FromMinutes(sortingStation.GetSortingTime()));
+                    }
+                    else
+                    {
+                        ReadyToSort.Enqueue(sortingStation);
+                    }
                 }
             }
         }

@@ -32,7 +32,9 @@ namespace O2DESNet.Warehouse
                 whsim = new WarehouseSim("ZA", strategy);
                 whsim.Run(24);
                 whsim.PrintStatistics();
+                whsim.OutputRacks();
                 whsim = null;
+                //break;
             }
         }
 

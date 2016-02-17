@@ -7,6 +7,9 @@ using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse.Dynamics
 {
+    /// <summary>
+    /// This is essentially a "Virtual" sorting station or buffer
+    /// </summary>
     public class SortingStation
     {
         private static int _count = 0;
