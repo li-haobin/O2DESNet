@@ -12,8 +12,12 @@ namespace O2DESNet.Warehouse.Dynamics
     internal class Status
     {
         private Simulator _sim;
+        /// <summary>
+        /// Simulator Start Time
+        /// </summary>
+        public DateTime StartTime { get; private set; }
 
-        // Possible to discriminate by PickerType
+        #region Order Picking and Picklist
         public Dictionary<PickerType, int> TotalPickJobsCompleted { get; private set; }
         public Dictionary<PickerType, int> TotalPickListsCompleted { get; private set; }
         public Dictionary<PickerType, TimeSpan> TotalPickingTime { get; private set; }
@@ -21,14 +25,16 @@ namespace O2DESNet.Warehouse.Dynamics
         public int NumActivePickers { get; private set; }
         public int MaxActivePickers { get; private set; }
         public TimeSpan AreaPickerTime { get; private set; }
-        public DateTime JumpTime { get; private set; }
-        public DateTime StartTime { get; private set; }
+        public DateTime NumPickersJumpTime { get; private set; }
+        #endregion
 
+        #region Consolidator
         public List<int> OrderBatchesTotesCount { get; set; }
         public int NumItemsSorted { get; set; }
         public int MaxNumItemsSorted { get; set; }
         public int NumActiveSorters { get; private set; }
         public int MaxActiveSorters { get; private set; }
+        #endregion
 
         internal Status(Simulator simulation)
         {
@@ -41,7 +47,7 @@ namespace O2DESNet.Warehouse.Dynamics
             NumActivePickers = 0;
             MaxActivePickers = 0;
             AreaPickerTime = TimeSpan.Zero;
-            JumpTime = _sim.ClockTime;
+            NumPickersJumpTime = _sim.ClockTime;
             StartTime = _sim.ClockTime;
 
             foreach (var type in _sim.Scenario.NumPickers)
@@ -60,7 +66,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public double GetAverageNumActivePickers()
         {
-            var duration = JumpTime - StartTime;
+            var duration = NumPickersJumpTime - StartTime;
 
             return AreaPickerTime.Ticks / duration.Ticks;
         }
@@ -73,8 +79,8 @@ namespace O2DESNet.Warehouse.Dynamics
 
         private void AccrueAreaPickerTime()
         {
-            AreaPickerTime += MultiplyTimeSpan(_sim.ClockTime - JumpTime, NumActivePickers);
-            JumpTime = _sim.ClockTime;
+            AreaPickerTime += MultiplyTimeSpan(_sim.ClockTime - NumPickersJumpTime, NumActivePickers);
+            NumPickersJumpTime = _sim.ClockTime;
         }
 
         public void IncrementActivePicker()
@@ -94,15 +100,12 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public void IncrementActiveSorter()
         {
-
             NumActiveSorters++;
             if (NumActiveSorters > MaxActiveSorters) MaxActiveSorters = NumActiveSorters;
         }
 
         public void DecrementActiveSorter()
         {
-
-
             NumActiveSorters--;
         }
 

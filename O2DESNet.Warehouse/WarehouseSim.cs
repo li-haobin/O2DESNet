@@ -152,7 +152,7 @@ namespace O2DESNet.Warehouse
                 Console.WriteLine("");
                 Console.WriteLine("Ave / Max Number of Items per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageNumItemsSorted(), sim.Status.MaxNumItemsSorted);
                 Console.WriteLine("Ave / Max Number of Totes per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
-                Console.WriteLine("Number of Order Batches: {0}", OrderBatch.GetTotalNumBatches());
+                Console.WriteLine("Number of Order Batches Created: {0}", OrderBatch.GetTotalNumBatches());
                 Console.WriteLine("Sorting Buffer Size: {0}", sim.Status.GetNumSortingStations());
                 Console.WriteLine("Max Active Sorting Stations: {0}", sim.Status.MaxActiveSorters);
                 Console.WriteLine("");
@@ -187,7 +187,7 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
             Console.WriteLine("Number of orders: {0}", generator.NumOrders[type]);
             Console.WriteLine("Number of carts: {0}", sim.Scenario.NumPickers[type]);
-            Console.WriteLine("Total Picklists Completed: {0}", totalPickList);
+            Console.WriteLine("Total Picking Trips Completed: {0}", totalPickList);
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);
             Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averateUtil, averateUtil / type.Capacity);
             Console.WriteLine("Average Items per Cart: {0:0.00}", 1.0 * totalPickJob / totalPickList);

@@ -16,9 +16,8 @@ namespace O2DESNet.Warehouse.Dynamics
         public string filename { get; private set; }
         public double sortingRate { get; private set; }
 
-        // TODO: Read this value
         public int NumSortersAvailable { get; set; }
-        public Queue<SortingStation> ReadyToSort { get; set; }
+        public Queue<SortingStation> ReadyToSort { get; set; } // All totes in batch picked but no available sorter
 
         public List<OrderBatch> BatchesToProcess { get; private set; } // What is this for?
         public List<PickList> PickListsArrived { get; private set; } // What is this for?
@@ -74,11 +73,7 @@ namespace O2DESNet.Warehouse.Dynamics
                 {
                     if (NumSortersAvailable > 0)
                     {
-                        NumSortersAvailable--;
-                        sim.Status.IncrementActiveSorter();
-
-                        sortingStation.CompleteSorting(); // "Virtually" cleared
-                        sim.ScheduleEvent(new CompleteSorting(sim, sortingStation), TimeSpan.FromMinutes(sortingStation.GetSortingTime()));
+                        sim.ScheduleEvent(new BeginSorting(sim, sortingStation), sim.ClockTime); // go to sort now
                     }
                     else
                     {

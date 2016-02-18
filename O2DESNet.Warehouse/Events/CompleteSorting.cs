@@ -20,25 +20,16 @@ namespace O2DESNet.Warehouse.Events
 
         public override void Invoke()
         {
-            int numItems = sortingStation.numItems;
-            _sim.Status.NumItemsSorted += numItems;
-            if (numItems > _sim.Status.MaxNumItemsSorted) _sim.Status.MaxNumItemsSorted = numItems;
-
-            // Shift to during Scheduling for "Virtual" SortingStation
-            // sortingStation.CompleteSorting();
+            _sim.Scenario.Consolidator.NumSortersAvailable++;
+            _sim.Status.DecrementActiveSorter();
 
             // Check ReadyToQueue
-            if(_sim.Scenario.Consolidator.ReadyToSort.Count > 0)
+            if (_sim.Scenario.Consolidator.ReadyToSort.Count > 0)
             {
                 var toSortNext = _sim.Scenario.Consolidator.ReadyToSort.Dequeue();
-                toSortNext.CompleteSorting();
-                _sim.ScheduleEvent(new CompleteSorting(_sim, toSortNext), TimeSpan.FromMinutes(toSortNext.GetSortingTime()));
+                _sim.ScheduleEvent(new BeginSorting(_sim, toSortNext), _sim.ClockTime); // sort next one now
             }
-            else
-            {
-                _sim.Scenario.Consolidator.NumSortersAvailable++;
-                _sim.Status.DecrementActiveSorter();
-            }
+
         }
 
         public override void Backtrack()

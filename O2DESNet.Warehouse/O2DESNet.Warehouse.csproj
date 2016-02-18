@@ -116,6 +116,7 @@
     <Compile Include="Dynamics\PickList.cs" />
     <Compile Include="Dynamics\SortingStation.cs" />
     <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Events\BeginSorting.cs" />
     <Compile Include="Events\CompleteSorting.cs" />
     <Compile Include="Events\PickItem.cs" />
     <Compile Include="Events\Event.cs" />

@@ -44,7 +44,7 @@ namespace O2DESNet.Warehouse.Dynamics
             isAvailable = false;
         }
 
-        public void CompleteSorting()
+        public void ClearSortingStation()
         {
             orderBatch = null;
             picklists.Clear();
