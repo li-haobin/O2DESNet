@@ -1,6 +1,8 @@
 ﻿using O2DESNet.Warehouse.Statics;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace O2DESNet.Warehouse
 {
@@ -25,17 +27,27 @@ namespace O2DESNet.Warehouse
         private static void ExperimentRunAllStrategies()
         {
             WarehouseSim whsim = null;
+            var AllStrategies = Enum.GetValues(typeof(PicklistGenerator.Strategy));
 
-            foreach (PicklistGenerator.Strategy strategy in Enum.GetValues(typeof(PicklistGenerator.Strategy)))
+            int NumRuns = IOHelper.GetNumRuns("ZA");
+
+            for (int runID = 1; runID <= NumRuns; runID++)
             {
-                Console.WriteLine("Running Strategy {0} ...", strategy.ToString());
-                whsim = new WarehouseSim("ZA", strategy);
-                whsim.Run(24);
-                whsim.PrintStatistics();
-                whsim.OutputRacks();
+                //Parallel.ForEach(AllStrategies, ((PicklistGenerator.Strategy)strategy)=>
+                foreach (PicklistGenerator.Strategy strategy in AllStrategies)
+                {
+                    Console.WriteLine("Running Strategy {0} ...", strategy.ToString());
+                    whsim = null;
+                    whsim = new WarehouseSim("ZA", strategy, runID);
+                    whsim.Run(24);
+                    whsim.PrintStatistics();
+                    //whsim.OutputRacks();
+                    IOHelper.AddOutputFile(whsim);
+                }
+                IOHelper.WriteOutputFile(whsim);
                 whsim = null;
-                //break;
             }
+            //);
         }
 
         private static void ExperimentSelectStrategy()

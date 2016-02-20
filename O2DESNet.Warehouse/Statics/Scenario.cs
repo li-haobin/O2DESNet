@@ -57,6 +57,10 @@ namespace O2DESNet.Warehouse.Statics
 
         public Scenario(string name)
         {
+            ControlPoint._count = 0;
+            Statics.Path._count = 0;
+            OrderBatch._count = 0;
+
             Name = name;
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
@@ -104,7 +108,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         private void ReadAislesFile(string filename)
         {
-            var aisles = CSVToList(filename);
+            var aisles = IOHelper.CSVToList(filename);
             foreach (var data in aisles)
             {
                 CreateAisle(data[0], Convert.ToDouble(data[1]));
@@ -113,7 +117,7 @@ namespace O2DESNet.Warehouse.Statics
         private void ReadRowsFile(string filename)
         {
             // Assuming there are two aisles connected to the row.
-            var rows = CSVToList(filename);
+            var rows = IOHelper.CSVToList(filename);
             foreach (var data in rows)
             {
                 CreateRow(data[0], Convert.ToDouble(data[1]),
@@ -123,7 +127,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         private void ReadShelvesFile(string filename)
         {
-            var shelves = CSVToList(filename);
+            var shelves = IOHelper.CSVToList(filename);
             foreach (var data in shelves)
             {
                 CreateShelf(data[0], Convert.ToDouble(data[1]),
@@ -132,7 +136,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         private void ReadRacksFile(string filename)
         {
-            var racks = CSVToList(filename);
+            var racks = IOHelper.CSVToList(filename);
             foreach (var data in racks)
             {
                 CreateRack(data[0],
@@ -141,7 +145,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         private void ReadSKUsFile(string filename)
         {
-            var SKUs = CSVToList(filename);
+            var SKUs = IOHelper.CSVToList(filename);
             foreach (var data in SKUs)
             {
                 var sku = new SKU(data[0], data[1]);
@@ -187,27 +191,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             ReadSKUsFile(@"Layout\" + Name + "_SKUs.csv");
         }
-        /// <summary>
-        /// Converts csv file with header into list (row) of string array (column)
-        /// </summary>
-        /// <param name="csvfile"></param>
-        /// <returns></returns>
-        private List<string[]> CSVToList(string csvfile)
-        {
-            List<string[]> output = new List<string[]>();
-            string line;
 
-            using (StreamReader sr = new StreamReader(csvfile))
-            {
-                sr.ReadLine(); // Skip header
-                while ((line = sr.ReadLine()) != null)
-                {
-                    output.Add(line.Split(','));
-                }
-            }
-
-            return output;
-        }
         #endregion
 
         #region View Layout
@@ -455,7 +439,7 @@ namespace O2DESNet.Warehouse.Statics
         {
             string filename = @"Picklist\" + Name + "_Pickers.csv";
 
-            var pickerTypes = CSVToList(filename); // ID, move speed, pick time, numPickers, capacity
+            var pickerTypes = IOHelper.CSVToList(filename); // ID, move speed, pick time, numPickers, capacity
 
             foreach (var data in pickerTypes)
             {
@@ -464,13 +448,29 @@ namespace O2DESNet.Warehouse.Statics
                 var pickingTime = TimeSpan.FromSeconds(double.Parse(data[2])); // Seconds per item
                 var numPickers = int.Parse(data[3]);
 
-                PickerType type;
+                //PickerType type;
+                //if (data.Count() > 4)
+                //    type = new PickerType(id, moveSpd, pickingTime, int.Parse(data[4]));
+                //else
+                //    type = new PickerType(id, moveSpd, pickingTime);
 
                 // For picker capacity
-                if (data.Count() > 4)
-                    type = new PickerType(id, moveSpd, pickingTime, int.Parse(data[4]));
+                int capacity;
+                if (id == PicklistGenerator.A_PickerID ||
+                    id == PicklistGenerator.B_PickerID_SingleZone ||
+                    id == PicklistGenerator.B_PickerID_MultiZone ||
+                    id == PicklistGenerator.C_PickerID_SingleZone)
+                {
+                    // Order-based
+                    capacity = IOHelper.OrderTotesCapacity;
+                }
                 else
-                    type = new PickerType(id, moveSpd, pickingTime);
+                {
+                    // Item-based
+                    capacity = IOHelper.ItemTotesCapacity;
+                }
+
+                PickerType type = new PickerType(id, moveSpd, pickingTime, capacity);
 
                 MasterPickList.Add(type, new List<PickList>());
                 CompletedPickLists.Add(type, new List<PickList>());

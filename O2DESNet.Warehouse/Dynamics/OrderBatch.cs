@@ -9,7 +9,7 @@ namespace O2DESNet.Warehouse.Dynamics
 {
     public class OrderBatch
     {
-        private static int _count = 0;
+        public static int _count = 0;
 
         public int BatchID { get; private set; }
         public List<Order> Orders { get; set; }

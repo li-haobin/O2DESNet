@@ -10,19 +10,21 @@ using O2DESNet.Warehouse.Dynamics;
 namespace O2DESNet.Warehouse
 {
     [Serializable]
-    class WarehouseSim
+    public class WarehouseSim
     {
         public Simulator sim { get; private set; }
         public Scenario wh { get; private set; }
-        public PicklistGenerator.Strategy? strategy { get; set; }
         public PicklistGenerator generator { get; set; }
 
-        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null)
-        {
-            ControlPoint._count = 0;
-            Statics.Path._count = 0;
+        public PicklistGenerator.Strategy? strategy { get; set; }
+        public int RunID { get; private set; }
 
+
+        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null, int runID = 1)
+        {
+            RunID = runID;
             this.strategy = strategy;
+            IOHelper.ReadInputParams(scenarioName, RunID);
             InitializeScenario(scenarioName);
             sim = new Simulator(wh); // Only after warehouse has been built and initialised properly.
         }
@@ -191,6 +193,7 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);
             Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averateUtil, averateUtil / type.Capacity);
             Console.WriteLine("Average Items per Cart: {0:0.00}", 1.0 * totalPickJob / totalPickList);
+            Console.WriteLine("Min / Max Items per Cart: {0} / {1}", sim.Status.MinPickListSize[type], sim.Status.MaxPickListSize[type]);
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
             Console.WriteLine("-------------------------------------");
         }
@@ -204,6 +207,40 @@ namespace O2DESNet.Warehouse
                     sw.WriteLine(rack);
                 }
             }
+        }
+
+        internal List<string> GetOutputStatistics()
+        {
+            List<string> data = new List<string>();
+            // include strategy name
+            data.Add(strategy.Value.ToString("F"));
+            for (int i = 1; i <= 14; i++)
+                data.Add(i.ToString());
+
+            return data;
+        }
+
+        internal List<string> GetOutputHeaders()
+        {
+            List<string> headers = new List<string>();
+
+            headers.Add("Scenario"); //[0]
+            headers.Add("Cycle time per item (sec)"); //[1]
+            headers.Add("Batch completion time (sec)"); //[2]
+            headers.Add("Tote Throughput"); //[3]
+            headers.Add("Number of batches issued"); //[4]
+            headers.Add("Ave tote utilisation"); //[5]
+            headers.Add("Min/Max tote utilisation"); //[6]
+            headers.Add("Ave/Max number of totes"); //[7]
+            headers.Add("Ave/Max items per tote"); //[8]
+            headers.Add("Ave/Max number of active pickers"); //[9]
+            headers.Add("Average waiting time for picking"); //[10]
+            headers.Add("Average waiting time for batch consolidation"); //[11]
+            headers.Add("Ave/Max number of sorting stations open "); //[12]
+            headers.Add("Ave/Max number of batches in front of sorting stations"); //[13]
+            headers.Add("Ave/Max number of totes in front of sorting stations"); //[14]
+
+            return headers;
         }
     }
 }

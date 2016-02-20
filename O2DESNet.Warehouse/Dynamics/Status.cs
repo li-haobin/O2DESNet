@@ -20,6 +20,8 @@ namespace O2DESNet.Warehouse.Dynamics
         #region Order Picking and Picklist
         public Dictionary<PickerType, int> TotalPickJobsCompleted { get; private set; }
         public Dictionary<PickerType, int> TotalPickListsCompleted { get; private set; }
+        public Dictionary<PickerType,int> MaxPickListSize { get; private set; }
+        public Dictionary<PickerType, int> MinPickListSize { get; private set; }
         public Dictionary<PickerType, TimeSpan> TotalPickingTime { get; private set; }
 
         public int NumActivePickers { get; private set; }
@@ -43,6 +45,8 @@ namespace O2DESNet.Warehouse.Dynamics
             TotalPickJobsCompleted = new Dictionary<PickerType, int>();
             TotalPickListsCompleted = new Dictionary<PickerType, int>();
             TotalPickingTime = new Dictionary<PickerType, TimeSpan>();
+            MaxPickListSize = new Dictionary<PickerType, int>();
+            MinPickListSize = new Dictionary<PickerType, int>();
 
             NumActivePickers = 0;
             MaxActivePickers = 0;
@@ -54,6 +58,8 @@ namespace O2DESNet.Warehouse.Dynamics
             {
                 TotalPickJobsCompleted.Add(type.Key, 0);
                 TotalPickListsCompleted.Add(type.Key, 0);
+                MaxPickListSize.Add(type.Key, 0);
+                MinPickListSize.Add(type.Key, int.MaxValue);
                 TotalPickingTime.Add(type.Key, TimeSpan.Zero);
             }
 
@@ -111,10 +117,16 @@ namespace O2DESNet.Warehouse.Dynamics
 
         public void CaptureCompletedPickList(Picker picker)
         {
+            var numItems = picker.GetNumCompletedPickJobs();
             _sim.Scenario.CompletedPickLists[picker.Type].Add(picker.Picklist);
             TotalPickingTime[picker.Type] += picker.GetTimeToCompletePickList();
-            TotalPickJobsCompleted[picker.Type] += picker.GetNumCompletedPickJobs();
+            TotalPickJobsCompleted[picker.Type] += numItems;
             TotalPickListsCompleted[picker.Type]++;
+
+            if (numItems > MaxPickListSize[picker.Type])
+                MaxPickListSize[picker.Type] = numItems;
+            if (numItems < MinPickListSize[picker.Type])
+                MinPickListSize[picker.Type] = numItems;
 
             // Send to consolidation
             _sim.Scenario.Consolidator.ProcessCompletedPicklist(_sim, picker.Picklist);

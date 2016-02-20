@@ -124,6 +124,7 @@
     <Compile Include="Events\ArriveLocation.cs" />
     <Compile Include="Events\StartPick.cs" />
     <Compile Include="Events\StartSim.cs" />
+    <Compile Include="IOHelper.cs" />
     <Compile Include="LayoutBuilder.cs" />
     <Compile Include="LinqHelper.cs" />
     <Compile Include="Statics\PicklistGenerator.cs" />

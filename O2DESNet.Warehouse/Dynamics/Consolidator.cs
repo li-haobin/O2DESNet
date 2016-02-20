@@ -13,7 +13,6 @@ namespace O2DESNet.Warehouse.Dynamics
     {
         public Scenario Scenario { get; private set; }
 
-        public string filename { get; private set; }
         public double sortingRate { get; private set; }
 
         public int NumSortersAvailable { get; set; }
@@ -28,25 +27,17 @@ namespace O2DESNet.Warehouse.Dynamics
         public Consolidator(Scenario scenario)
         {
             Scenario = scenario;
-            filename = @"Layout\" + scenario.Name + "_Consolidator.csv";
             PickListsArrived = new List<PickList>();
             AllSortingStations = new List<SortingStation>();
             ReadyToSort = new Queue<SortingStation>();
 
-            ReadConsolidatorParameters();
+            GetConsolidatorParameters();
         }
 
-        private void ReadConsolidatorParameters()
+        private void GetConsolidatorParameters()
         {
-            using (StreamReader sr = new StreamReader(filename))
-            {
-                sr.ReadLine(); // Header
-
-                var line = sr.ReadLine();
-                var data = line.Split(',');
-                sortingRate = double.Parse(data[1]);
-                NumSortersAvailable = int.Parse(data[2]);
-            }
+            sortingRate = IOHelper.SortingRate;
+            NumSortersAvailable = IOHelper.NumSorters;
         }
 
         public void ProcessCompletedPicklist(Simulator sim, PickList picklist)
