@@ -15,6 +15,8 @@ namespace O2DESNet.Warehouse.Dynamics
         public List<Order> orders { get; set; } // order-based
         public OrderBatch orderBatch { get; set; } // item-based
         public Picker picker { get; set; }
+        public DateTime startPickTime { get; set; }
+        public DateTime endPickTime { get; set; }
 
         public PickList()
         {
@@ -40,9 +42,30 @@ namespace O2DESNet.Warehouse.Dynamics
             pickJobs.RemoveAt(0);
         }
 
-        public int Count
+        public int ItemCount
         {
             get { return pickJobs.Count; }
+        }
+
+        public double GetUtilisation()
+        {
+            double utilisation;
+
+            if (picker.Type.PickerType_ID == PicklistGenerator.A_PickerID ||
+                picker.Type.PickerType_ID == PicklistGenerator.B_PickerID_SingleZone ||
+                picker.Type.PickerType_ID == PicklistGenerator.B_PickerID_MultiZone ||
+                picker.Type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
+            {
+                // Order-based
+                utilisation = 1.0 * orders.Count / picker.Type.Capacity;
+            }
+            else
+            {
+                // Item-based
+                utilisation = 1.0 * pickJobs.Count / picker.Type.Capacity;
+            }
+
+            return utilisation;
         }
     }
 }

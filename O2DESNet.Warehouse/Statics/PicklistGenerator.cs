@@ -30,6 +30,8 @@ namespace O2DESNet.Warehouse.Statics
         public const string D_PickerID_SingleItem = "Strategy_D_SingleItem";
         public const string D_PickerID_MultiItem = "Strategy_D_MultiItem";
 
+        public Dictionary<Strategy, List<string>> PickerIdsInStrategy { get; private set; }
+
         public Dictionary<string, Order> AllOrders { get; private set; }
         public Dictionary<PickerType, int> NumOrders { get; private set; }
         public Dictionary<PickerType, List<PickList>> MasterPickList { get; private set; }
@@ -45,6 +47,12 @@ namespace O2DESNet.Warehouse.Statics
 
         public PicklistGenerator()
         {
+            PickerIdsInStrategy = new Dictionary<Strategy, List<string>>();
+            PickerIdsInStrategy.Add(Strategy.A, new List<string> { A_PickerID });
+            PickerIdsInStrategy.Add(Strategy.B, new List<string> { B_PickerID_SingleZone, B_PickerID_MultiZone, B_PickerID_SingleItem });
+            PickerIdsInStrategy.Add(Strategy.C, new List<string> { C_PickerID_SingleZone, C_PickerID_MultiZone, C_PickerID_SingleItem });
+            PickerIdsInStrategy.Add(Strategy.D, new List<string> { D_PickerID_MultiItem, D_PickerID_SingleItem });
+
             orderCount = 0;
             MasterBatchSize = IOHelper.MasterBatchSize;
         }
@@ -311,7 +319,7 @@ namespace O2DESNet.Warehouse.Statics
                     MasterPickList[type].Add(new PickList());
                     scenario.OrderBatches.Last().PickLists.Add(MasterPickList[type].Last());
 
-                    foreach (var zone in allZones)
+                    foreach (var zone in allZones) // for each zone, one set of picklists
                     {
                         var oneZone = items.ExtractAll(item => item.IsFulfiledZone(zone)); // Potentially fulfilled in this zone
 
@@ -393,6 +401,7 @@ namespace O2DESNet.Warehouse.Statics
             var type = scenario.GetPickerType[pickerType_ID];
             if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
 
+            // TODO: THINK ABOUT THIS
             if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().pickJobs.Count > 0)
             {
                 MasterPickList[type].Add(new PickList());
@@ -428,7 +437,7 @@ namespace O2DESNet.Warehouse.Statics
                 items.RemoveAt(0);
             }
 
-            if (MasterPickList[type].Last().Count == 0)
+            if (MasterPickList[type].Last().ItemCount == 0) // Safety
             {
                 if (zone != null) scenario.OrderBatches.Last().PickLists.Remove(MasterPickList[type].Last());
                 MasterPickList[type].RemoveAt(MasterPickList[type].Count - 1);
@@ -494,15 +503,17 @@ namespace O2DESNet.Warehouse.Statics
                         // Should only count if the order is processed
                         orderCount++;
                         NumOrders[type]++;
+                        MasterPickList[type].Last().orders.Add(orders.First());
                     }
                 }
+
                 // Next order
                 orders.RemoveAt(0);
             }
 
             //NumOrders[type] -= unfulfilledOrders.Count;
 
-            if (MasterPickList[type].Last().Count == 0)
+            if (MasterPickList[type].Last().ItemCount == 0)
             {
                 MasterPickList[type].RemoveAt(MasterPickList[type].Count - 1);
             }

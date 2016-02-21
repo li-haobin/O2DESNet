@@ -18,7 +18,7 @@ namespace O2DESNet.Warehouse.Events
         }
         public override void Invoke()
         {
-            
+
 
             // check start location
             if (picker.CurLocation != _sim.Scenario.StartCP) throw new Exception("Picker not at StartCP, unable to start picking job");
@@ -30,6 +30,10 @@ namespace O2DESNet.Warehouse.Events
             if (_sim.Scenario.MasterPickList[picker.Type].Count > 0)
             {
                 picker.Picklist = _sim.Scenario.MasterPickList[picker.Type].First(); // Assign picklist
+                picker.Picklist.picker = picker;
+                picker.Picklist.startPickTime = _sim.ClockTime;
+
+                _sim.Status.TotalPickListWaitingTime += (_sim.ClockTime - _sim.Status.StartTime);
 
                 picker.PickJobsToComplete = new List<PickJob>(picker.Picklist.pickJobs); // Mutable
 

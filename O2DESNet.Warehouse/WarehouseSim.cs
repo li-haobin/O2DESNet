@@ -57,7 +57,6 @@ namespace O2DESNet.Warehouse
             wh.InitializeRouting();
         }
 
-        // TODO: Build another layout based on Elia files
         private void BasicBuilder(Scenario scenario)
         {
             // Dimensions in metres
@@ -155,7 +154,7 @@ namespace O2DESNet.Warehouse
                 Console.WriteLine("Ave / Max Number of Items per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageNumItemsSorted(), sim.Status.MaxNumItemsSorted);
                 Console.WriteLine("Ave / Max Number of Totes per Order Batch: {0:0.00} / {1}", sim.Status.GetAverageOrderBatchesTotesCount(), sim.Status.GetMaxOrderBatchesTotesCount());
                 Console.WriteLine("Number of Order Batches Created: {0}", OrderBatch.GetTotalNumBatches());
-                Console.WriteLine("Sorting Buffer Size: {0}", sim.Status.GetNumSortingStations());
+                Console.WriteLine("Sorting Buffer Size: {0}", sim.Status.GetMaxNumSortingStations());
                 Console.WriteLine("Max Active Sorting Stations: {0}", sim.Status.MaxActiveSorters);
                 Console.WriteLine("");
             }
@@ -170,7 +169,7 @@ namespace O2DESNet.Warehouse
         {
             int totalPickList = sim.Status.TotalPickListsCompleted[type];
             int totalPickJob = sim.Status.TotalPickJobsCompleted[type];
-            double averateUtil;
+            double averageUtil;
 
             if (type.PickerType_ID == PicklistGenerator.A_PickerID ||
                 type.PickerType_ID == PicklistGenerator.B_PickerID_SingleZone ||
@@ -178,12 +177,12 @@ namespace O2DESNet.Warehouse
                 type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
             {
                 // Order-based
-                averateUtil = 1.0 * generator.NumOrders[type] / totalPickList;
+                averageUtil = 1.0 * generator.NumOrders[type] / totalPickList;
             }
             else
             {
                 // Item-based
-                averateUtil = 1.0 * totalPickJob / totalPickList;
+                averageUtil = 1.0 * totalPickJob / totalPickList;
             }
 
             Console.WriteLine("-- For PickerType {0}, {1,2} pickers --", type.PickerType_ID, sim.Scenario.NumPickers[type]);
@@ -191,7 +190,7 @@ namespace O2DESNet.Warehouse
             Console.WriteLine("Number of carts: {0}", sim.Scenario.NumPickers[type]);
             Console.WriteLine("Total Picking Trips Completed: {0}", totalPickList);
             Console.WriteLine("Total Pickjobs (items) Completed: {0}", totalPickJob);
-            Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averateUtil, averateUtil / type.Capacity);
+            Console.WriteLine("Average Cart Utilisation: {0:0.00} ({1:P})", averageUtil, averageUtil / type.Capacity);
             Console.WriteLine("Average Items per Cart: {0:0.00}", 1.0 * totalPickJob / totalPickList);
             Console.WriteLine("Min / Max Items per Cart: {0} / {1}", sim.Status.MinPickListSize[type], sim.Status.MaxPickListSize[type]);
             Console.WriteLine("Average PickList Completion Time: {0:hh\\:mm\\:ss}", sim.Status.GetAveragePickListTime(type));
@@ -212,12 +211,202 @@ namespace O2DESNet.Warehouse
         internal List<string> GetOutputStatistics()
         {
             List<string> data = new List<string>();
-            // include strategy name
-            data.Add(strategy.Value.ToString("F"));
-            for (int i = 1; i <= 14; i++)
-                data.Add(i.ToString());
+            // include strategy name first row
+            data.Add(strategy.Value.ToString("F")); // [0] Strategy name
+
+            data.Add(GetAggregateCycleTime().ToString()); // [1] Cycle time (sec)
+
+            if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
+            {
+                 data.Add(GetAverageOrderBatchCompletionTime().ToString());// [2] Batch completion time (min)
+            }
+            else
+            {
+                data.Add("XX");
+            }
+
+            data.Add(GetToteThroughput().ToString()); // [3] Tote throughput (totes/hour)
+            data.Add(OrderBatch.GetTotalNumBatches().ToString()); // [4] Number of batches issued
+
+            data.Add(GetAllMinToteUtilisation().ToString()); // [5] Min tote utilisation
+            data.Add(GetAggregateAveToteUtilisation().ToString()); // [6] Ave tote utilisation
+            data.Add(GetAllMaxToteUtilisation().ToString()); // [7] Max tote utilisation
+
+            if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
+            {
+                data.Add(sim.Status.GetMinOrderBatchesTotesCount().ToString()); // [8] Min number of totes per batch
+                data.Add(sim.Status.GetAverageOrderBatchesTotesCount().ToString()); // [9] Ave number of totes per batch
+                data.Add(sim.Status.GetMaxOrderBatchesTotesCount().ToString()); // [10] Max number of totes per batch
+            }
+            else
+            {
+                data.Add("XX");
+                data.Add("XX");
+                data.Add("XX");
+            }
+
+            data.Add(GetAllMinItemsPerTote().ToString()); // [11] Min items per tote
+            data.Add(GetAggregateAveItemsPerTote().ToString()); // [12] Ave items per tote
+            data.Add(GetAllMaxItemsPerTote().ToString()); // [13] Max items per tote
+
+            data.Add(sim.Status.GetAverageNumActivePickers().ToString()); // [14] Ave number of active pickers
+            data.Add(sim.Status.MaxActivePickers.ToString()); // [15] Max number of active pickers
+
+            data.Add(GetAveragePickListWaitingTime().ToString()); // [16] Average waiting time for picking (min)
+
+            if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
+            {
+                data.Add(GetOrderBatchAverageWaitingTime().ToString()); // [17] Average waiting time for batch consolidation (min)
+                data.Add(sim.Status.GetAverageNumActiveSorters().ToString()); // [18] Ave number of sorting stations open
+                data.Add(sim.Status.MaxActiveSorters.ToString()); // [19] Max number of sorting stations open
+
+                data.Add(sim.Status.GetAverageNumBatchWaiting().ToString()); // [20] Ave number of batches in front of sorting stations
+                data.Add(sim.Status.GetMaxNumSortingStations().ToString()); // [21] Max number of batches in front of sorting stations
+
+                data.Add(sim.Status.GetAverageNumToteWaiting().ToString()); // [22] Ave number of totes in front of sorting stations
+                data.Add(sim.Status.MaxTotesWaitingForSorting.ToString()); // [23] Max number of totes in front of sorting stations
+            }
+            else
+            {
+                data.Add("XX");
+                data.Add("XX");
+                data.Add("XX");
+
+                data.Add("XX");
+                data.Add("XX");
+
+                data.Add("XX");
+                data.Add("XX");
+            }
+
+
 
             return data;
+        }
+
+        /// <summary>
+        /// Aggregate cycle time for current strategy in seconds per item
+        /// </summary>
+        /// <returns>double cycle time</returns>
+        internal double GetAggregateCycleTime()
+        {
+            TimeSpan totalTime = TimeSpan.Zero;
+            int totalJobs = 0;
+            foreach (var PickerTypeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[PickerTypeID];
+                totalTime += sim.Status.TotalPickingTime[type];
+                totalJobs += sim.Status.TotalPickJobsCompleted[type];
+            }
+
+            return 1.0 * totalTime.TotalSeconds / totalJobs;
+        }
+        internal double GetAggregateAveItemsPerTote()
+        {
+            int totalPickList = 0;
+            int totalPickJob = 0;
+
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                totalPickList = sim.Status.TotalPickListsCompleted[type];
+                totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+            }
+            return 1.0 * totalPickJob / totalPickList;
+        }
+        internal double GetAggregateAveToteUtilisation()
+        {
+            List<double> allUtilisation = new List<double>();
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                allUtilisation.AddRange(sim.Status.AllCartUtilisation[type]);
+            }
+            return allUtilisation.Average();
+        }
+        internal double GetAverageOrderBatchCompletionTime()
+        {
+            var completionTimes = sim.Status.OrderBatchCompletionTime.Values.ToList();
+
+            return completionTimes.Average(waitingTime => waitingTime.TotalMinutes);
+        }
+        internal double GetOrderBatchAverageWaitingTime()
+        {
+            var allWaitingTime = sim.Status.OrderBatchWaitingTimeForSorting.Values.ToList();
+
+            return allWaitingTime.Average(waitingTime => waitingTime.TotalMinutes);
+        }
+        internal double GetAveragePickListWaitingTime()
+        {
+            int totalPickList = 0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                totalPickList += sim.Status.TotalPickListsCompleted[type];
+            }
+
+            return 1.0 * sim.Status.TotalPickListWaitingTime.TotalMinutes / totalPickList;
+        }
+
+        /// <summary>
+        /// Throughput total totes per hour
+        /// </summary>
+        /// <returns></returns>
+        internal double GetToteThroughput()
+        {
+            double throughput = 0.0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                throughput += sim.Status.TotalPickListsCompleted[type];
+            }
+
+            var duration = sim.ClockTime - sim.Status.StartTime;
+
+            throughput = throughput / duration.TotalHours;
+
+            return throughput;
+        }
+        internal int GetAllMinItemsPerTote()
+        {
+            int min = int.MaxValue;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                if (sim.Status.MinPickListSize[type] < min) min = sim.Status.MinPickListSize[type];
+            }
+            return min;
+        }
+        internal int GetAllMaxItemsPerTote()
+        {
+            int max = 0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                if (sim.Status.MaxPickListSize[type] > max) max = sim.Status.MaxPickListSize[type];
+            }
+            return max;
+        }
+
+        internal double GetAllMinToteUtilisation()
+        {
+            double min = double.PositiveInfinity;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                if (sim.Status.MinCartUtilisation[type] < min) min = sim.Status.MinCartUtilisation[type];
+            }
+            return min;
+        }
+        internal double GetAllMaxToteUtilisation()
+        {
+            double max = 0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[typeID];
+                if (sim.Status.MaxCartUtilisation[type] > max) max = sim.Status.MaxCartUtilisation[type];
+            }
+            return max;
         }
 
         internal List<string> GetOutputHeaders()
@@ -225,20 +414,37 @@ namespace O2DESNet.Warehouse
             List<string> headers = new List<string>();
 
             headers.Add("Scenario"); //[0]
-            headers.Add("Cycle time per item (sec)"); //[1]
-            headers.Add("Batch completion time (sec)"); //[2]
-            headers.Add("Tote Throughput"); //[3]
+            headers.Add("Average cycle time per item (sec)"); //[1]
+            headers.Add("Average batch completion time (min)"); //[2]
+            headers.Add("Average tote throughput (totes/hour)"); //[3]
             headers.Add("Number of batches issued"); //[4]
-            headers.Add("Ave tote utilisation"); //[5]
-            headers.Add("Min/Max tote utilisation"); //[6]
-            headers.Add("Ave/Max number of totes"); //[7]
-            headers.Add("Ave/Max items per tote"); //[8]
-            headers.Add("Ave/Max number of active pickers"); //[9]
-            headers.Add("Average waiting time for picking"); //[10]
-            headers.Add("Average waiting time for batch consolidation"); //[11]
-            headers.Add("Ave/Max number of sorting stations open "); //[12]
-            headers.Add("Ave/Max number of batches in front of sorting stations"); //[13]
-            headers.Add("Ave/Max number of totes in front of sorting stations"); //[14]
+
+            headers.Add("Min tote utilisation"); //[5]
+            headers.Add("Ave tote utilisation"); //[6]
+            headers.Add("Max tote utilisation"); //[7]
+
+            headers.Add("Min number of totes per batch"); //[8]
+            headers.Add("Ave number of totes per batch"); //[9]
+            headers.Add("Max number of totes per batch"); //[10]
+
+            headers.Add("Min items per tote"); //[11]
+            headers.Add("Ave items per tote"); //[12]
+            headers.Add("Max items per tote"); //[13]
+
+            headers.Add("Ave number of active pickers"); //[14]
+            headers.Add("Max number of active pickers"); //[15]
+
+            headers.Add("Average waiting time for picking (min)"); //[16]
+            headers.Add("Average waiting time for batch consolidation (min)"); //[17]
+
+            headers.Add("Ave number of sorting stations open"); //[18]
+            headers.Add("Max number of sorting stations open"); //[19]
+
+            headers.Add("Ave number of batches in front of sorting stations"); //[20]
+            headers.Add("Max number of batches in front of sorting stations"); //[21]
+
+            headers.Add("Ave number of totes in front of sorting stations"); //[22]
+            headers.Add("Max number of totes in front of sorting stations"); //[23]
 
             return headers;
         }

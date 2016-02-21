@@ -93,7 +93,7 @@ namespace O2DESNet.Warehouse
             if (outputCSV == null) outputCSV = new List<string>(whsim.GetOutputHeaders());
 
             var data = whsim.GetOutputStatistics();
-            for(int i = 0; i < data.Count; i++) // for each line
+            for (int i = 0; i < data.Count; i++) // for each line
             {
                 outputCSV[i] = outputCSV[i] + "," + data[i];
             }
@@ -104,10 +104,30 @@ namespace O2DESNet.Warehouse
         {
             string scenarioName = whsim.sim.Scenario.Name;
             int runID = whsim.RunID;
-            string filename = outputFolder + scenarioName + outputFile + runID.ToString() + csv;
+            string filename = OutputFileName(scenarioName, runID);
 
             File.WriteAllLines(filename, outputCSV.ToArray());
             outputCSV = null;
+        }
+
+        /// <summary>
+        /// Deletes all output fies
+        /// </summary>
+        /// <param name="whsim"></param>
+        public static void ClearOutputFiles(string scenarioName)
+        {
+            int idx = 1;
+
+
+            while (File.Exists(OutputFileName(scenarioName, idx)))
+            {
+                File.Delete(OutputFileName(scenarioName, idx++));
+            }
+        }
+
+        private static string OutputFileName(string scenarioName, int id)
+        {
+            return outputFolder + scenarioName + outputFile + id.ToString() + csv;
         }
     }
 }

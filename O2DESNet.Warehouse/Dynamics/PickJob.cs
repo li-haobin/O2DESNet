@@ -14,6 +14,7 @@ namespace O2DESNet.Warehouse.Dynamics
         public CPRack rack { get; set; }
         public int quantity { get; set; }
 
+        // HACK: qty is always 1
         public PickJob(SKU sku, CPRack loc, int qty = 1)
         {
             item = sku; rack = loc; quantity = qty;

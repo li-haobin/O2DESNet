@@ -54,10 +54,15 @@ namespace O2DESNet.Warehouse.Dynamics
                 // No sorting station assigned for this orderBatch
                 if (sortingStation == null)
                 {
+                    orderBatch.StartTime = picklist.startPickTime;
+                    sim.Status.IncrementBatchWaiting();
+                    sim.Status.OrderBatchStartWaitForSorting.Add(orderBatch, sim.ClockTime);
+
                     sortingStation = GetOrCreateAvailableSortingStation();
                     sortingStation.AssignOrderBatch(orderBatch);
                 }
 
+                sim.Status.IncrementToteWaiting(picklist.ItemCount);
                 sortingStation.picklists.Add(picklist);
 
                 if (sortingStation.IsReadyToSort())
@@ -128,7 +133,10 @@ namespace O2DESNet.Warehouse.Dynamics
             OrderBatch orderBatch = null;
 
             if (Scenario.WhichOrderBatch.ContainsKey(picklist))
+            {
                 orderBatch = Scenario.WhichOrderBatch[picklist];
+                picklist.orderBatch = orderBatch;
+            }
 
             return orderBatch;
         }

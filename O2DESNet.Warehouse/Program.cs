@@ -30,13 +30,14 @@ namespace O2DESNet.Warehouse
             var AllStrategies = Enum.GetValues(typeof(PicklistGenerator.Strategy));
 
             int NumRuns = IOHelper.GetNumRuns("ZA");
+            IOHelper.ClearOutputFiles("ZA");
 
             for (int runID = 1; runID <= NumRuns; runID++)
             {
                 //Parallel.ForEach(AllStrategies, ((PicklistGenerator.Strategy)strategy)=>
                 foreach (PicklistGenerator.Strategy strategy in AllStrategies)
                 {
-                    Console.WriteLine("Running Strategy {0} ...", strategy.ToString());
+                    Console.WriteLine("Running Scenario {0} Strategy {1} ...", runID, strategy.ToString());
                     whsim = null;
                     whsim = new WarehouseSim("ZA", strategy, runID);
                     whsim.Run(24);
@@ -65,6 +66,8 @@ namespace O2DESNet.Warehouse
 
             whsim.Run(24);
             whsim.PrintStatistics();
+            IOHelper.AddOutputFile(whsim);
+            IOHelper.WriteOutputFile(whsim);
         }
 
         /// <summary>

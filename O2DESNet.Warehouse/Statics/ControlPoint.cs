@@ -51,7 +51,7 @@ namespace O2DESNet.Warehouse.Statics
             ShortestPath = new DijkstraSP.DijkstraSP(graph, Id);
         }
 
-        // TODO: Generic distance routing with djikstra. Without running the whole initialisation
+        // Generic distance routing with djikstra. Without running the whole initialisation
         public double GetDistanceTo_old(ControlPoint destination)
         {
             if (!RoutingTable.ContainsKey(destination))

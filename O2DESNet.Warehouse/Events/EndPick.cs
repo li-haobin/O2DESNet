@@ -22,6 +22,7 @@ namespace O2DESNet.Warehouse.Events
             if (picker.PickJobsToComplete.Count > 0) throw new Exception("There are still items to pick!");
 
             // Just status update
+            picker.Picklist.endPickTime = _sim.ClockTime;
             picker.CurLocation = _sim.Scenario.StartCP;
             picker.EndTime = _sim.ClockTime;
             picker.IsIdle = true;
