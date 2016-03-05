@@ -56,13 +56,13 @@ namespace O2DESNet.Warehouse.Dynamics
                 picker.Type.PickerType_ID == PicklistGenerator.B_PickerID_MultiZone ||
                 picker.Type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
             {
-                // Order-based
+                // Order-based (Cart)
                 if (orders.Count == 0) throw new Exception("This picklist is empty. Should not exist.");
                 utilisation = 1.0 * orders.Count / picker.Type.Capacity;
             }
             else
             {
-                // Item-based
+                // Item-based (Tote)
                 if (pickJobs.Count == 0) throw new Exception("This picklist is empty. Should not exist.");
                 utilisation = 1.0 * pickJobs.Count / picker.Type.Capacity;
             }

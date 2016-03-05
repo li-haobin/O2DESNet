@@ -324,7 +324,7 @@ namespace O2DESNet.Warehouse
                 totalTime += sim.Status.TotalPickingTime[type];
                 totalJobs += sim.Status.TotalPickJobsCompleted[type];
 
-                // Sorting required
+                // Sorting required, additional time
                 if (PickerTypeID == PicklistGenerator.C_PickerID_MultiZone ||
                     PickerTypeID == PicklistGenerator.D_PickerID_MultiItem)
                 {
@@ -432,8 +432,8 @@ namespace O2DESNet.Warehouse
                 if (generator.PickerIdsItemTotes.Contains(typeID))
                 {
                     var type = sim.Scenario.GetPickerType[typeID];
-                    totalPickList = sim.Status.TotalPickListsCompleted[type];
-                    totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+                    totalPickList += sim.Status.TotalPickListsCompleted[type];
+                    totalPickJob += sim.Status.TotalPickJobsCompleted[type];
                 }
             }
             if (totalPickJob == 0) return 0.0;
@@ -477,8 +477,8 @@ namespace O2DESNet.Warehouse
                 if (generator.PickerIdsOrderCarts.Contains(typeID))
                 {
                     var type = sim.Scenario.GetPickerType[typeID];
-                    totalPickList = sim.Status.TotalPickListsCompleted[type];
-                    totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+                    totalPickList += sim.Status.TotalPickListsCompleted[type];
+                    totalPickJob += sim.Status.TotalPickJobsCompleted[type];
                 }
             }
 
@@ -633,7 +633,7 @@ namespace O2DESNet.Warehouse
 
             headers.Add("Scenario"); //[0]
 
-            headers.Add("Average total cycle time per item (sec)"); //[1a]
+            headers.Add("Average total (pick + consolidate + sort) cycle time per item (sec)"); //[1a]
             headers.Add("Average picking cycle time per item (sec)"); //[1b]
             headers.Add("Average batch completion time (min)"); //[2]
             headers.Add("Average tote throughput (totes/hour)"); //[3a]
