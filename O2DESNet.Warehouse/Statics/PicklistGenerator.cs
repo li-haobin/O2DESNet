@@ -82,7 +82,7 @@ namespace O2DESNet.Warehouse.Statics
             if (copyToScenario) CopyToScenario(scenario);
 
             // For debug
-            using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_InsufficientSKUs.csv"))
+            using (StreamWriter sw = new StreamWriter(@"Outputs\" + scenario.Name + "_InsufficientSKUs.csv"))
             {
                 foreach (var sku_id in InsufficientSKU)
                 {
@@ -585,7 +585,7 @@ namespace O2DESNet.Warehouse.Statics
 
             AllOrders = new Dictionary<string, Order>();
 
-            filename = @"Picklist\" + filename;
+            filename = @"Inputs\" + filename;
             if (!File.Exists(filename))
                 throw new Exception("Order file " + filename + " does not exist");
 
@@ -610,7 +610,7 @@ namespace O2DESNet.Warehouse.Statics
             }
 
             // For debug, write Missing SKU into file
-            using (StreamWriter sw = new StreamWriter(@"Picklist\" + scenario.Name + "_MissingSKUs.csv"))
+            using (StreamWriter sw = new StreamWriter(@"Outputs\" + scenario.Name + "_MissingSKUs.csv"))
             {
                 foreach (var sku_id in MissingSKU)
                 {
@@ -654,8 +654,8 @@ namespace O2DESNet.Warehouse.Statics
 
         public void ResolveInsufficientSKU(string scenarioName)
         {
-            string insufficientFile = @"Picklist\" + scenarioName + "_InsufficientSKUs.csv";
-            string SKUFile = @"Layout\" + scenarioName + "_SKUs.csv";
+            string insufficientFile = @"Outputs\" + scenarioName + "_InsufficientSKUs.csv";
+            string SKUFile = @"Inputs\" + scenarioName + "_SKUs.csv";
 
             Dictionary<string, int> InsufficientSKU = new Dictionary<string, int>();
             Dictionary<string, string> Layout = new Dictionary<string, string>();

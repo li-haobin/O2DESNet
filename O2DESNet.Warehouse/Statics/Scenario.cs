@@ -173,7 +173,7 @@ namespace O2DESNet.Warehouse.Statics
 
         private void OutputUnassignableSKU()
         {
-            using (StreamWriter sw = new StreamWriter(@"Layout\" + Name + "_UnassignableSKUs.csv"))
+            using (StreamWriter sw = new StreamWriter(@"Outputs\" + Name + "_UnassignableSKUs.csv"))
             {
                 foreach (var line in UnassignableSKUs)
                 {
@@ -189,7 +189,7 @@ namespace O2DESNet.Warehouse.Statics
 
         public void ReadSKUsFile()
         {
-            ReadSKUsFile(@"Layout\" + Name + "_SKUs.csv");
+            ReadSKUsFile(@"Inputs\" + Name + "_SKUs.csv");
         }
 
         #endregion
@@ -437,7 +437,7 @@ namespace O2DESNet.Warehouse.Statics
         #region Picker Reader
         public void ReadPickers()
         {
-            string filename = @"Picklist\" + Name + "_Pickers.csv";
+            string filename = @"Inputs\" + Name + "_Pickers.csv";
 
             var pickerTypes = IOHelper.CSVToList(filename); // ID, move speed, pick time, numPickers, capacity
 
