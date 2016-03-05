@@ -21,5 +21,10 @@ namespace O2DESNet.Warehouse
             source.RemoveRange(index, count);
             return extract;
         }
+
+        public static TimeSpan Multiply(this TimeSpan timeSpan, int multiplier)
+        {
+            return TimeSpan.FromTicks(timeSpan.Ticks * multiplier);
+        }
     }
 }

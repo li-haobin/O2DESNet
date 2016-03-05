@@ -21,7 +21,7 @@ namespace O2DESNet.Warehouse.Events
         {
             // Record Statistics before clearing
             sortingStation.orderBatch.CompletionTime = _sim.ClockTime;
-            _sim.Status.OrderBatchCompletionTime.Add(sortingStation.orderBatch, _sim.ClockTime - (DateTime)sortingStation.orderBatch.StartTime);
+            _sim.Status.OrderBatchCompletionTime.Add(sortingStation.orderBatch, _sim.ClockTime - sortingStation.orderBatch.StartTime);
 
             double sortingTime = sortingStation.GetSortingTime(); // Calculates numItems as well
             int numItems = sortingStation.numItems;

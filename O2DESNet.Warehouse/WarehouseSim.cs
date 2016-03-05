@@ -214,23 +214,29 @@ namespace O2DESNet.Warehouse
             // include strategy name first row
             data.Add(strategy.Value.ToString("F")); // [0] Strategy name
 
-            data.Add(GetAggregateCycleTime().ToString()); // [1] Cycle time (sec)
+            data.Add(GetAggregateTotalCycleTime().ToString()); // [1a] Total Cycle time, including consolidation and sorting
+            data.Add(GetAggregatePickingCycleTime().ToString()); // [1b] Picking Cycle time (sec)
 
             if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
             {
-                 data.Add(GetAverageOrderBatchCompletionTime().ToString());// [2] Batch completion time (min)
+                data.Add(GetAverageOrderBatchCompletionTime().ToString());// [2] Batch completion time (min)
             }
             else
             {
                 data.Add("XX");
             }
 
-            data.Add(GetToteThroughput().ToString()); // [3] Tote throughput (totes/hour)
+            data.Add(GetToteThroughput().ToString()); // [3a] Tote throughput (totes/hour)
+            data.Add(GetCartThroughput().ToString()); // [3b] Cart throughput (carts/hour)
             data.Add(OrderBatch.GetTotalNumBatches().ToString()); // [4] Number of batches issued
 
-            data.Add(GetAllMinToteUtilisation().ToString()); // [5] Min tote utilisation
-            data.Add(GetAggregateAveToteUtilisation().ToString()); // [6] Ave tote utilisation
-            data.Add(GetAllMaxToteUtilisation().ToString()); // [7] Max tote utilisation
+            data.Add(GetAllMinToteUtilisation().ToString()); // [5a] Min tote utilisation
+            data.Add(GetAggregateAveToteUtilisation().ToString()); // [6a] Ave tote utilisation
+            data.Add(GetAllMaxToteUtilisation().ToString()); // [7a] Max tote utilisation
+
+            data.Add(GetAllMinCartUtilisation().ToString()); // [5b] Min tote utilisation
+            data.Add(GetAggregateAveCartUtilisation().ToString()); // [6b] Ave tote utilisation
+            data.Add(GetAllMaxCartUtilisation().ToString()); // [7b] Max tote utilisation
 
             if (strategy == PicklistGenerator.Strategy.C || strategy == PicklistGenerator.Strategy.D)
             {
@@ -245,9 +251,13 @@ namespace O2DESNet.Warehouse
                 data.Add("XX");
             }
 
-            data.Add(GetAllMinItemsPerTote().ToString()); // [11] Min items per tote
-            data.Add(GetAggregateAveItemsPerTote().ToString()); // [12] Ave items per tote
-            data.Add(GetAllMaxItemsPerTote().ToString()); // [13] Max items per tote
+            data.Add(GetAllMinItemsPerTote().ToString()); // [11a] Min items per tote
+            data.Add(GetAggregateAveItemsPerTote().ToString()); // [12a] Ave items per tote
+            data.Add(GetAllMaxItemsPerTote().ToString()); // [13a] Max items per tote
+
+            data.Add(GetAllMinItemsPerCart().ToString()); // [11b] Min items per cart
+            data.Add(GetAggregateAveItemsPerCart().ToString()); // [12b] Ave items per cart
+            data.Add(GetAllMaxItemsPerCart().ToString()); // [13b] Max items per cart
 
             data.Add(sim.Status.GetAverageNumActivePickers().ToString()); // [14] Ave number of active pickers
             data.Add(sim.Status.MaxActivePickers.ToString()); // [15] Max number of active pickers
@@ -279,7 +289,10 @@ namespace O2DESNet.Warehouse
                 data.Add("XX");
             }
 
-
+            // TODO: number of orders to sorting
+            data.Add(GetNumOrdersToSorting().ToString()); // [24] Number of orders to sorting
+            // TODO: number of orders without sorting
+            data.Add(GetNumOrdersWithoutSorting().ToString());// [25] Number of orders without sorting
 
             return data;
         }
@@ -288,7 +301,7 @@ namespace O2DESNet.Warehouse
         /// Aggregate cycle time for current strategy in seconds per item
         /// </summary>
         /// <returns>double cycle time</returns>
-        internal double GetAggregateCycleTime()
+        internal double GetAggregatePickingCycleTime()
         {
             TimeSpan totalTime = TimeSpan.Zero;
             int totalJobs = 0;
@@ -301,29 +314,35 @@ namespace O2DESNet.Warehouse
 
             return 1.0 * totalTime.TotalSeconds / totalJobs;
         }
-        internal double GetAggregateAveItemsPerTote()
+        internal double GetAggregateTotalCycleTime() // Include average sorting time
         {
-            int totalPickList = 0;
-            int totalPickJob = 0;
+            TimeSpan totalTime = TimeSpan.Zero;
+            int totalJobs = 0;
+            foreach (var PickerTypeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[PickerTypeID];
+                totalTime += sim.Status.TotalPickingTime[type];
+                totalJobs += sim.Status.TotalPickJobsCompleted[type];
 
-            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
-            {
-                var type = sim.Scenario.GetPickerType[typeID];
-                totalPickList = sim.Status.TotalPickListsCompleted[type];
-                totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+                // Sorting required
+                if (PickerTypeID == PicklistGenerator.C_PickerID_MultiZone ||
+                    PickerTypeID == PicklistGenerator.D_PickerID_MultiItem)
+                {
+                    // Time waiting for consolidation
+                    foreach (var orderBatch in sim.Status.OrderBatchCompletionTime.Keys)
+                    {
+                        foreach (var picklist in orderBatch.PickLists)
+                        {
+                            totalTime += (orderBatch.CompletionTime - picklist.endPickTime).Multiply(picklist.ItemsCount);
+                        }
+                    }
+                    // Sorting time
+                    totalTime += TimeSpan.FromSeconds(wh.Consolidator.sortingRate * sim.Status.TotalPickJobsCompleted[type]);
+                }
             }
-            return 1.0 * totalPickJob / totalPickList;
+            return 1.0 * totalTime.TotalSeconds / totalJobs;
         }
-        internal double GetAggregateAveToteUtilisation()
-        {
-            List<double> allUtilisation = new List<double>();
-            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
-            {
-                var type = sim.Scenario.GetPickerType[typeID];
-                allUtilisation.AddRange(sim.Status.AllCartUtilisation[type]);
-            }
-            return allUtilisation.Average();
-        }
+
         internal double GetAverageOrderBatchCompletionTime()
         {
             var completionTimes = sim.Status.OrderBatchCompletionTime.Values.ToList();
@@ -357,8 +376,11 @@ namespace O2DESNet.Warehouse
             double throughput = 0.0;
             foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
             {
-                var type = sim.Scenario.GetPickerType[typeID];
-                throughput += sim.Status.TotalPickListsCompleted[type];
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    throughput += sim.Status.TotalPickListsCompleted[type];
+                }
             }
 
             var duration = sim.ClockTime - sim.Status.StartTime;
@@ -367,23 +389,112 @@ namespace O2DESNet.Warehouse
 
             return throughput;
         }
+        internal double GetCartThroughput()
+        {
+            double throughput = 0.0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    throughput += sim.Status.TotalPickListsCompleted[type];
+                }
+            }
+
+            var duration = sim.ClockTime - sim.Status.StartTime;
+
+            throughput = throughput / duration.TotalHours;
+
+            return throughput;
+        }
+
         internal int GetAllMinItemsPerTote()
         {
             int min = int.MaxValue;
             foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
             {
-                var type = sim.Scenario.GetPickerType[typeID];
-                if (sim.Status.MinPickListSize[type] < min) min = sim.Status.MinPickListSize[type];
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MinPickListSize[type] < min) min = sim.Status.MinPickListSize[type];
+                }
             }
+            if (min == int.MaxValue) min = 0;
             return min;
+        }
+        internal double GetAggregateAveItemsPerTote()
+        {
+            int totalPickList = 0;
+            int totalPickJob = 0;
+
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    totalPickList = sim.Status.TotalPickListsCompleted[type];
+                    totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+                }
+            }
+            if (totalPickJob == 0) return 0.0;
+            else return 1.0 * totalPickJob / totalPickList;
         }
         internal int GetAllMaxItemsPerTote()
         {
             int max = 0;
             foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
             {
-                var type = sim.Scenario.GetPickerType[typeID];
-                if (sim.Status.MaxPickListSize[type] > max) max = sim.Status.MaxPickListSize[type];
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MaxPickListSize[type] > max) max = sim.Status.MaxPickListSize[type];
+                }
+            }
+            return max;
+        }
+
+        internal int GetAllMinItemsPerCart()
+        {
+            int min = int.MaxValue;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MinPickListSize[type] < min) min = sim.Status.MinPickListSize[type];
+                }
+            }
+            if (min == int.MaxValue) min = 0;
+            return min;
+        }
+        internal double GetAggregateAveItemsPerCart()
+        {
+            int totalPickList = 0;
+            int totalPickJob = 0;
+
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    totalPickList = sim.Status.TotalPickListsCompleted[type];
+                    totalPickJob = sim.Status.TotalPickJobsCompleted[type];
+                }
+            }
+
+            if (totalPickJob == 0) return 0.0;
+            else return 1.0 * totalPickJob / totalPickList;
+        }
+        internal int GetAllMaxItemsPerCart()
+        {
+            int max = 0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MaxPickListSize[type] > max) max = sim.Status.MaxPickListSize[type];
+                }
             }
             return max;
         }
@@ -393,20 +504,127 @@ namespace O2DESNet.Warehouse
             double min = double.PositiveInfinity;
             foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
             {
-                var type = sim.Scenario.GetPickerType[typeID];
-                if (sim.Status.MinCartUtilisation[type] < min) min = sim.Status.MinCartUtilisation[type];
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MinCartUtilisation[type] < min) min = sim.Status.MinCartUtilisation[type];
+                }
             }
+            if (double.IsPositiveInfinity(min)) return 0.0;
             return min;
+        }
+        internal double GetAggregateAveToteUtilisation()
+        {
+            List<double> allUtilisation = new List<double>();
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    allUtilisation.AddRange(sim.Status.AllCartUtilisation[type]);
+                }
+            }
+            if (allUtilisation.Count == 0) return 0.0;
+            else return allUtilisation.Average();
         }
         internal double GetAllMaxToteUtilisation()
         {
             double max = 0;
             foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
             {
-                var type = sim.Scenario.GetPickerType[typeID];
-                if (sim.Status.MaxCartUtilisation[type] > max) max = sim.Status.MaxCartUtilisation[type];
+                if (generator.PickerIdsItemTotes.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MaxCartUtilisation[type] > max) max = sim.Status.MaxCartUtilisation[type];
+                }
             }
             return max;
+        }
+
+        internal double GetAllMinCartUtilisation()
+        {
+            double min = double.PositiveInfinity;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MinCartUtilisation[type] < min) min = sim.Status.MinCartUtilisation[type];
+                }
+            }
+            if (double.IsPositiveInfinity(min)) return 0.0;
+            return min;
+        }
+        internal double GetAggregateAveCartUtilisation()
+        {
+            List<double> allUtilisation = new List<double>();
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    allUtilisation.AddRange(sim.Status.AllCartUtilisation[type]);
+                }
+            }
+            if (allUtilisation.Count == 0) return 0.0;
+            else return allUtilisation.Average();
+        }
+        internal double GetAllMaxCartUtilisation()
+        {
+            double max = 0;
+            foreach (var typeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                if (generator.PickerIdsOrderCarts.Contains(typeID))
+                {
+                    var type = sim.Scenario.GetPickerType[typeID];
+                    if (sim.Status.MaxCartUtilisation[type] > max) max = sim.Status.MaxCartUtilisation[type];
+                }
+            }
+            return max;
+        }
+
+        internal int GetNumOrdersToSorting()
+        {
+            int numOrders = 0;
+            foreach (var PickerTypeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                // Sorting required
+                if (PickerTypeID == PicklistGenerator.C_PickerID_MultiZone ||
+                       PickerTypeID == PicklistGenerator.D_PickerID_MultiItem)
+                {
+                    var type = sim.Scenario.GetPickerType[PickerTypeID];
+                    //numOrders += sim.Status.CompletedOrder[type].Count;
+                    numOrders += generator.NumOrders[type];
+                }
+            }
+            return numOrders;
+        }
+
+        internal int GetNumOrdersWithoutSorting()
+        {
+            int numOrders = 0;
+            foreach (var PickerTypeID in generator.PickerIdsInStrategy[(PicklistGenerator.Strategy)strategy])
+            {
+                var type = sim.Scenario.GetPickerType[PickerTypeID];
+                // No sorting required
+                if (!(PickerTypeID == PicklistGenerator.C_PickerID_MultiZone ||
+                       PickerTypeID == PicklistGenerator.D_PickerID_MultiItem))
+                {
+                    if (!(PickerTypeID == PicklistGenerator.B_PickerID_SingleItem ||
+                            PickerTypeID == PicklistGenerator.C_PickerID_SingleItem ||
+                            PickerTypeID == PicklistGenerator.D_PickerID_SingleItem))
+                    {   // Non-single item
+                        //numOrders += sim.Status.CompletedOrder[type].Count;
+                        numOrders += generator.NumOrders[type];
+                    }
+                    else
+                    {
+                        // Single-item
+                        numOrders += generator.NumOrders[type];
+                    }
+                }
+            }
+            return numOrders;
         }
 
         internal List<string> GetOutputHeaders()
@@ -414,22 +632,33 @@ namespace O2DESNet.Warehouse
             List<string> headers = new List<string>();
 
             headers.Add("Scenario"); //[0]
-            headers.Add("Average cycle time per item (sec)"); //[1]
+
+            headers.Add("Average total cycle time per item (sec)"); //[1a]
+            headers.Add("Average picking cycle time per item (sec)"); //[1b]
             headers.Add("Average batch completion time (min)"); //[2]
-            headers.Add("Average tote throughput (totes/hour)"); //[3]
+            headers.Add("Average tote throughput (totes/hour)"); //[3a]
+            headers.Add("Average cart throughput (carts/hour)"); //[3b]
             headers.Add("Number of batches issued"); //[4]
 
-            headers.Add("Min tote utilisation"); //[5]
-            headers.Add("Ave tote utilisation"); //[6]
-            headers.Add("Max tote utilisation"); //[7]
+            headers.Add("Min tote utilisation"); //[5a]
+            headers.Add("Ave tote utilisation"); //[6a]
+            headers.Add("Max tote utilisation"); //[7a]
+
+            headers.Add("Min cart utilisation"); //[5b]
+            headers.Add("Ave cart utilisation"); //[6b]
+            headers.Add("Max cart utilisation"); //[7b]
 
             headers.Add("Min number of totes per batch"); //[8]
             headers.Add("Ave number of totes per batch"); //[9]
             headers.Add("Max number of totes per batch"); //[10]
 
-            headers.Add("Min items per tote"); //[11]
-            headers.Add("Ave items per tote"); //[12]
-            headers.Add("Max items per tote"); //[13]
+            headers.Add("Min items per tote"); //[11a]
+            headers.Add("Ave items per tote"); //[12a]
+            headers.Add("Max items per tote"); //[13a]
+
+            headers.Add("Min items per cart"); //[11b]
+            headers.Add("Ave items per cart"); //[12b]
+            headers.Add("Max items per cart"); //[13b]
 
             headers.Add("Ave number of active pickers"); //[14]
             headers.Add("Max number of active pickers"); //[15]
@@ -445,6 +674,9 @@ namespace O2DESNet.Warehouse
 
             headers.Add("Ave number of totes in front of sorting stations"); //[22]
             headers.Add("Max number of totes in front of sorting stations"); //[23]
+
+            headers.Add("Number of orders to sorting"); //[24]
+            headers.Add("Number of orders without sorting"); //[25]
 
             return headers;
         }

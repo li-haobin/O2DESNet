@@ -23,14 +23,15 @@ namespace O2DESNet.Warehouse.Dynamics
         public Dictionary<PickerType, int> MaxPickListSize { get; private set; }
         public Dictionary<PickerType, int> MinPickListSize { get; private set; }
         public Dictionary<PickerType, TimeSpan> TotalPickingTime { get; private set; }
-        
+
+        public Dictionary<PickerType, HashSet<Order>> CompletedOrder { get; private set; }
 
         public Dictionary<PickerType, double> MinCartUtilisation { get; private set; }
         public Dictionary<PickerType, double> MaxCartUtilisation { get; private set; }
         public Dictionary<PickerType, List<double>> AllCartUtilisation { get; private set; }
 
         public TimeSpan TotalPickListWaitingTime { get; set; }
-        
+
         public int NumActivePickers { get; private set; }
         public int MaxActivePickers { get; private set; }
         public TimeSpan AreaPickerTime { get; private set; }
@@ -45,7 +46,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         private void AccrueAreaPickerTime()
         {
-            AreaPickerTime += MultiplyTimeSpan(_sim.ClockTime - NumPickersJumpTime, NumActivePickers);
+            AreaPickerTime += (_sim.ClockTime - NumPickersJumpTime).Multiply(NumActivePickers);
             NumPickersJumpTime = _sim.ClockTime;
         }
 
@@ -85,6 +86,33 @@ namespace O2DESNet.Warehouse.Dynamics
 
             // Send to consolidation
             _sim.Scenario.Consolidator.ProcessCompletedPicklist(_sim, picker.Picklist);
+
+            // TODO: This is kind of useless? No difference in the counts.
+            // Well, at least I verified that the counting method is correct.
+            // I guess the problem is with the fact that there are missing stuff.
+            // Count order...
+            if (!CompletedOrder.ContainsKey(picker.Type)) CompletedOrder.Add(picker.Type, new HashSet<Order>());
+            if (!(picker.Type.PickerType_ID == PicklistGenerator.B_PickerID_SingleItem ||
+                picker.Type.PickerType_ID == PicklistGenerator.C_PickerID_SingleItem ||
+                picker.Type.PickerType_ID == PicklistGenerator.D_PickerID_SingleItem))
+            {   // Non-single item
+                if (picker.Picklist.orders.Count > 0)
+                {
+                    // order-based
+                    foreach (var order in picker.Picklist.orders)
+                    {
+                        CompletedOrder[picker.Type].Add(order);
+                    }
+                }
+                else
+                {
+                    // Item-based
+                    foreach (var order in picker.Picklist.orderBatch.Orders)
+                    {
+                        CompletedOrder[picker.Type].Add(order);
+                    }
+                }
+            }
         }
 
         public TimeSpan GetAveragePickListTime(PickerType type)
@@ -129,7 +157,7 @@ namespace O2DESNet.Warehouse.Dynamics
             return 1.0 * NumItemsSorted / OrderBatch.GetTotalNumBatches();
         }
 
-        
+
 
         // Sorters
         public int NumActiveSorters { get; private set; }
@@ -139,7 +167,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         private void AccrueAreaSorterTime()
         {
-            AreaSorterTime += MultiplyTimeSpan(_sim.ClockTime - NumSortersJumpTime, NumActiveSorters);
+            AreaSorterTime += (_sim.ClockTime - NumSortersJumpTime).Multiply(NumActiveSorters);
             NumSortersJumpTime = _sim.ClockTime;
         }
         public void IncrementActiveSorter()
@@ -169,7 +197,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         private void AccrueAreaBatchWaitingTime()
         {
-            AreaBatchWaitingTime += MultiplyTimeSpan(_sim.ClockTime - NumBatchWaitingJumpTime, NumBatchesWaitingForSorting);
+            AreaBatchWaitingTime += (_sim.ClockTime - NumBatchWaitingJumpTime).Multiply(NumBatchesWaitingForSorting);
             NumBatchWaitingJumpTime = _sim.ClockTime;
         }
         public void IncrementBatchWaiting()
@@ -202,7 +230,7 @@ namespace O2DESNet.Warehouse.Dynamics
 
         private void AccrueAreaToteWaitingTime()
         {
-            AreaToteWaitingTime += MultiplyTimeSpan(_sim.ClockTime - NumToteWaitingJumpTime, NumTotesWaitingForSorting);
+            AreaToteWaitingTime += (_sim.ClockTime - NumToteWaitingJumpTime).Multiply(NumTotesWaitingForSorting);
             NumToteWaitingJumpTime = _sim.ClockTime;
         }
         public void IncrementToteWaiting(int num)
@@ -239,6 +267,8 @@ namespace O2DESNet.Warehouse.Dynamics
             MinCartUtilisation = new Dictionary<PickerType, double>();
             AllCartUtilisation = new Dictionary<PickerType, List<double>>();
 
+            CompletedOrder = new Dictionary<PickerType, HashSet<Order>>();
+
             TotalPickListWaitingTime = TimeSpan.Zero;
 
             NumActivePickers = 0;
@@ -267,7 +297,7 @@ namespace O2DESNet.Warehouse.Dynamics
             MaxActiveSorters = 0;
             AreaSorterTime = TimeSpan.Zero;
             NumSortersJumpTime = _sim.ClockTime;
-            
+
             OrderBatchStartWaitForSorting = new Dictionary<OrderBatch, DateTime>();
             OrderBatchWaitingTimeForSorting = new Dictionary<OrderBatch, TimeSpan>();
             NumBatchesWaitingForSorting = 0;
@@ -280,10 +310,5 @@ namespace O2DESNet.Warehouse.Dynamics
             NumToteWaitingJumpTime = _sim.ClockTime;
         }
 
-        private TimeSpan MultiplyTimeSpan(TimeSpan duration, int multiplier)
-        {
-            duration = TimeSpan.FromTicks(duration.Ticks * multiplier);
-            return duration;
-        }
     }
 }

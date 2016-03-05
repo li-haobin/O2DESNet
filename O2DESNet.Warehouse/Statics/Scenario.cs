@@ -57,8 +57,9 @@ namespace O2DESNet.Warehouse.Statics
 
         public Scenario(string name)
         {
+            // Reset all static counters
             ControlPoint._count = 0;
-            Statics.Path._count = 0;
+            Path._count = 0;
             OrderBatch._count = 0;
 
             Name = name;

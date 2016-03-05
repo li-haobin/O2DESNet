@@ -42,7 +42,7 @@ namespace O2DESNet.Warehouse.Dynamics
             pickJobs.RemoveAt(0);
         }
 
-        public int ItemCount
+        public int ItemsCount
         {
             get { return pickJobs.Count; }
         }
@@ -57,11 +57,13 @@ namespace O2DESNet.Warehouse.Dynamics
                 picker.Type.PickerType_ID == PicklistGenerator.C_PickerID_SingleZone)
             {
                 // Order-based
+                if (orders.Count == 0) throw new Exception("This picklist is empty. Should not exist.");
                 utilisation = 1.0 * orders.Count / picker.Type.Capacity;
             }
             else
             {
                 // Item-based
+                if (pickJobs.Count == 0) throw new Exception("This picklist is empty. Should not exist.");
                 utilisation = 1.0 * pickJobs.Count / picker.Type.Capacity;
             }
 
