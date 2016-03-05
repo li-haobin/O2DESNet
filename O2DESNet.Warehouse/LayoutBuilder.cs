@@ -23,7 +23,7 @@ namespace O2DESNet.Warehouse
 
             #region Aisles
             var aisleMain = wh.CreateAisle("aisleMain", interRowSpace * 99 + aisleWidth * 3);
-            var aisleEF = wh.CreateAisle("aisleEF", aisleMain.Length);
+            var aisleEF = wh.CreateAisle("aisleEF", interRowSpace * 125 + aisleWidth * 3);
             var aisleAB = wh.CreateAisle("aisleAB", interRowSpace * 72 + aisleWidth * 2);
             var aisleCD = wh.CreateAisle("aisleCD", aisleMain.Length + aisleAB.Length - aisleWidth);
             var aisleDSpecial = wh.CreateAisle("aisleDSpecial", interRowSpace * 20 + aisleWidth);
@@ -63,21 +63,22 @@ namespace O2DESNet.Warehouse
             #endregion
 
             #region Rows
-            CreateRowBlock(aisleCD, 0, "C", 1, 41, 11); // Given numshelf = 7
-            CreateRowBlock(aisleCD, 0, "D", 1, 42, 10); // Given numshelf = 6
-            CreateRowBlock(aisleCD, positionV2, "C", 42, 99, 11); // Given numshelf = 7
-            CreateRowBlock(aisleCD, positionV2, "D", 43, 98, 10); // Given numshelf = 6
-            CreateRowBlock(aisleCD, aisleMain.Length, "C", 100, 156, 11); // Given numshelf = 7
-            CreateRowBlock(aisleCD, aisleMain.Length, "D", 101, 156, 10); // Given numshelf = 6
+            CreateRowBlock(aisleCD, 0, "C", 1, 41, 11);
+            CreateRowBlock(aisleCD, 0, "D", 1, 42, 11);
+            CreateRowBlock(aisleCD, positionV2, "C", 42, 99, 11);
+            CreateRowBlock(aisleCD, positionV2, "D", 43, 99, 11);
+            CreateRowBlock(aisleCD, aisleMain.Length, "C", 100, 156, 11);
+            CreateRowBlock(aisleCD, aisleMain.Length, "D", 100, 156, 11);
 
-            CreateRowBlock(aisleEF, 0, "F", 1, 82, 8); // Given numshelf = 6
-            CreateRowBlock(aisleEF, 0, "E", 1, 42, 6);
-            CreateRowBlock(aisleEF, positionV2, "E", 43, 99, 6);
+            CreateRowBlock(aisleEF, 0, "F", 1, 125, 8);
+            CreateRowBlock(aisleEF, 0, "E", 1, 42, 8);
+            CreateRowBlock(aisleEF, positionV2, "E", 43, 125, 8);
 
             //CreateRowBlock(aisleDSpecial, 0, "D", 79, 98, 4); // Given, duplicated!
-            CreateRowBlock(aisleDSpecial, 0, "D", 99, 100, 10); // Given numshelf = 4
+            //CreateRowBlock(aisleDSpecial, 0, "D", 99, 100, 10); // disappeared in new layout
+
             CreateRowBlock(aisleY, 0, "Y", 1, 8, 9); // Given numshelf = 8
-            CreateRowBlock(aisleZ, 0, "Z", 1, 11, 12);
+            CreateRowBlock(aisleZ, 0, "Z", 1, 11, 12); // Given Z1-8
 
             CreateRowBlock(aisleAB, 0, "B", 87, 158, 14); // Given numshelf = 7
             CreateRowBlock(aisleAB, 0, "A", 87, 158, 14); // Given numshelf = 6
