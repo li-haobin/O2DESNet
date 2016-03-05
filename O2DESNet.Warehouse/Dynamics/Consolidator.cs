@@ -62,7 +62,7 @@ namespace O2DESNet.Warehouse.Dynamics
                     sortingStation.AssignOrderBatch(orderBatch);
                 }
 
-                sim.Status.IncrementToteWaiting(picklist.ItemCount);
+                sim.Status.IncrementToteWaiting(1); // one picklist is one tote
                 sortingStation.picklists.Add(picklist);
 
                 if (sortingStation.IsReadyToSort())

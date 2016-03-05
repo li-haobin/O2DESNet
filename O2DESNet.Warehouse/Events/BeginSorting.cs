@@ -25,16 +25,17 @@ namespace O2DESNet.Warehouse.Events
 
             double sortingTime = sortingStation.GetSortingTime(); // Calculates numItems as well
             int numItems = sortingStation.numItems;
+            int numTotes = sortingStation.picklists.Count;
             _sim.Status.NumItemsSorted += numItems;
             if (numItems > _sim.Status.MaxNumItemsSorted) _sim.Status.MaxNumItemsSorted = numItems;
             _sim.Status.OrderBatchWaitingTimeForSorting.Add(sortingStation.orderBatch, _sim.ClockTime - _sim.Status.OrderBatchStartWaitForSorting[sortingStation.orderBatch]);
 
             // Clear and continue to sort
-            sortingStation.ClearSortingStation();
             _sim.Status.DecrementBatchWaiting();
-            _sim.Status.DecrementToteWaiting(numItems);
+            _sim.Status.DecrementToteWaiting(numTotes);
             _sim.Scenario.Consolidator.NumSortersAvailable--;
             _sim.Status.IncrementActiveSorter();
+            sortingStation.ClearSortingStation();
             _sim.ScheduleEvent(new CompleteSorting(_sim, sortingStation), TimeSpan.FromMinutes(sortingTime));
         }
 
