@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
+using O2DESNet.Warehouse.Statics;
 
 namespace O2DESNet.Warehouse
 {
@@ -12,6 +13,7 @@ namespace O2DESNet.Warehouse
         private static string inputFile = "_InputParams";
         private static string outputFolder = @"Outputs\";
         private static string outputFile = "_Output_";
+        private static string orderCountFile = "_OrderCount_";
         private static string csv = ".csv";
         /// <summary>
         /// Flag to determine if input has been read
@@ -28,6 +30,9 @@ namespace O2DESNet.Warehouse
         public static int NumSorters; // number of simultaneous sorters
 
         private static List<string> outputCSV;
+
+        // Debug: count the number of orders:
+        public static Dictionary<PicklistGenerator.Strategy, List<int>> OrderCount;
 
         /// <summary>
         /// Converts csv file with header into list (row) of string array (column)
@@ -102,12 +107,31 @@ namespace O2DESNet.Warehouse
 
         public static void WriteOutputFile(WarehouseSim whsim)
         {
+            ResolveNumOrderError(); // HACK: because of the counting error...
+
             string scenarioName = whsim.sim.Scenario.Name;
             int runID = whsim.RunID;
             string filename = OutputFileName(scenarioName, runID);
 
             File.WriteAllLines(filename, outputCSV.ToArray());
-            outputCSV = null;
+            outputCSV = null; // clear
+        }
+
+        public static void WriteNumOrderFile(WarehouseSim whsim)
+        {
+            string scenarioName = whsim.sim.Scenario.Name;
+            int runID = whsim.RunID;
+            string filename = OrderCountFilename(scenarioName, runID);
+
+            List<string> output = new List<string>();
+
+            foreach (var strategy in OrderCount.Keys)
+            {
+                output.Add(strategy.ToString() + "," + string.Join(",", OrderCount[strategy].ToArray()));
+            }
+
+            File.WriteAllLines(filename, output.ToArray());
+            OrderCount = null; // clear
         }
 
         /// <summary>
@@ -128,6 +152,43 @@ namespace O2DESNet.Warehouse
         private static string OutputFileName(string scenarioName, int id)
         {
             return outputFolder + scenarioName + outputFile + id.ToString() + csv;
+        }
+
+        private static string OrderCountFilename(string scenarioName, int id)
+        {
+            return outputFolder + scenarioName + orderCountFile + id.ToString() + csv;
+        }
+
+        // HACK: Resolve counting error here...
+        private static void ResolveNumOrderError()
+        {
+            var numLines = outputCSV.Count;
+            var withSorting = outputCSV[numLines - 2].Split(',');
+            var noSorting = outputCSV[numLines-1].Split(',');
+
+            var totalOrders = int.Parse(noSorting[2]); // Correct
+            var wrongTotal = int.Parse(noSorting[3]) + int.Parse(withSorting[3]); // Wrong, over-count
+            var correction = wrongTotal - totalOrders;
+
+            // Correct with sorting
+            List<string> lineWithSorting = new List<string>();
+            lineWithSorting.Add(withSorting[0]); // header
+            lineWithSorting.Add(withSorting[1]); // sorting A = 0
+            lineWithSorting.Add(withSorting[2]); // sorting B = 0
+            lineWithSorting.Add((int.Parse(withSorting[3]) - correction).ToString()); // Sorting C, -correction
+            lineWithSorting.Add((int.Parse(withSorting[4]) - correction).ToString()); // Sorting D, -correction
+
+            outputCSV[numLines - 2] = string.Join(",", lineWithSorting.ToArray());
+
+            // Correct no sorting
+            List<string> lineNoSorting = new List<string>();
+            lineNoSorting.Add(noSorting[0]); // header
+            lineNoSorting.Add(noSorting[2]); // no sorting A = no sorting B
+            lineNoSorting.Add(noSorting[2]); // no sorting B
+            lineNoSorting.Add(noSorting[3]); // no sorting C
+            lineNoSorting.Add(noSorting[4]); // no sorting D
+
+            outputCSV[numLines - 1] = string.Join(",", lineNoSorting.ToArray());
         }
     }
 }

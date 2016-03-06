@@ -39,6 +39,9 @@ namespace O2DESNet.Warehouse.Statics
         public Dictionary<PickerType, int> NumOrders { get; private set; }
         public Dictionary<PickerType, List<PickList>> MasterPickList { get; private set; }
 
+        // This is just purely by counting the valid orders. Not considering insufficient SKUs.
+        public Dictionary<PickerType, int> NumOrdersALL { get; private set; }
+
         public int MasterBatchSize { get; private set; }
 
         public int orderCount { get; private set; }
@@ -85,6 +88,18 @@ namespace O2DESNet.Warehouse.Statics
 
             MasterPickList = new Dictionary<PickerType, List<PickList>>();
             NumOrders = new Dictionary<PickerType, int>();
+            NumOrdersALL = new Dictionary<PickerType, int>();
+
+            // Debug
+            if(IOHelper.OrderCount == null)
+            {
+                IOHelper.OrderCount = new Dictionary<Strategy, List<int>>();
+                IOHelper.OrderCount.Add(Strategy.A, new List<int>());
+                IOHelper.OrderCount.Add(Strategy.B, new List<int>());
+                IOHelper.OrderCount.Add(Strategy.C, new List<int>());
+                IOHelper.OrderCount.Add(Strategy.D, new List<int>());
+            }
+            // End debug
 
             if (strategy == Strategy.A) StrategyA(scenario);
             if (strategy == Strategy.B) StrategyB(scenario);
@@ -198,6 +213,9 @@ namespace O2DESNet.Warehouse.Statics
         private void StrategyA(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
+            List<Order> unfulfilledOrders = new List<Order>();
+
+            IOHelper.OrderCount[Strategy.A].Add(orders.Count);
 
             while (orders.Count > 0)
             {
@@ -205,8 +223,13 @@ namespace O2DESNet.Warehouse.Statics
                 List<Order> releasedOrders = orders.ExtractRange(0, OrderQty);
 
                 // Assume only one picker type A_Picker
-                GeneratePicklistsFromOrders(scenario, releasedOrders, A_PickerID); // Order-based
+                var unfulfilled = GeneratePicklistsFromOrders(scenario, releasedOrders, A_PickerID); // Order-based
+                unfulfilledOrders.AddRange(unfulfilled);
             }
+            //var test = unfulfilledOrders.ExtractAll(o => o.Items.Count == 0);
+            //if (test.Count > 0) throw new Exception("What???");
+
+            IOHelper.OrderCount[Strategy.A].Add(unfulfilledOrders.Count);
         }
         /// <summary>
         /// Hybrid Order Picking
@@ -215,6 +238,10 @@ namespace O2DESNet.Warehouse.Statics
         private void StrategyB(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
+            List<Order> unfulfilledOrders = new List<Order>();
+            int singleItemUnfulfilled = 0;
+
+            IOHelper.OrderCount[Strategy.B].Add(orders.Count);
 
             while (orders.Count > 0)
             {
@@ -222,16 +249,22 @@ namespace O2DESNet.Warehouse.Statics
                 List<Order> releasedOrders = orders.ExtractRange(0, OrderQty);
 
                 List<Order> singleItemOrders = ExtractSingleItemOrders(releasedOrders);
+                IOHelper.OrderCount[Strategy.B].Add(releasedOrders.Count);
 
                 GenerateSingleZoneOrders(scenario, releasedOrders, B_PickerID_SingleZone); // Order-based
-
+                IOHelper.OrderCount[Strategy.B].Add(releasedOrders.Count);
+                
                 // Remaining order in List orders are multi-zone orders
-                GeneratePicklistsFromOrders(scenario, releasedOrders, B_PickerID_MultiZone); // Order-based
+                var unfulfilled = GeneratePicklistsFromOrders(scenario, releasedOrders, B_PickerID_MultiZone); // Order-based
+                unfulfilledOrders.AddRange(unfulfilled);
 
                 // Single-Item orders last
                 //GeneratePicklistsFromOrders(scenario, singleItemOrders, B_PickerID_SingleItem);
-                GenerateSingleItemOrders(scenario, singleItemOrders, B_PickerID_SingleItem); // Item-based
+                singleItemUnfulfilled += GenerateSingleItemOrders(scenario, singleItemOrders, B_PickerID_SingleItem); // Item-based
             }
+
+            IOHelper.OrderCount[Strategy.B].Add(unfulfilledOrders.Count);
+            IOHelper.OrderCount[Strategy.B].Add(singleItemUnfulfilled);
         }
         /// <summary>
         /// Hybrid Zone Picking
@@ -240,6 +273,9 @@ namespace O2DESNet.Warehouse.Statics
         private void StrategyC(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
+            int singleItemUnfulfilled = 0;
+
+            IOHelper.OrderCount[Strategy.C].Add(orders.Count);
 
             while (orders.Count > 0)
             {
@@ -248,15 +284,20 @@ namespace O2DESNet.Warehouse.Statics
 
                 List<Order> singleItemOrders = ExtractSingleItemOrders(releasedOrders);
 
+                IOHelper.OrderCount[Strategy.C].Add(releasedOrders.Count);
                 GenerateSingleZoneOrders(scenario, releasedOrders, C_PickerID_SingleZone); // Order-based
 
                 // Split remaining orders into zones
+                IOHelper.OrderCount[Strategy.C].Add(releasedOrders.Count);
                 GeneratePureZoneOrders(scenario, releasedOrders, C_PickerID_MultiZone); // Item-based
+                IOHelper.OrderCount[Strategy.C].Add(releasedOrders.Count);
 
                 // Single-Item orders last
                 //GeneratePicklistsFromOrders(scenario, singleItemOrders, C_PickerID_SingleItem);
-                GenerateSingleItemOrders(scenario, singleItemOrders, C_PickerID_SingleItem); // Item-based
+                singleItemUnfulfilled += GenerateSingleItemOrders(scenario, singleItemOrders, C_PickerID_SingleItem); // Item-based
             }
+
+            IOHelper.OrderCount[Strategy.C].Add(singleItemUnfulfilled);
         }
         /// <summary>
         /// Pure Zone Picking
@@ -265,6 +306,9 @@ namespace O2DESNet.Warehouse.Statics
         private void StrategyD(Scenario scenario)
         {
             List<Order> orders = AllOrders.Values.ToList();
+            int singleItemUnfulfilled = 0;
+
+            IOHelper.OrderCount[Strategy.D].Add(orders.Count);
 
             while (orders.Count > 0)
             {
@@ -273,30 +317,39 @@ namespace O2DESNet.Warehouse.Statics
 
                 List<Order> singleItemOrders = ExtractSingleItemOrders(releasedOrders);
 
+                IOHelper.OrderCount[Strategy.D].Add(releasedOrders.Count);
                 // Split remaining orders into zones (Multi-Item)
                 GeneratePureZoneOrders(scenario, releasedOrders, D_PickerID_MultiItem); // Item-based
+                IOHelper.OrderCount[Strategy.D].Add(releasedOrders.Count);
 
                 // Single-Item orders last
                 //GeneratePicklistsFromOrders(scenario, singleItemOrders, D_PickerID_SingleItem);
-                GenerateSingleItemOrders(scenario, singleItemOrders, D_PickerID_SingleItem); // Item-based
+                singleItemUnfulfilled += GenerateSingleItemOrders(scenario, singleItemOrders, D_PickerID_SingleItem); // Item-based
             }
+
+            IOHelper.OrderCount[Strategy.D].Add(singleItemUnfulfilled);
 
         }
 
         /// <summary>
-        /// Item-based.
+        /// Item-based. Return unfulfilled count.
         /// </summary>
         /// <param name="scenario"></param>
         /// <param name="orders"></param>
         /// <param name="pickerID"></param>
-        private void GenerateSingleItemOrders(Scenario scenario, List<Order> orders, string pickerID)
+        private int GenerateSingleItemOrders(Scenario scenario, List<Order> orders, string pickerID)
         {
             var type = scenario.GetPickerType[pickerID];
             List<SKU> singleItem = orders.SelectMany(o => o.Items).ToList();
             var unfulfilled = GeneratePicklistsFromItems(scenario, singleItem, pickerID);
 
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
-            NumOrders[type] = NumOrders[type] + orders.Count - unfulfilled.Count;
+            NumOrders[type] = NumOrders[type] + orders.Count - unfulfilled.Count; // Ok, because 1 order 1 item
+
+            if (!NumOrdersALL.ContainsKey(type)) NumOrdersALL.Add(type, 0);
+            NumOrdersALL[type] += orders.Count;
+
+            return unfulfilled.Count;
         }
 
         /// <summary>
@@ -310,8 +363,12 @@ namespace O2DESNet.Warehouse.Statics
 
             var type = scenario.GetPickerType[pickerID];
             if (!MasterPickList.ContainsKey(type)) MasterPickList.Add(type, new List<PickList>());
+
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
-            NumOrders[type] += orders.Count;
+            NumOrders[type] += orders.Count; // TODO: Maybe at the end of all these, there will be some orders unprocessed?
+
+            if (!NumOrdersALL.ContainsKey(type)) NumOrdersALL.Add(type, 0);
+            NumOrdersALL[type] += orders.Count;
 
             // OrderBatching
             while (orders.Count > 0)
@@ -325,7 +382,7 @@ namespace O2DESNet.Warehouse.Statics
 
                 HashSet<string> allZones = GetFulfilmentZones(ordersBatch);
                 // This is where order information is lost
-                List<SKU> items = ordersBatch.SelectMany(order => order.Items).ToList(); // Flattening items from orders
+                List<SKU> items = ordersBatch.SelectMany(order => order.Items).ToList(); // Flattening items from orders, mutable
 
                 int startPickListCount = MasterPickList[type].Count;
                 if (allZones.Count > 0) // By right this should always happen, unless a whole batch contains insufficient SKU
@@ -348,6 +405,10 @@ namespace O2DESNet.Warehouse.Statics
                     {
                         scenario.WhichOrderBatch.Add(picklist, scenario.OrderBatches.Last());
                     }
+                }
+                else // a whole batch contains insufficient SKU
+                {
+                    NumOrders[type] -= ordersBatch.Count;
                 }
 
                 // End of batch
@@ -475,6 +536,9 @@ namespace O2DESNet.Warehouse.Statics
             if (!NumOrders.ContainsKey(type)) NumOrders.Add(type, 0);
             //NumOrders[type] += orders.Count;
 
+            if (!NumOrdersALL.ContainsKey(type)) NumOrdersALL.Add(type, 0);
+            NumOrdersALL[type] += orders.Count;
+
             if (MasterPickList[type].Count == 0 || MasterPickList[type].Last().pickJobs.Count > 0)
             {
                 MasterPickList[type].Add(new PickList());
@@ -498,7 +562,9 @@ namespace O2DESNet.Warehouse.Statics
                         orderCount = 0;
                     }
 
+                    // These two seriously just because there are insufficient items
                     var prevPickJobCount = MasterPickList[type].Last().pickJobs.Count;
+                    bool atLeastOneItem = false;
 
                     // Process items in current order
                     foreach (var item in orders.First().Items)
@@ -510,14 +576,24 @@ namespace O2DESNet.Warehouse.Statics
                             InsufficientSKU.Add(item.SKU_ID); // Add to insufficient
                                                               // throw new Exception("No available quantity for reservation for SKU " + item.SKU_ID);
                         }
+                        else
+                        {
+                            atLeastOneItem = true;
+                        }
                     }
 
-                    if (MasterPickList[type].Last().pickJobs.Count > prevPickJobCount)
+                    // Skip if none of the items in the order is found
+                    //if (MasterPickList[type].Last().pickJobs.Count > prevPickJobCount)
+                    if (atLeastOneItem)
                     {
                         // Should only count if the order is processed
                         orderCount++;
                         NumOrders[type]++;
                         MasterPickList[type].Last().orders.Add(orders.First());
+                    }
+                    else
+                    {
+                        unfulfilledOrders.Add(orders.First());
                     }
                 }
 
@@ -527,10 +603,13 @@ namespace O2DESNet.Warehouse.Statics
 
             //NumOrders[type] -= unfulfilledOrders.Count;
 
+            // Trim master picklist, safety
             if (MasterPickList[type].Last().ItemsCount == 0)
             {
                 MasterPickList[type].RemoveAt(MasterPickList[type].Count - 1);
             }
+
+            NumOrdersALL[type] -= unfulfilledOrders.Count;
 
             return unfulfilledOrders;
         }

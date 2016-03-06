@@ -289,14 +289,15 @@ namespace O2DESNet.Warehouse
                 data.Add("XX");
             }
 
-            // TODO: number of orders to sorting
+            // HACK: Make use of aggregated numbers, this is because there are missing items!
+            // Causes the counting to mess up...
             data.Add(GetNumOrdersToSorting().ToString()); // [24] Number of orders to sorting
-            // TODO: number of orders without sorting
             data.Add(GetNumOrdersWithoutSorting().ToString());// [25] Number of orders without sorting
 
             return data;
         }
 
+        
         /// <summary>
         /// Aggregate cycle time for current strategy in seconds per item
         /// </summary>
@@ -594,7 +595,11 @@ namespace O2DESNet.Warehouse
                 {
                     var type = sim.Scenario.GetPickerType[PickerTypeID];
                     //numOrders += sim.Status.CompletedOrder[type].Count;
-                    numOrders += generator.NumOrders[type];
+                    numOrders += generator.NumOrders[type]; // TODO how?? The count mismatch between strategies
+
+                    // Check two ways of counting, prior and posterior
+                    if (generator.NumOrders[type] != sim.Status.CompletedOrder[type].Count)
+                        throw new Exception("Count mismatch!");
                 }
             }
             return numOrders;
@@ -615,12 +620,16 @@ namespace O2DESNet.Warehouse
                             PickerTypeID == PicklistGenerator.D_PickerID_SingleItem))
                     {   // Non-single item
                         //numOrders += sim.Status.CompletedOrder[type].Count;
-                        numOrders += generator.NumOrders[type];
+                        numOrders += generator.NumOrders[type]; // TODO how?? The count mismatch between strategies
+
+                        // Check two ways of counting, prior and posterior
+                        if (generator.NumOrders[type] != sim.Status.CompletedOrder[type].Count)
+                            throw new Exception("Count mismatch!");
                     }
                     else
                     {
                         // Single-item
-                        numOrders += generator.NumOrders[type];
+                        numOrders += generator.NumOrders[type]; // TODO how?? The count mismatch between strategies
                     }
                 }
             }
