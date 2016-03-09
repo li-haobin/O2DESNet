@@ -9,19 +9,17 @@ namespace O2DESNet
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
-        private FutureEventComparer<TScenario, TStatus> _futureEventComparer = new FutureEventComparer<TScenario, TStatus>();
-
         public TStatus Status { get; private set; }
         public TScenario Scenario { get { return Status.Scenario; } }
         public Random DefaultRS { get { return Status.DefaultRS; } }
-        internal List<Event<TScenario, TStatus>> FutureEventList;
+        internal SortedSet<Event<TScenario, TStatus>> FutureEventList;
         public DateTime ClockTime { get; protected set; }
 
         public Simulator(TStatus status)
         {
             Status = status;
             ClockTime = DateTime.MinValue;
-            FutureEventList = new List<Event<TScenario, TStatus>>();
+            FutureEventList = new SortedSet<Event<TScenario, TStatus>>(new FutureEventComparer<TScenario, TStatus>());
 
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
@@ -34,20 +32,14 @@ namespace O2DESNet
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
             evnt.ScheduledTime = time;
-
-            //FutureEventList.Add(evnt);
-            //FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
-
-            var index = FutureEventList.BinarySearch(evnt, _futureEventComparer);
-            if (index < 0) index = ~index;
-            FutureEventList.Insert(index, evnt);
+            FutureEventList.Add(evnt);
         }
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
             var head = FutureEventList.FirstOrDefault();
             if (head == null) return false;
-            FutureEventList.RemoveAt(0);
+            FutureEventList.Remove(head);
 
             /// Execute the event
             ClockTime = head.ScheduledTime;
@@ -119,18 +111,20 @@ namespace O2DESNet
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
         }
 
-        #endregion
+        #endregion   
+    }
 
-        public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
+    public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
             where TScenario : Scenario
             where TStatus : Status<TScenario>
+    {
+        public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
         {
-            public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
-            {
-                return x.ScheduledTime.CompareTo(y.ScheduledTime);
-            }
+            int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
+            if (compare == 0) return x.GetHashCode().CompareTo(y.GetHashCode());
+            return compare;
         }
     }
 
-    
+
 }
