@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,6 +9,8 @@ namespace O2DESNet
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
+        private FutureEventComparer<TScenario, TStatus> _futureEventComparer = new FutureEventComparer<TScenario, TStatus>();
+
         public TStatus Status { get; private set; }
         public TScenario Scenario { get { return Status.Scenario; } }
         public Random DefaultRS { get { return Status.DefaultRS; } }
@@ -31,8 +34,13 @@ namespace O2DESNet
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
             evnt.ScheduledTime = time;
-            FutureEventList.Add(evnt);
-            FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
+
+            //FutureEventList.Add(evnt);
+            //FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
+
+            var index = FutureEventList.BinarySearch(evnt, _futureEventComparer);
+            if (index < 0) index = ~index;
+            FutureEventList.Insert(index, evnt);
         }
         protected bool ExecuteHeadEvent()
         {
@@ -112,5 +120,17 @@ namespace O2DESNet
         }
 
         #endregion
-    }    
+
+        public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
+            where TScenario : Scenario
+            where TStatus : Status<TScenario>
+        {
+            public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
+            {
+                return x.ScheduledTime.CompareTo(y.ScheduledTime);
+            }
+        }
+    }
+
+    
 }
