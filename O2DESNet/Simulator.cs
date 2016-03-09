@@ -11,14 +11,14 @@ namespace O2DESNet
         public TStatus Status { get; private set; }
         public TScenario Scenario { get { return Status.Scenario; } }
         public Random DefaultRS { get { return Status.DefaultRS; } }
-        internal List<FutureEvent<TScenario, TStatus>> FutureEventList;
+        internal List<Event<TScenario, TStatus>> FutureEventList;
         public DateTime ClockTime { get; protected set; }
 
         public Simulator(TStatus status)
         {
             Status = status;
             ClockTime = DateTime.MinValue;
-            FutureEventList = new List<FutureEvent<TScenario, TStatus>>();
+            FutureEventList = new List<Event<TScenario, TStatus>>();
 
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
@@ -30,7 +30,8 @@ namespace O2DESNet
         {
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
-            FutureEventList.Add(new FutureEvent<TScenario, TStatus> { ScheduledTime = time, Event = evnt });
+            evnt.ScheduledTime = time;
+            FutureEventList.Add(evnt);
             FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
         }
         protected bool ExecuteHeadEvent()
@@ -42,7 +43,7 @@ namespace O2DESNet
 
             /// Execute the event
             ClockTime = head.ScheduledTime;
-            head.Event.Invoke();
+            head.Invoke();
             return true;
         }
         public virtual bool Run(TimeSpan duration)
@@ -111,13 +112,5 @@ namespace O2DESNet
         }
 
         #endregion
-    }
-
-    internal class FutureEvent<TScenario, TStatus>
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-    {
-        public DateTime ScheduledTime { get; set; }
-        public Event<TScenario, TStatus> Event { get; set; }
     }    
 }
