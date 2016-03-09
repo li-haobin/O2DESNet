@@ -34,6 +34,16 @@ namespace O2DESNet
             evnt.ScheduledTime = time;
             FutureEventList.Add(evnt);
         }
+        internal protected void Postpone(Event<TScenario, TStatus> evnt, TimeSpan delay)
+        {
+            Cancel(evnt);
+            evnt.ScheduledTime += delay;
+            FutureEventList.Add(evnt);
+        }
+        internal protected void Cancel(Event<TScenario, TStatus> evnt)
+        {
+            if (!FutureEventList.Remove(evnt)) throw new Exception("Specified event is not contained in the Future Event List.");
+        }
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
