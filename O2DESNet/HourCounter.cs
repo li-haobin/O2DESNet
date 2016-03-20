@@ -38,12 +38,15 @@ namespace O2DESNet
         }
         public void ObserveCount(double count, DateTime timestamp)
         {
-            if (timestamp < LastTime)
-                throw new Exception("Time of new count cannot be earlier than current time.");
+            //if (timestamp < LastTime)
+            //    throw new Exception("Time of new count cannot be earlier than current time.");
             if (count > LastCount) TotalIncrementCount += count - LastCount;
             else TotalDecrementCount += LastCount - count;
-            CumValue += (timestamp - LastTime).TotalHours * LastCount;
-            LastTime = timestamp;
+            if (timestamp > LastTime)
+            {
+                CumValue += (timestamp - LastTime).TotalHours * LastCount;
+                LastTime = timestamp;
+            }
             LastCount = count;
         }
         public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
