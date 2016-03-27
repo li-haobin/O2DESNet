@@ -17,6 +17,8 @@ namespace O2DESNet
         protected void Execute(Event<TScenario, TStatus> evnt) { evnt.Simulator = Simulator; evnt.Invoke(); }
         protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time) { Simulator.Schedule(evnt, time); }
         protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Simulator.Schedule(evnt, delay); }
+        protected void Postpone(Event<TScenario, TStatus> evnt, TimeSpan delay) { Simulator.Postpone(evnt, delay); }
+        protected void Cancel(Event<TScenario, TStatus> evnt) { Simulator.Cancel(evnt); }
         protected void Log(string format, params object[] args) { Status.Log(format, args); }
         public DateTime ScheduledTime { get; set; }
     }

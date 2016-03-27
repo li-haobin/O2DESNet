@@ -19,7 +19,10 @@ namespace O2DESNet.Demos.MM1Queue
         }
         internal TimeSpan ServiceTime(Random rs)
         {
-            return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedServiceTime.TotalHours));
+            //return TimeSpan.FromHours(Exponential.Sample(rs, 1.0 / ExpectedServiceTime.TotalHours));
+            var mean = ExpectedServiceTime.TotalHours;
+            var offset = mean;
+            return TimeSpan.FromHours(mean - offset + rs.NextDouble() * offset * 2);
         }
     }
 }
