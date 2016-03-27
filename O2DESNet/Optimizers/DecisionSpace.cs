@@ -7,29 +7,29 @@ namespace O2DESNet.Optimizers
     public class DecisionSpace
     {
         public int Dimension { get; private set; }
-        public decimal[] Lowerbounds { get; private set; }
-        public decimal[] Upperbounds { get; private set; }
-        public List<List<decimal>> Constraints { get; private set; }
+        public double[] Lowerbounds { get; private set; }
+        public double[] Upperbounds { get; private set; }
+        public List<List<double>> Constraints { get; private set; }
 
-        public DecisionSpace(IEnumerable<decimal> lbs, IEnumerable<decimal> ubs)
+        public DecisionSpace(IEnumerable<double> lbs, IEnumerable<double> ubs)
         {
             Dimension = lbs.Count();
             if (Dimension != ubs.Count()) throw new InconsistentDimension();
             Lowerbounds = lbs.ToArray();
             Upperbounds = ubs.ToArray();
-            Constraints = new List<List<decimal>>();
+            Constraints = new List<List<double>>();
         }
 
-        public void AddCstrLe(IEnumerable<decimal> coeffs, decimal bound)
+        public void AddCstrLe(IEnumerable<double> coeffs, double bound)
         {
             if (coeffs.Count() != Dimension) throw new InconsistentDimension();
-            Constraints.Add(coeffs.Concat(new decimal[] { bound }).ToList());
+            Constraints.Add(coeffs.Concat(new double[] { bound }).ToList());
         }
-        public void AddCstrGe(IEnumerable<decimal> coeffs, decimal bound)
+        public void AddCstrGe(IEnumerable<double> coeffs, double bound)
         {
             AddCstrLe(coeffs.Select(c => -c), -bound);
         }
-        internal bool IsFeasible(decimal[] decision)
+        internal bool IsFeasible(double[] decision)
         {
             if (decision.Length != Dimension) throw new InconsistentDimension();
             foreach (var cstr in Constraints)
@@ -39,12 +39,12 @@ namespace O2DESNet.Optimizers
         /// <summary>
         /// Random sample decisions within the space
         /// </summary>
-        public List<decimal[]> Sample(int size, Random rs)
+        public List<double[]> Sample(int size, Random rs)
         {
-            var decisions = new List<decimal[]>();
+            var decisions = new List<double[]>();
             while (decisions.Count < size)
             {
-                var decision = Enumerable.Range(0, Dimension).Select(i => Lowerbounds[i] + (Upperbounds[i] - Lowerbounds[i]) * Convert.ToDecimal(rs.NextDouble())).ToArray();
+                var decision = Enumerable.Range(0, Dimension).Select(i => Lowerbounds[i] + (Upperbounds[i] - Lowerbounds[i]) * rs.NextDouble()).ToArray();
                 if (IsFeasible(decision)) decisions.Add(decision);
             }
             return decisions;

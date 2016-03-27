@@ -15,13 +15,13 @@ namespace O2DESNet.Replicators
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, decimal> objective,
-            decimal inDifferentZone = 0) :
+            Func<TStatus, double> objective,
+            double inDifferentZone = 0) :
             base(scenarios, constrStatus, constrSimulator, terminate, objective)
         { InDifferentZone = inDifferentZone; }
 
-        private decimal _IDZConfidenceLevel = 0.99M;
-        public decimal InDifferentZone { get; private set; }
+        private double _IDZConfidenceLevel = 0.99D;
+        public double InDifferentZone { get; private set; }
         public TScenario Optimum { get { return Statistics.Aggregate((s0, s1) => s0.Value.Mean <= s1.Value.Mean ? s0 : s1).Key; } }
         public TScenario[] InDifferentScenarios {
             get
@@ -33,7 +33,7 @@ namespace O2DESNet.Replicators
             }
         }
 
-        private decimal ProbLessThan(TScenario sc, decimal mean, decimal sqrStdErr, decimal threshold)
+        private double ProbLessThan(TScenario sc, double mean, double sqrStdErr, double threshold)
         {
             var diff = Statistics[sc].Mean - mean;
             var err = Math.Sqrt(Statistics[sc].Variance / Statistics[sc].Count + sqrStdErr);
@@ -43,13 +43,13 @@ namespace O2DESNet.Replicators
         /// <summary>
         /// Probability of correct selection
         /// </summary>
-        public decimal PCS {
+        public double PCS {
             get
             {
                 var optimum = Optimum;
                 var minMean = Statistics[optimum].Mean;
                 var sqrStdErr = Statistics[optimum].Variance / Statistics[optimum].Count;
-                decimal pcs = 1.0M;
+                double pcs = 1.0;
                 foreach (var sc in Scenarios.Except(InDifferentScenarios)) if (sc != optimum)
                         pcs *= 1 - ProbLessThan(sc, minMean, sqrStdErr, 0);
                 return pcs;
@@ -68,7 +68,7 @@ namespace O2DESNet.Replicators
         /// <summary>
         /// Get budget allocation ratios by to OCBA rule, given mean and sigma values for all conigurations
         /// </summary>
-        private static decimal[] OCBARatios(decimal[] means, decimal[] sigmas)
+        private static double[] OCBARatios(double[] means, double[] sigmas)
         {
             var indices = Enumerable.Range(0, means.Count()).ToList();
             var min = means.Min();

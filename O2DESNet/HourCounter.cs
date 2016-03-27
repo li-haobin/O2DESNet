@@ -6,27 +6,27 @@ namespace O2DESNet
     {
         private DateTime _initialTime;
         public DateTime LastTime;
-        public decimal LastCount { get; private set; }
+        public double LastCount { get; private set; }
         /// <summary>
         /// Total number of increment observed
         /// </summary>
-        public decimal TotalIncrementCount { get; private set; }
+        public double TotalIncrementCount { get; private set; }
         /// <summary>
         /// Total number of decrement observed
         /// </summary>
-        public decimal TotalDecrementCount { get; private set; }
+        public double TotalDecrementCount { get; private set; }
         /// <summary>
         /// Total number of hours since the initial time.
         /// </summary>
-        public decimal TotalHours { get { return Convert.ToDecimal((LastTime - _initialTime).TotalHours); } }
+        public double TotalHours { get { return (LastTime - _initialTime).TotalHours; } }
         /// <summary>
         /// The cumulative count value on time in unit of hours
         /// </summary>
-        public decimal CumValue { get; private set; }
+        public double CumValue { get; private set; }
         /// <summary>
         /// The average count on observation period
         /// </summary>
-        public decimal AverageCount { get { return CumValue / TotalHours; } }
+        public double AverageCount { get { return CumValue / TotalHours; } }
         public HourCounter(DateTime initialTime)
         {
             _initialTime = initialTime;
@@ -36,7 +36,7 @@ namespace O2DESNet
             TotalDecrementCount = 0;
             CumValue = 0;
         }
-        public void ObserveCount(decimal count, DateTime timestamp)
+        public void ObserveCount(double count, DateTime timestamp)
         {
             //if (timestamp < LastTime)
             //    throw new Exception("Time of new count cannot be earlier than current time.");
@@ -44,11 +44,11 @@ namespace O2DESNet
             else TotalDecrementCount += LastCount - count;
             if (timestamp > LastTime)
             {
-                CumValue += Convert.ToDecimal((timestamp - LastTime).TotalHours) * LastCount;
+                CumValue += (timestamp - LastTime).TotalHours * LastCount;
                 LastTime = timestamp;
             }
             LastCount = count;
         }
-        public void ObserveChange(decimal change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
+        public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
     }
 }

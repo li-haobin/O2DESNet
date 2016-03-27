@@ -76,8 +76,8 @@ namespace O2DESNet
         #region For Time Dilation
         private DateTime _realTimeAtDilationReset;
         private DateTime _dilatedTimeAtDilationScaleReset;
-        private decimal _timeDilattionScale;
-        public decimal TimeDilationScale
+        private double _timeDilattionScale;
+        public double TimeDilationScale
         {
             get { return _timeDilattionScale; }
             set

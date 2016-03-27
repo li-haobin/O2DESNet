@@ -22,7 +22,7 @@ namespace O2DESNet.Replicators
             Func<TScenario, int, TStatus> constrStatus,
             Func<TStatus, TSimulator> constrSimulator,
             Func<TStatus, bool> terminate,
-            Func<TStatus, decimal> objective)
+            Func<TStatus, double> objective)
         {
             Scenarios = new List<TScenario>();
             Statistics = new Dictionary<TScenario, RunningStatistics>();
@@ -48,10 +48,10 @@ namespace O2DESNet.Replicators
         }
         public void Remove(TScenario scenario) { Scenarios.Remove(scenario); }
 
-        protected void Alloc(int budget, Dictionary<TScenario, decimal> targetRatio)
+        protected void Alloc(int budget, Dictionary<TScenario, double> targetRatio)
         {
             var asgmnt = targetRatio.Keys.ToDictionary(sc => sc, sc => 0);
-            Func<TScenario, decimal> calPriority = sc => (Statistics[sc].Count + asgmnt[sc]) / targetRatio[sc];
+            Func<TScenario, double> calPriority = sc => (Statistics[sc].Count + asgmnt[sc]) / targetRatio[sc];
             var priorities = targetRatio.Keys.ToDictionary(sc => sc, sc => calPriority(sc));
             var scenarios = targetRatio.Keys.OrderBy(sc => priorities[sc]).ToList();
             while (budget > 0)
