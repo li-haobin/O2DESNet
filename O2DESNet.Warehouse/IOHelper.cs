@@ -163,8 +163,8 @@ namespace O2DESNet.Warehouse
         private static void ResolveNumOrderError()
         {
             var numLines = outputCSV.Count;
-            var withSorting = outputCSV[numLines - 2].Split(',');
-            var noSorting = outputCSV[numLines-1].Split(',');
+            var withSorting = outputCSV[numLines - 3].Split(',');
+            var noSorting = outputCSV[numLines - 2].Split(',');
 
             var totalOrders = int.Parse(noSorting[2]); // Correct
             var wrongTotal = int.Parse(noSorting[3]) + int.Parse(withSorting[3]); // Wrong, over-count
@@ -178,7 +178,7 @@ namespace O2DESNet.Warehouse
             lineWithSorting.Add((int.Parse(withSorting[3]) - correction).ToString()); // Sorting C, -correction
             lineWithSorting.Add((int.Parse(withSorting[4]) - correction).ToString()); // Sorting D, -correction
 
-            outputCSV[numLines - 2] = string.Join(",", lineWithSorting.ToArray());
+            outputCSV[numLines - 3] = string.Join(",", lineWithSorting.ToArray());
 
             // Correct no sorting
             List<string> lineNoSorting = new List<string>();
@@ -188,7 +188,7 @@ namespace O2DESNet.Warehouse
             lineNoSorting.Add(noSorting[3]); // no sorting C
             lineNoSorting.Add(noSorting[4]); // no sorting D
 
-            outputCSV[numLines - 1] = string.Join(",", lineNoSorting.ToArray());
+            outputCSV[numLines - 2] = string.Join(",", lineNoSorting.ToArray());
         }
     }
 }

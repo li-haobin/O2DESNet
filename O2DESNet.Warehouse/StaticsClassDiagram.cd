@@ -9,7 +9,7 @@
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <HashCode>IAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
       <FileName>Simulator.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -21,12 +21,12 @@
     <AssociationLine Name="wh" Type="O2DESNet.Warehouse.Statics.Scenario" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="14" Y="3.062" />
-        <Point X="14" Y="4.5" />
-        <Point X="12.25" Y="4.5" />
+        <Point X="14" Y="4.321" />
+        <Point X="12.25" Y="4.321" />
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAQQAAAAAAAAAAAAAAAgAAAAAAAAAAAI=</HashCode>
+      <HashCode>EAAAEBAI0AAABgUACBgSAAIsBBgCAIhBKAAAAAEgBEI=</HashCode>
       <FileName>WarehouseSim.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -37,7 +37,7 @@
   <Class Name="O2DESNet.Warehouse.Statics.ControlPoint" Collapsed="true">
     <Position X="8.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAACAAAAAAAAAACgAAAAAAAAAIAAAAAAAACIAAAAAAA=</HashCode>
+      <HashCode>AQACAAQAAAAAAACgAAAAAAAAAIAAAAAAAACIAAEAAAA=</HashCode>
       <FileName>Statics\ControlPoint.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -53,20 +53,17 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAgAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAgAABQAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAA=</HashCode>
       <FileName>Statics\CPRack.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="OnShelf" />
     </ShowAsAssociation>
-    <ShowAsCollectionAssociation>
-      <Property Name="SKUs" />
-    </ShowAsCollectionAssociation>
   </Class>
   <Class Name="O2DESNet.Warehouse.Statics.Path" Collapsed="true">
     <Position X="3.25" Y="2.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAICAABAAAQAAAAAACAAAABAAAAAAAAAAACAAAQAAAA=</HashCode>
+      <HashCode>AAICAAAAAAQAAAAAACAAAABAEAAAAAAAAACAAAQAAAA=</HashCode>
       <FileName>Statics\Path.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -116,7 +113,7 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAACAAAABAAAAAAAAAAAAAAAAAgQA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAICAAAABAAAAAAAAAAAAAAAAAgQA=</HashCode>
       <FileName>Statics\PathRow.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -145,7 +142,7 @@
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAQAAAAAAAAAAAAAAAAAAgAACgAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAQAAAAAAAAAIAAAAAAAAgAACgAAAAAAAAAAAAA=</HashCode>
       <FileName>Statics\PathShelf.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -161,15 +158,20 @@
       <Compartment Name="Methods" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>EIC0AAAgAQAAIUMAAAAgAICAAgAACAAAAAgAAAQKAYM=</HashCode>
+      <HashCode>GIG8gCAgZRQAoEMAAABgRJSgCpgACAAAAEgACAQKAYs=</HashCode>
       <FileName>Statics\Scenario.cs</FileName>
     </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Aisles" />
+      <Property Name="Racks" />
+      <Property Name="SKUs" />
+    </ShowAsCollectionAssociation>
   </Class>
-  <Class Name="O2DESNet.Warehouse.Statics.SKU" Collapsed="true">
-    <Position X="8.25" Y="5" Width="1.5" />
+  <Class Name="O2DESNet.Warehouse.Dynamics.SKU" Collapsed="true">
+    <Position X="8.25" Y="5.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABAAAAAAAAAgAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Statics\SKU.cs</FileName>
+      <HashCode>CBAEACAAAAAgSAAAAAAAAgAgAAAAQAAIAAAAAAAAABA=</HashCode>
+      <FileName>Dynamics\SKU.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Font Name="Segoe UI" Size="9" />

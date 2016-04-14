@@ -669,7 +669,6 @@ namespace O2DESNet.Warehouse.Statics
         #endregion
 
         #region Read Orders    
-        // TODO: Call this with autoResolve = true
         /// <summary>
         /// CSV file in Picklist folder
         /// </summary>
@@ -825,7 +824,6 @@ namespace O2DESNet.Warehouse.Statics
             }
         }
 
-        // TODO: count the required quantities in order, match with availability
         // orders: AllOrders
         // availability: scenario.SKUs
         private void ForceAvailability(Scenario scenario, bool autoResolve)

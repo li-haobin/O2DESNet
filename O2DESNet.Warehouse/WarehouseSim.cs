@@ -113,6 +113,7 @@ namespace O2DESNet.Warehouse
             sim.Run(TimeSpan.FromHours(hours));
         }
 
+        // Console output
         public void PrintStatistics()
         {
             Console.WriteLine("*********************************************************");
@@ -294,9 +295,15 @@ namespace O2DESNet.Warehouse
             data.Add(GetNumOrdersToSorting().ToString()); // [24] Number of orders to sorting
             data.Add(GetNumOrdersWithoutSorting().ToString());// [25] Number of orders without sorting
 
+            data.Add(GetSimulationRunLength().ToString(@"hh\:mm\:ss")); // [26] Time to complete all jobs
+
             return data;
         }
 
+        internal TimeSpan GetSimulationRunLength()
+        {
+            return sim.ClockTime - DateTime.MinValue;
+        }
 
         /// <summary>
         /// Aggregate cycle time for current strategy in seconds per item
@@ -686,6 +693,8 @@ namespace O2DESNet.Warehouse
 
             headers.Add("Number of orders to sorting"); //[24]
             headers.Add("Number of orders without sorting"); //[25]
+
+            headers.Add("Time to complete all jobs (hh:mm:ss)"); // [26] Time to complete all jobs
 
             return headers;
         }
