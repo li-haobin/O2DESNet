@@ -26,5 +26,25 @@ namespace O2DESNet.Warehouse
         {
             return TimeSpan.FromTicks(timeSpan.Ticks * multiplier);
         }
+
+        public static IEnumerable<TValue> RandomValues<TKey, TValue>(IDictionary<TKey, TValue> dict)
+        {
+            List<TValue> values = Enumerable.ToList(dict.Values);
+            int size = dict.Count;
+            while (true)
+            {
+                yield return values[Simulator.RS.Next(size)];
+            }
+        }
+
+        public static IEnumerable<TKey> RandomKeys<TKey, TValue>(IDictionary<TKey, TValue> dict)
+        {
+            List<TKey> values = Enumerable.ToList(dict.Keys);
+            int size = dict.Count;
+            while (true)
+            {
+                yield return values[Simulator.RS.Next(size)];
+            }
+        }
     }
 }

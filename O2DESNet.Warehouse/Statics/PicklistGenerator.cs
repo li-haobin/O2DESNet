@@ -15,6 +15,8 @@ namespace O2DESNet.Warehouse.Statics
     /// </summary>
     public class PicklistGenerator
     {
+        private Random rnd;
+
         public enum Strategy { A, B, C, D };
 
         public const string A_PickerID = "Strategy_A_Picker";
@@ -53,6 +55,8 @@ namespace O2DESNet.Warehouse.Statics
 
         public PicklistGenerator()
         {
+            rnd = new Random(0);
+
             PickerIdsInStrategy = new Dictionary<Strategy, List<string>>();
             PickerIdsInStrategy.Add(Strategy.A, new List<string> { A_PickerID });
             PickerIdsInStrategy.Add(Strategy.B, new List<string> { B_PickerID_SingleZone, B_PickerID_MultiZone, B_PickerID_SingleItem });
@@ -91,7 +95,7 @@ namespace O2DESNet.Warehouse.Statics
             NumOrdersALL = new Dictionary<PickerType, int>();
 
             // Debug
-            if(IOHelper.OrderCount == null)
+            if (IOHelper.OrderCount == null)
             {
                 IOHelper.OrderCount = new Dictionary<Strategy, List<int>>();
                 IOHelper.OrderCount.Add(Strategy.A, new List<int>());
@@ -253,7 +257,7 @@ namespace O2DESNet.Warehouse.Statics
 
                 GenerateSingleZoneOrders(scenario, releasedOrders, B_PickerID_SingleZone); // Order-based
                 IOHelper.OrderCount[Strategy.B].Add(releasedOrders.Count);
-                
+
                 // Remaining order in List orders are multi-zone orders
                 var unfulfilled = GeneratePicklistsFromOrders(scenario, releasedOrders, B_PickerID_MultiZone); // Order-based
                 unfulfilledOrders.AddRange(unfulfilled);
@@ -665,12 +669,15 @@ namespace O2DESNet.Warehouse.Statics
         #endregion
 
         #region Read Orders    
+        // TODO: Call this with autoResolve = true
         /// <summary>
         /// CSV file in Picklist folder
         /// </summary>
         /// <param name="filename"></param>
-        public void ReadOrders(Scenario scenario, string filename)
+        public void ReadOrders(Scenario scenario, string filename, bool autoResolve = false)
         {
+            // scenario.SKUs contain all SKUs already read
+
             // For debug
             IncompleteOrder = new HashSet<string>();
             MissingSKU = new List<string>();
@@ -689,11 +696,19 @@ namespace O2DESNet.Warehouse.Statics
                 while ((line = sr.ReadLine()) != null)
                 {
                     var data = line.Split(',');
-                    var id = data[0];
+                    var order_id = data[0];
                     var sku = data[1];
 
-                    AddOrCreateOrder(scenario, id, sku);
+                    AddOrCreateOrder(scenario, order_id, sku, autoResolve);
                 }
+            }
+
+            // If auto resolved, all orders should be complete...
+            if (autoResolve)
+            {
+                if (IncompleteOrder.Count > 0) throw new Exception("All orders should be complete since auto resolved");
+
+                ForceAvailability(scenario, autoResolve);
             }
 
             // Remove incomplete order
@@ -714,8 +729,23 @@ namespace O2DESNet.Warehouse.Statics
 
             scenario.Orders = new Dictionary<string, Order>(AllOrders);
         }
-        private void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id)
+
+        private void AddOrCreateOrder(Scenario scenario, string order_id, string sku_id, bool autoResolve = false)
         {
+            // Auto Resolve: add missing SKU required in order, assigned to a random location
+            if (autoResolve && !scenario.SKUs.ContainsKey(sku_id))
+            {
+                // Record missing SKU
+                MissingSKU.Add(sku_id);
+
+                // Make SKU
+                var newSKU = new SKU(sku_id);
+                // Get random rack
+                var rack = scenario.Racks.ElementAt(rnd.Next(scenario.Racks.Count)).Value;
+                // Assign SKU to rack
+                scenario.AddToRack(newSKU, rack);
+            }
+
             if (!scenario.SKUs.ContainsKey(sku_id))
             {
                 // Record missing SKU
@@ -727,7 +757,7 @@ namespace O2DESNet.Warehouse.Statics
                 // Find SKU
                 var sku = scenario.SKUs[sku_id];
 
-                // New order
+                // Create new order
                 if (!AllOrders.ContainsKey(order_id))
                 {
                     AllOrders.Add(order_id, new Order(order_id));
@@ -745,6 +775,7 @@ namespace O2DESNet.Warehouse.Statics
         }
         #endregion
 
+        // This is the old "brute-force" method
         public void ResolveInsufficientSKU(string scenarioName)
         {
             string insufficientFile = @"Outputs\" + scenarioName + "_InsufficientSKUs.csv";
@@ -791,6 +822,49 @@ namespace O2DESNet.Warehouse.Statics
                 }
 
                 File.AppendAllLines(SKUFile, AdditionalSKU);
+            }
+        }
+
+        // TODO: count the required quantities in order, match with availability
+        // orders: AllOrders
+        // availability: scenario.SKUs
+        private void ForceAvailability(Scenario scenario, bool autoResolve)
+        {
+            if (!autoResolve) throw new Exception("auto resolve not enabled");
+
+            // Internal counters
+            Dictionary<SKU, int> QtyRequired = new Dictionary<SKU, int>();
+            Dictionary<SKU, int> QtyAvailable = new Dictionary<SKU, int>();
+
+            // Calculate QtyRequired
+            foreach (var order in AllOrders.Values)
+            {
+                order.CountQtyRequired();
+
+                foreach (var kvp in order.QtyRequired)
+                {
+                    if (!QtyRequired.ContainsKey(kvp.Key)) QtyRequired.Add(kvp.Key, 0);
+
+                    QtyRequired[kvp.Key] += kvp.Value;
+                }
+            }
+
+            // Calculate QtyAvailable
+            foreach (var sku in scenario.SKUs.Values)
+            {
+                QtyAvailable.Add(sku, sku.GetTotalQty());
+            }
+
+            // Make everything available
+            foreach (var sku in QtyRequired.Keys)
+            {
+                var additionalQty = QtyRequired[sku] - QtyAvailable[sku];
+                if (additionalQty > 0)
+                {
+                    var atRacks = sku.QtyAtRack.Keys;
+                    var rack = atRacks.ElementAt(rnd.Next(atRacks.Count));
+                    sku.AddToRack(rack, additionalQty);
+                }
             }
         }
     }

@@ -47,7 +47,7 @@ namespace O2DESNet.Warehouse
                 }
                 IOHelper.WriteOutputFile(whsim);
                 //Debug
-                //IOHelper.WriteNumOrderFile(whsim);
+                IOHelper.WriteNumOrderFile(whsim);
 
                 whsim = null; // clear memory
             }

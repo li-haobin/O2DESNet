@@ -20,12 +20,12 @@ namespace O2DESNet.Warehouse
         public int RunID { get; private set; }
 
 
-        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null, int runID = 1)
+        public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null, int runID = 1, string orderFilename = "ZA_Orders.csv")
         {
             RunID = runID;
             this.strategy = strategy;
             IOHelper.ReadInputParams(scenarioName, RunID);
-            InitializeScenario(scenarioName);
+            InitializeScenario(scenarioName, orderFilename);
             sim = new Simulator(wh); // Only after warehouse has been built and initialised properly.
         }
 
@@ -35,7 +35,7 @@ namespace O2DESNet.Warehouse
             generator.Generate(strategy, wh, true);
         }
 
-        private void InitializeScenario(string scenarioName)
+        private void InitializeScenario(string scenarioName, string orderFilename)
         {
             wh = new Scenario(scenarioName);
             generator = new PicklistGenerator();
@@ -50,7 +50,7 @@ namespace O2DESNet.Warehouse
             wh.ReadPickers();
 
             // Only call after SKU and pickers
-            generator.ReadOrders(wh, "ZA_Orders.csv");
+            generator.ReadOrders(wh, orderFilename, true);
             if (strategy != null) generator.Generate((PicklistGenerator.Strategy)strategy, wh, true);
             //wh.ReadMasterPickList(); // Possible to get directly from PicklistGenerator
 
@@ -297,7 +297,7 @@ namespace O2DESNet.Warehouse
             return data;
         }
 
-        
+
         /// <summary>
         /// Aggregate cycle time for current strategy in seconds per item
         /// </summary>

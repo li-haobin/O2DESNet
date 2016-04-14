@@ -84,6 +84,11 @@ namespace O2DESNet.Warehouse.Dynamics
             return QtyAtRack[rack] - ReservedAtRack[rack];
         }
 
+        public int GetTotalQty()
+        {
+            return QtyAtRack.Values.Sum();
+        }
+
         #region Zone Implementation
         public HashSet<string> GetFulfilmentZones()
         {
