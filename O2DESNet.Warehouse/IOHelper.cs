@@ -9,12 +9,12 @@ namespace O2DESNet.Warehouse
 {
     public static class IOHelper
     {
-        private static string inputFolder = @"Inputs\";
+        public static string inputFolder = @"Inputs\";
         private static string inputFile = "_InputParams";
         private static string outputFolder = @"Outputs\";
         private static string outputFile = "_Output_";
         private static string orderCountFile = "_OrderCount_";
-        private static string csv = ".csv";
+        public static string csv = ".csv";
         /// <summary>
         /// Flag to determine if input has been read
         /// </summary>
@@ -110,9 +110,13 @@ namespace O2DESNet.Warehouse
             ResolveNumOrderError(); // HACK: because of the counting error...
 
             string scenarioName = whsim.sim.Scenario.Name;
-            int runID = whsim.RunID;
-            string filename = OutputFileName(scenarioName, runID);
+            string orderName = whsim.OrderFilename;
+            orderName = orderName.Substring(0, orderName.IndexOf(csv));
 
+            int runID = whsim.RunID;
+            string filename = OutputFileName(orderName, runID);
+
+            
             File.WriteAllLines(filename, outputCSV.ToArray());
             outputCSV = null; // clear
         }

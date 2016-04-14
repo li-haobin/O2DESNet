@@ -4,12 +4,46 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using O2DESNet.Warehouse.Statics;
+using System.IO;
 
 namespace O2DESNet.Warehouse
 {
     public class ExperimentFramework
     {
+        List<string> orderFiles;
 
+        /// <summary>
+        /// Input the csv file containing all the order file names with extension
+        /// </summary>
+        /// <param name="AllOrderFiles"></param>
+        public ExperimentFramework(string AllOrderFiles)
+        {
+            ReadOrderFiles(IOHelper.inputFolder + AllOrderFiles);
+        }
+
+        private void ReadOrderFiles(string allOrderFiles)
+        {
+            orderFiles = new List<string>();
+            string line;
+            using (StreamReader sr = new StreamReader(allOrderFiles))
+            {
+                //sr.ReadLine(); // Skip header
+                while ((line = sr.ReadLine()) != null)
+                {
+                    orderFiles.Add(line);
+                }
+            }
+        }
+
+        public void RunAllOrders()
+        {
+            if (orderFiles.Count == 0) throw new Exception("No order files to run");
+
+            foreach (var orderfile in orderFiles)
+            {
+                ExperimentRunAllStrategies(orderfile);
+            }
+        }
 
         public void ExperimentRunAllStrategies(string orderFilename)
         {
@@ -17,14 +51,16 @@ namespace O2DESNet.Warehouse
             var AllStrategies = Enum.GetValues(typeof(PicklistGenerator.Strategy));
 
             int NumRuns = IOHelper.GetNumRuns("ZA");
-            IOHelper.ClearOutputFiles("ZA");
+            var outputFilenameHead = orderFilename;
+            outputFilenameHead = outputFilenameHead.Substring(0, outputFilenameHead.IndexOf(IOHelper.csv));
+            IOHelper.ClearOutputFiles(outputFilenameHead);
 
             for (int runID = 1; runID <= NumRuns; runID++)
             {
                 //Parallel.ForEach(AllStrategies, ((PicklistGenerator.Strategy)strategy)=>
                 foreach (PicklistGenerator.Strategy strategy in AllStrategies)
                 {
-                    Console.WriteLine("Running Scenario {0} Strategy {1} ...", runID, strategy.ToString());
+                    Console.WriteLine("Running Experiment | Order: {0} | Scenario: {1} | Strategy: {2} ...", orderFilename, runID, strategy.ToString());
                     whsim = null;
                     whsim = new WarehouseSim("ZA", strategy, runID, orderFilename);
                     whsim.Run(24);
@@ -34,7 +70,7 @@ namespace O2DESNet.Warehouse
                 }
                 IOHelper.WriteOutputFile(whsim);
                 //Debug
-                IOHelper.WriteNumOrderFile(whsim);
+                //IOHelper.WriteNumOrderFile(whsim);
 
                 whsim = null; // clear memory
             }

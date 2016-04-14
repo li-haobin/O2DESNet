@@ -15,8 +15,8 @@ namespace O2DESNet.Warehouse
             //WarehouseSim whsim = (WarehouseSim) Serializer.ByteArrayToObject(byteArray);
             //whsim.GeneratePicklist(strategy);
 
-            var experiment = new ExperimentFramework();
-            experiment.ExperimentRunAllStrategies("ZA_Orders.csv");
+            var experiment = new ExperimentFramework("ZA_OrderFiles.csv");
+            experiment.RunAllOrders();
 
             //ExperimentSelectStrategy();
 

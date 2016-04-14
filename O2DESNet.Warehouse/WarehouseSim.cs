@@ -19,9 +19,11 @@ namespace O2DESNet.Warehouse
         public PicklistGenerator.Strategy? strategy { get; set; }
         public int RunID { get; private set; }
 
+        public string OrderFilename { get; set; }
 
         public WarehouseSim(string scenarioName, PicklistGenerator.Strategy? strategy = null, int runID = 1, string orderFilename = "ZA_Orders.csv")
         {
+            OrderFilename = orderFilename;
             RunID = runID;
             this.strategy = strategy;
             IOHelper.ReadInputParams(scenarioName, RunID);
