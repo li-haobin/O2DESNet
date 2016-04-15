@@ -3,3 +3,7 @@
 ################################################################################
 
 /O2DESNet.Demos.MM1Queue/obj/Debug
+/O2DESNet/obj/Debug
+/packages/MathNet.Numerics.3.11.0
+/O2DESNet.Template/obj/Debug
+/O2DESNet.Demos.Workshop/obj/Debug
