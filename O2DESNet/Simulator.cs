@@ -56,13 +56,13 @@ namespace O2DESNet
             head.Invoke();
             return true;
         }
-        public virtual bool Run(TimeSpan duration)
+        public virtual bool Run(TimeSpan duration) { return Run(ClockTime.Add(duration)); }
+        public virtual bool Run(DateTime terminate)
         {
-            var TimeTerminate = ClockTime.Add(duration);
             while (true)
             {
                 if (FutureEventList.Count < 1) return false; // cannot continue
-                if (FutureEventList.First().ScheduledTime <= TimeTerminate) ExecuteHeadEvent();
+                if (FutureEventList.First().ScheduledTime <= terminate) ExecuteHeadEvent();
                 else return true; // to be continued
             }
         }
