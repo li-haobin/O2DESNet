@@ -36,20 +36,29 @@ namespace O2DESNet
             TotalDecrementCount = 0;
             CumValue = 0;
         }
-        public void ObserveCount(double count, DateTime timestamp)
+        public void ObserveCount(double count, DateTime clockTime)
         {
             //if (timestamp < LastTime)
             //    throw new Exception("Time of new count cannot be earlier than current time.");
             if (count > LastCount) TotalIncrementCount += count - LastCount;
             else TotalDecrementCount += LastCount - count;
-            if (timestamp > LastTime)
+            if (clockTime > LastTime)
             {
-                CumValue += (timestamp - LastTime).TotalHours * LastCount;
-                LastTime = timestamp;
+                CumValue += (clockTime - LastTime).TotalHours * LastCount;
+                LastTime = clockTime;
 
             }
             LastCount = count;
         }
-        public void ObserveChange(double change, DateTime timestamp) { ObserveCount(LastCount + change, timestamp); }
+        public void ObserveChange(double change, DateTime clockTime) { ObserveCount(LastCount + change, clockTime); }
+        public void WarmedUp(DateTime clockTime)
+        {
+            // all reset except the last count
+            _initialTime = clockTime;
+            LastTime = clockTime;
+            TotalIncrementCount = 0;
+            TotalDecrementCount = 0;
+            CumValue = 0;
+        }
     }
 }
