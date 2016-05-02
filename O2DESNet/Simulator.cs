@@ -63,7 +63,10 @@ namespace O2DESNet
             {
                 if (FutureEventList.Count < 1) return false; // cannot continue
                 if (FutureEventList.First().ScheduledTime <= terminate) ExecuteHeadEvent();
-                else return true; // to be continued
+                else {
+                    ClockTime = terminate;
+                    return true; // to be continued
+                }
             }
         }
         public virtual bool Run(int eventCount)
@@ -71,6 +74,12 @@ namespace O2DESNet
             while (eventCount-- > 0)
                 if (!ExecuteHeadEvent()) return false;
             return true;
+        }
+
+        public bool WarmUp(TimeSpan duration) {
+            var r = Run(duration);
+            Status.WarmedUp(ClockTime);
+            return r; // to be continued
         }
 
         #region For Time Dilation
