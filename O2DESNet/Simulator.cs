@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,14 +12,14 @@ namespace O2DESNet
         public TStatus Status { get; private set; }
         public TScenario Scenario { get { return Status.Scenario; } }
         public Random DefaultRS { get { return Status.DefaultRS; } }
-        internal List<FutureEvent<TScenario, TStatus>> FutureEventList;
+        internal SortedSet<Event<TScenario, TStatus>> FutureEventList;
         public DateTime ClockTime { get; protected set; }
 
         public Simulator(TStatus status)
         {
             Status = status;
             ClockTime = DateTime.MinValue;
-            FutureEventList = new List<FutureEvent<TScenario, TStatus>>();
+            FutureEventList = new SortedSet<Event<TScenario, TStatus>>(new FutureEventComparer<TScenario, TStatus>());
 
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
@@ -30,29 +31,42 @@ namespace O2DESNet
         {
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
-            FutureEventList.Add(new FutureEvent<TScenario, TStatus> { ScheduledTime = time, Event = evnt });
-            FutureEventList.Sort((x, y) => x.ScheduledTime.CompareTo(y.ScheduledTime));
+            evnt.ScheduledTime = time;
+            FutureEventList.Add(evnt);
+        }
+        internal protected void Postpone(Event<TScenario, TStatus> evnt, TimeSpan delay)
+        {
+            Cancel(evnt);
+            evnt.ScheduledTime += delay;
+            FutureEventList.Add(evnt);
+        }
+        internal protected void Cancel(Event<TScenario, TStatus> evnt)
+        {
+            if (!FutureEventList.Remove(evnt)) throw new Exception("Specified event is not contained in the Future Event List.");
         }
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
             var head = FutureEventList.FirstOrDefault();
             if (head == null) return false;
-            FutureEventList.RemoveAt(0);
+            FutureEventList.Remove(head);
 
             /// Execute the event
             ClockTime = head.ScheduledTime;
-            head.Event.Invoke();
+            head.Invoke();
             return true;
         }
-        public virtual bool Run(TimeSpan duration)
+        public virtual bool Run(TimeSpan duration) { return Run(ClockTime.Add(duration)); }
+        public virtual bool Run(DateTime terminate)
         {
-            var TimeTerminate = ClockTime.Add(duration);
             while (true)
             {
                 if (FutureEventList.Count < 1) return false; // cannot continue
-                if (FutureEventList.First().ScheduledTime <= TimeTerminate) ExecuteHeadEvent();
-                else return true; // to be continued
+                if (FutureEventList.First().ScheduledTime <= terminate) ExecuteHeadEvent();
+                else {
+                    ClockTime = terminate;
+                    return true; // to be continued
+                }
             }
         }
         public virtual bool Run(int eventCount)
@@ -60,6 +74,12 @@ namespace O2DESNet
             while (eventCount-- > 0)
                 if (!ExecuteHeadEvent()) return false;
             return true;
+        }
+
+        public bool WarmUp(TimeSpan duration) {
+            var r = Run(duration);
+            Status.WarmedUp(ClockTime);
+            return r; // to be continued
         }
 
         #region For Time Dilation
@@ -110,14 +130,20 @@ namespace O2DESNet
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
         }
 
-        #endregion
+        #endregion   
     }
 
-    internal class FutureEvent<TScenario, TStatus>
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
+    public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
+            where TScenario : Scenario
+            where TStatus : Status<TScenario>
     {
-        public DateTime ScheduledTime { get; set; }
-        public Event<TScenario, TStatus> Event { get; set; }
-    }    
+        public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
+        {
+            int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
+            if (compare == 0) return x.GetHashCode().CompareTo(y.GetHashCode());
+            return compare;
+        }
+    }
+
+
 }
