@@ -17,7 +17,10 @@ namespace O2DESNet.PathMover.Dynamics
         public DateTime LastActionTime { get; private set; }
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
-        
+
+        public ControlPoint Target { get; set; }
+        public Action OnTarget { get; set; }
+
         internal Vehicle(Status status, ControlPoint start, DateTime clockTime)
         {
             Status = status;
@@ -33,11 +36,11 @@ namespace O2DESNet.PathMover.Dynamics
         /// <param name="next">A control point next to the current one</param>
         public void Move(ControlPoint next, DateTime clockTime)
         {
-            if (Speed <= 0) throw new Exception("Vechicle speed has not beed set.");
+            Status.VehiclesOnPath[Current.PathingTable[next]].Add(this);
+            Status.UpdateSpeeds(Current.PathingTable[next], clockTime);
             Next = next;
             RemainingRatio = 1;
-            LastActionTime = clockTime;
-            Status.VehiclesOnPath[Current.PathingTable[Next]].Add(this);
+            LastActionTime = clockTime;            
             CalTimeToReach();
         }
 
@@ -45,17 +48,17 @@ namespace O2DESNet.PathMover.Dynamics
         /// /// <summary>
         /// Update the speed of the vehicle
         /// </summary>
-        /// <param name="clockTime">Must NOT be null if the vehicle is moving</param>
-        public void SetSpeed(double speed, DateTime? clockTime = null)
+        internal void SetSpeed(double speed, DateTime clockTime)
         {
-            if (Next != null)
+            if (Next != null && speed != Speed)
             {
-                RemainingRatio = 1 - Speed * (clockTime.Value - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
+                RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
                 if (RemainingRatio < 0) throw new Exception("Vehicle has already reached next control point.");
+                Speed = speed;
+                LastActionTime = clockTime;
                 CalTimeToReach();
-                LastActionTime = clockTime.Value;
             }
-            Speed = speed;
+            else Speed = speed;
         }
 
         /// <summary>

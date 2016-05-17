@@ -13,9 +13,13 @@ namespace O2DESNet.PathMover
         public Simulator(Status status) : base(status)
         {
             Func<ControlPoint> getCP = () => Scenario.ControlPoints[DefaultRS.Next(Scenario.ControlPoints.Count)];
-            for (int i = 0; i < 10; i++) Status.PutOn(getCP(), ClockTime).SetSpeed(10);
-            foreach (var v in Status.Vehicles) Schedule(
-                new Move(v, getCP(), () => { Console.WriteLine("FINISHED!"); }), ClockTime);
+            for (int i = 0; i < 10; i++) Status.PutOn(getCP(), ClockTime);
+            foreach (var v in Status.Vehicles)
+            {
+                v.Target = getCP();
+                v.OnTarget = () => { Console.WriteLine("FINISHED!"); };
+                Schedule(new Move { Vehicle = v }, ClockTime);
+            }
             //Schedule(new Start(), ClockTime);
         }
     }

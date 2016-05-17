@@ -21,9 +21,9 @@ namespace O2DESNet.PathMover
         /// <summary>
         /// Create and return a new path
         /// </summary>
-        public Path CreatePath(double length, Direction direction = Direction.TwoWay)
+        public Path CreatePath(double length, double fullSpeed, Direction direction = Direction.TwoWay)
         {
-            var path = new Path(this, length, direction);
+            var path = new Path(this, length, fullSpeed, direction);
             Paths.Add(path);
             return path;
         }

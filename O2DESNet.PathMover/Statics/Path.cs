@@ -10,13 +10,15 @@ namespace O2DESNet.PathMover.Statics
 
         public double Length { get; private set; }
         public Direction Direction { get; private set; }
+        public double FullSpeed { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
 
-        internal Path(Scenario scenario, double length, Direction direction)
+        internal Path(Scenario scenario, double length, double fullSpeed, Direction direction)
         {
             Scenario = scenario;
             Id = Scenario.Paths.Count;
             Length = length;
+            FullSpeed = fullSpeed;
             Direction = direction;
             ControlPoints = new List<ControlPoint>();
         }

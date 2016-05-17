@@ -34,6 +34,12 @@ namespace O2DESNet.PathMover
             Vehicles.Remove(vehicle);
         }
 
+        public virtual void UpdateSpeeds(Path path, DateTime clockTime)
+        {
+            foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed, clockTime);
+            //foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / VehiclesOnPath[path].Count, clockTime);
+        }
+
         #region Display
         public void Display_VehiclesOnPath()
         {

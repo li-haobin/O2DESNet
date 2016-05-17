@@ -21,7 +21,7 @@ namespace O2DESNet.Test
         static void Main(string[] args)
         {
             var pm = new PathMover.Scenario();
-            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, direction: Direction.Forward)).ToArray();
+            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 10, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
             pm.Connect(paths[2], paths[3]);
@@ -39,8 +39,7 @@ namespace O2DESNet.Test
 
             while (sim.Run(1))
             {
-                sim.Status.Display_VehiclesOnPath();
-                Console.ReadKey();
+                
             }
             
         }
@@ -48,7 +47,7 @@ namespace O2DESNet.Test
         static Scenario GetPM1()
         {
             var pm = new PathMover.Scenario();
-            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, direction: Direction.Forward)).ToArray();
+            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 5, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
             pm.Connect(paths[2], paths[3]);
