@@ -14,7 +14,7 @@ namespace O2DESNet.PathMover
         public Dictionary<Path,HashSet<Vehicle>> VehiclesOnPath { get; private set; }
         public Dictionary<Path,HourCounter> PathUtils { get; private set; }
 
-        public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
+        internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
             scenario.Initialize();
             Vehicles = new HashSet<Vehicle>();

@@ -36,7 +36,7 @@ namespace O2DESNet.Test
 
             //var cp3 = pm.CreateControlPoint(paths[2], 30);
             //var cp4 = pm.CreateControlPoint(paths[2], 40);
-            
+
             var sim = new Simulator(new Status(pm));
             //sim.Status.Display = true;
 
