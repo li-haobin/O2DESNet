@@ -44,23 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dynamics\Job.cs" />
-    <Compile Include="Status.cs" />
+    <Compile Include="Dijkstra.cs" />
+    <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Dynamics\Vehicle.cs" />
-    <Compile Include="Events\CrossOver.cs" />
-    <Compile Include="Events\PassOver.cs" />
+    <Compile Include="Events\Reach.cs" />
     <Compile Include="Events\Move.cs" />
-    <Compile Include="Events\Start.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Methods\Quadratic.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Statics\ControlPoint.cs" />
-    <Compile Include="Methods\Dijkstra.cs" />
-    <Compile Include="Exceptions.cs" />
     <Compile Include="Statics\Path.cs" />
-    <Compile Include="Scenario.cs" />
-    <Compile Include="Statics\VehicleType.cs" />
+    <Compile Include="Statics\Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

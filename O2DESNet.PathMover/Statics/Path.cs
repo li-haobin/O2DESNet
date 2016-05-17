@@ -5,18 +5,18 @@ namespace O2DESNet.PathMover.Statics
 {
     public class Path
     {
-        private static int _count = 0;
+        public Scenario Scenario { get; private set; }
         public int Id { get; private set; }
+
         public double Length { get; private set; }
-        public double SpeedLimit { get; private set; }
         public Direction Direction { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
 
-        internal Path(double length, double maxSpeed, Direction direction)
+        internal Path(Scenario scenario, double length, Direction direction)
         {
-            Id = ++_count;
+            Scenario = scenario;
+            Id = Scenario.Paths.Count;
             Length = length;
-            SpeedLimit = maxSpeed;
             Direction = direction;
             ControlPoints = new List<ControlPoint>();
         }
@@ -26,8 +26,7 @@ namespace O2DESNet.PathMover.Statics
             controlPoint.Positions.Add(this, position);
             ControlPoints.Add(controlPoint);
             if (controlPoint.Positions[this] < 0 || controlPoint.Positions[this] > Length)
-                throw new Exceptions.InfeasibleConstruction(
-                    "Control point must be positioned within the range of path length.");
+                throw new Exception("Control point must be positioned within the range of path length.");
             ControlPoints.Sort((t0, t1) => t0.Positions[this].CompareTo(t1.Positions[this]));
         }
         public double GetDistance(ControlPoint from, ControlPoint to)
@@ -40,6 +39,11 @@ namespace O2DESNet.PathMover.Statics
                 if (distance >= 0) return distance;
             }
             return double.PositiveInfinity;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("PATH{0}", Id);
         }
     }
 

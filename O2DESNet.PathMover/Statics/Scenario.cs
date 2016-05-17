@@ -1,5 +1,5 @@
-﻿using O2DESNet.PathMover.Methods;
-using O2DESNet.PathMover.Statics;
+﻿using O2DESNet.PathMover.Statics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,43 +9,36 @@ namespace O2DESNet.PathMover
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
-        /// <summary>
-        /// Numbers of vehicles of each type
-        /// </summary>
-        public Dictionary<VehicleType, int> NumsVehicles { get; private set; }
 
         public Scenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
-            NumsVehicles = new Dictionary<VehicleType, int>();
         }
 
         #region Path Mover Builder
+        
         /// <summary>
         /// Create and return a new path
         /// </summary>
-        public Path CreatePath(double length, double maxSpeed = double.PositiveInfinity, Direction direction = Direction.TwoWay)
+        public Path CreatePath(double length, Direction direction = Direction.TwoWay)
         {
-            var path = new Path(length, maxSpeed, direction);
+            var path = new Path(this, length, direction);
             Paths.Add(path);
             return path;
         }
+
         /// <summary>
         /// Create and return a new control point
         /// </summary>
         public ControlPoint CreateControlPoint(Path path, double position)
         {
-            var controlPoint = new ControlPoint();
+            var controlPoint = new ControlPoint(this);
             path.Add(controlPoint, position);
             ControlPoints.Add(controlPoint);
             return controlPoint;
         }
-        public void AddVehicles(VehicleType vehicleType, int number)
-        {
-            if (!NumsVehicles.ContainsKey(vehicleType)) NumsVehicles.Add(vehicleType, 0);
-            NumsVehicles[vehicleType] += number;
-        }
+
         /// <summary>
         /// Connect two paths at specified positions
         /// </summary>
@@ -54,6 +47,7 @@ namespace O2DESNet.PathMover
             var controlPoint = CreateControlPoint(path_0, position_0);
             path_1.Add(controlPoint, position_1);
         }
+        
         /// <summary>
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
@@ -70,28 +64,33 @@ namespace O2DESNet.PathMover
         {
             foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
             var incompleteSet = ControlPoints.ToList();
-            var edges = Paths.SelectMany(path => GetEdges(path)).ToArray();
+            var edges = Paths.SelectMany(path => GetEdges(path)).ToList();
             while (incompleteSet.Count > 0)
             {
                 ConstructRoutingTables(incompleteSet.First().Id, edges);
                 incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
             }
         }
-        private void ConstructRoutingTables(int sourceIndex, Dijkstra.Edge[] edges)
+        private void ConstructRoutingTables(int sourceIndex, List<Tuple<int, int, double>> edges)
         {
             var edgeList = edges.ToList();
-            edgeList.Add(new Dijkstra.Edge(0, sourceIndex, 0)); // set the source
-            var dijkstra = new Dijkstra(edgeList.ToArray());
-            var parents = dijkstra.Parents;
-            for (int target = 1; target < parents.Length; target++)
+            var dijkstra = new Dijkstra(edges);
+
+            var sinkIndices = new HashSet<int>(ControlPoints.Select(cp => cp.Id));
+            sinkIndices.Remove(sourceIndex);
+            foreach (var target in ControlPoints[sourceIndex].RoutingTable.Keys) sinkIndices.Remove(target.Id);
+
+            while (sinkIndices.Count > 0)
             {
-                var current = target;
-                while (current != sourceIndex)
+                var sinkIndex = sinkIndices.First();
+                var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
+                path.Add(sourceIndex);
+                path.Reverse();
+                for (int i = 0; i < path.Count - 1; i++)
                 {
-                    var parent = parents[current];
-                    if (!ControlPoints[parent - 1].RoutingTable.ContainsKey(ControlPoints[target - 1]))
-                        ControlPoints[parent - 1].RoutingTable.Add(ControlPoints[target - 1], ControlPoints[current - 1]);
-                    current = parent;
+                    for (int j = i + 1; j < path.Count; j++)
+                        ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
+                    sinkIndices.Remove(path[i + 1]);
                 }
             }
         }
@@ -109,16 +108,16 @@ namespace O2DESNet.PathMover
                         path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i - 1], path);
             }
         }
-        private List<Dijkstra.Edge> GetEdges(Path path)
+        private List<Tuple<int, int, double>> GetEdges(Path path)
         {
-            var edges = new List<Dijkstra.Edge>();
+            var edges = new List<Tuple<int, int, double>>();
             for (int i = 0; i < path.ControlPoints.Count - 1; i++)
             {
                 var length = path.ControlPoints[i + 1].Positions[path] - path.ControlPoints[i].Positions[path];
                 var from = path.ControlPoints[i].Id;
                 var to = path.ControlPoints[i + 1].Id;
-                if (path.Direction != Direction.Backward) edges.Add(new Dijkstra.Edge(from, to, length));
-                if (path.Direction != Direction.Forward) edges.Add(new Dijkstra.Edge(to, from, length));
+                if (path.Direction != Direction.Backward) edges.Add(new Tuple<int, int, double>(from, to, length));
+                if (path.Direction != Direction.Forward) edges.Add(new Tuple<int, int, double>(to, from, length));
             }
             return edges;
         }
