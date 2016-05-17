@@ -1,15 +1,14 @@
-﻿using O2DESNet.PathMover.Statics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover.Dynamics
+namespace O2DESNet.PathMover
 {
     public class Vehicle
     {
-        public Status Status { get; private set; }
+        public PMDynamics Status { get; private set; }
         public int Id { get; private set; }
         public ControlPoint Current { get; private set; } = null;
         public ControlPoint Next { get; private set; } = null;
@@ -21,10 +20,10 @@ namespace O2DESNet.PathMover.Dynamics
         public List<ControlPoint> Targets { get; set; }
         public Action OnCompletion { get; set; }
 
-        internal Vehicle(Status status, ControlPoint start, DateTime clockTime)
+        internal Vehicle(PMDynamics status, ControlPoint start, DateTime clockTime)
         {
             Status = status;
-            Id = Status.Vehicles.Count;
+            Id = Status.VehicleId++;
             Current = start;
             LastActionTime = clockTime;
             TimeToReach = null;

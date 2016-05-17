@@ -1,15 +1,16 @@
-﻿using O2DESNet.PathMover.Dynamics;
-using O2DESNet.PathMover.Statics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.PathMover.Events
+namespace O2DESNet.PathMover
 {
-    internal class Move : Event<Scenario, Status>
+    public class Move<TScenario,TStatus> : Event<TScenario, TStatus>
+        where TScenario : Scenario
+        where TStatus : Status<TScenario>
     {
+        public PMDynamics Dynamics { get; set; }
         public Vehicle Vehicle { get; set; }
 
         protected override void Invoke()
@@ -18,15 +19,15 @@ namespace O2DESNet.PathMover.Events
             {
                 Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];
-                foreach (var v in Status.VehiclesOnPath[path]) 
+                foreach (var v in Dynamics.VehiclesOnPath[path]) 
                     // moving in new vehicle may update the speeds for existing vehicles
-                    Schedule(new Reach { Vehicle = v }, v.TimeToReach.Value); 
-                Status.PathUtils[path].ObserveChange(1, ClockTime);
+                    Schedule(new Reach<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = v }, v.TimeToReach.Value);
+                Dynamics.PathUtils[path].ObserveChange(1, ClockTime);
             }
-            else Execute(new Reach { Vehicle = Vehicle });
+            else Execute(new Reach<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = Vehicle });
             
             Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
-            Status.Log(Status.GetStr_VehiclesOnPath());
+            Status.Log(Dynamics.GetStr_VehiclesOnPath());
             //Console.ReadKey();
         }
     }

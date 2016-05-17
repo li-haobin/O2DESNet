@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{58765116-A73E-414C-BADF-C8A8AC307F4B}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>O2DESNet.PathMover</RootNamespace>
-    <AssemblyName>O2DESNet.PathMover</AssemblyName>
+    <RootNamespace>PMExample</RootNamespace>
+    <AssemblyName>PMExample</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -22,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,9 +31,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -47,20 +43,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dijkstra.cs" />
-    <Compile Include="Dynamics\Vehicle.cs" />
-    <Compile Include="Events\Reach.cs" />
-    <Compile Include="Events\Move.cs" />
-    <Compile Include="Dynamics\PMDynamics.cs" />
+    <Compile Include="Dynamics\Job.cs" />
+    <Compile Include="Dynamics\Status.cs" />
+    <Compile Include="Events\JobFinish.cs" />
+    <Compile Include="Events\JobStart.cs" />
+    <Compile Include="Events\PMEvents.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Statics\ControlPoint.cs" />
-    <Compile Include="Statics\Path.cs" />
-    <Compile Include="Statics\PMStatics.cs" />
+    <Compile Include="Simulator.cs" />
+    <Compile Include="Statics\Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\O2DESNet.PathMover\O2DESNet.PathMover.csproj">
+      <Project>{58765116-a73e-414c-badf-c8a8ac307f4b}</Project>
+      <Name>O2DESNet.PathMover</Name>
+    </ProjectReference>
     <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
       <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
       <Name>O2DESNet</Name>

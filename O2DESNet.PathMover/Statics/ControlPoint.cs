@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace O2DESNet.PathMover.Statics
+namespace O2DESNet.PathMover
 {
     public class ControlPoint
     {
-        public Scenario Scenario { get; private set; }
+        public PMStatics Scenario { get; private set; }
         public int Id { get; private set; }
         /// <summary>
         /// Check for the position on each path
@@ -14,13 +14,13 @@ namespace O2DESNet.PathMover.Statics
         /// <summary>
         /// Check for the next control point to visit, providing the destination
         /// </summary>
-        internal Dictionary<ControlPoint, ControlPoint> RoutingTable { get; set; }
+        public Dictionary<ControlPoint, ControlPoint> RoutingTable { get; internal set; }
         /// <summary>
         /// Check for the path to take, providing the next control point to visit
         /// </summary>
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
 
-        internal ControlPoint(Scenario scenario)
+        internal ControlPoint(PMStatics scenario)
         {
             Scenario = scenario;
             Id = Scenario.ControlPoints.Count;

@@ -1,16 +1,15 @@
-﻿using O2DESNet.PathMover.Statics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace O2DESNet.PathMover
 {
-    public class Scenario : O2DESNet.Scenario
+    public class PMStatics
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
 
-        public Scenario()
+        public PMStatics()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();

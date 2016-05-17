@@ -1,26 +1,17 @@
 ﻿using O2DESNet.PathMover;
-using O2DESNet.PathMover.Statics;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace O2DESNet.Test
+namespace PMExample
 {
     class Program
     {
-        /// Next things to do: 
-        /// 1. Collision detector / path speed limit can be removed, since target speed is explicitly controled?
-        /// 2. AGV Control logic (given route, auto Collision avoidance by speed control)
-        /// 3. What if vehicle sizes are considered (for point 1 & 2)
-        /// 4. conflicting path / control points
-        /// 
-        /// 5. Test scenarios (AGV, O/D generation etc.)
-        /// 6. with 2-layer zone concept
-        /// 
-        /// 7. integrate into warehouse simulator
-
         static void Main(string[] args)
         {
-            var pm = new PathMover.Scenario();
+            var pm = new PMStatics();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 10, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
@@ -37,19 +28,20 @@ namespace O2DESNet.Test
             //var cp3 = pm.CreateControlPoint(paths[2], 30);
             //var cp4 = pm.CreateControlPoint(paths[2], 40);
 
-            var sim = new Simulator(new Status(pm));
+            var sim = new Simulator(new Status(new Scenario { PM = pm, JobHourlyRate = 1000 }));
             //sim.Status.Display = true;
 
-            while (sim.Run(1)) ;
+            //while (sim.Run(1)) Console.ReadKey();
+            sim.Run(TimeSpan.FromDays(1));
 
             Console.WriteLine("\nPath Utilizations:\n===========================");
-            foreach (var util in sim.Status.PathUtils)
+            foreach (var util in sim.Status.PM.PathUtils)
                 Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
         }
 
-        static Scenario GetPM1()
+        static PMStatics GetPM1()
         {
-            var pm = new PathMover.Scenario();
+            var pm = new PMStatics();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 5, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
@@ -69,7 +61,7 @@ namespace O2DESNet.Test
             return pm;
         }
 
-        static void DisplayRouteTable(PathMover.Scenario pm)
+        static void DisplayRouteTable(PMStatics pm)
         {
             foreach (var cp in pm.ControlPoints)
             {
