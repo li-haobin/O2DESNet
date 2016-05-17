@@ -26,15 +26,16 @@ namespace O2DESNet
             TimeDilationScale = 1.0;
             #endregion
         }
-        internal protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
-        internal protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time)
+        public void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
+        public void Schedule(Event<TScenario, TStatus> evnt, DateTime time)
         {
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
             evnt.ScheduledTime = time;
             FutureEventList.Add(evnt);
         }
-        protected bool ExecuteHeadEvent()
+        public DateTime HeadEventTime { get { return FutureEventList.Count > 0 ? FutureEventList.First().ScheduledTime : DateTime.MaxValue; } }
+        protected virtual bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
             var head = FutureEventList.FirstOrDefault();

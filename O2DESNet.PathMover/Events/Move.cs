@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover.Events
 {
-    internal class Move : Event<Scenario, Status>
+    public class Move : Event<Scenario, Status>
     {
         public Vehicle Vehicle { get; set; }
 
