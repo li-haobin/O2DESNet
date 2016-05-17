@@ -1,4 +1,5 @@
 ﻿using O2DESNet.PathMover.Events;
+using O2DESNet.PathMover.Statics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,10 @@ namespace O2DESNet.PathMover
     {
         public Simulator(Status status) : base(status)
         {
-            Status.PutOn(Scenario.ControlPoints[3], ClockTime).SetSpeed(10);
+            Func<ControlPoint> getCP = () => Scenario.ControlPoints[DefaultRS.Next(Scenario.ControlPoints.Count)];
+            for (int i = 0; i < 10; i++) Status.PutOn(getCP(), ClockTime).SetSpeed(10);
             foreach (var v in Status.Vehicles) Schedule(
-                new Move(v, Scenario.ControlPoints[DefaultRS.Next(Scenario.ControlPoints.Count)],
-                () => { Console.WriteLine("FINISHED!"); }), ClockTime);
+                new Move(v, getCP(), () => { Console.WriteLine("FINISHED!"); }), ClockTime);
             //Schedule(new Start(), ClockTime);
         }
     }

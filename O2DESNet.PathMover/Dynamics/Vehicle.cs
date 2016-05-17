@@ -9,6 +9,8 @@ namespace O2DESNet.PathMover.Dynamics
 {
     public class Vehicle
     {
+        public Status Status { get; private set; }
+        public int Id { get; private set; }
         public ControlPoint Current { get; private set; } = null;
         public ControlPoint Next { get; private set; } = null;
         public double RemainingRatio { get; private set; } = 0;
@@ -16,8 +18,10 @@ namespace O2DESNet.PathMover.Dynamics
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
         
-        internal Vehicle(ControlPoint start, DateTime clockTime)
+        internal Vehicle(Status status, ControlPoint start, DateTime clockTime)
         {
+            Status = status;
+            Id = Status.Vehicles.Count;
             Current = start;
             LastActionTime = clockTime;
             TimeToReach = null;
@@ -33,6 +37,7 @@ namespace O2DESNet.PathMover.Dynamics
             Next = next;
             RemainingRatio = 1;
             LastActionTime = clockTime;
+            Status.VehiclesOnPath[Current.PathingTable[Next]].Add(this);
             CalTimeToReach();
         }
 
@@ -58,6 +63,7 @@ namespace O2DESNet.PathMover.Dynamics
         /// </summary>
         public void Reach(DateTime clockTime)
         {
+            Status.VehiclesOnPath[Current.PathingTable[Next]].Remove(this);
             Current = Next;
             Next = null;
             RemainingRatio = 0;
@@ -68,6 +74,11 @@ namespace O2DESNet.PathMover.Dynamics
         private void CalTimeToReach()
         {
             TimeToReach = LastActionTime + TimeSpan.FromSeconds(Current.GetDistanceTo(Next) * RemainingRatio / Speed);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("V{0}", Id);
         }
 
     }

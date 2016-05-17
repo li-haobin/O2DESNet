@@ -22,9 +22,13 @@ namespace O2DESNet.PathMover.Events
         }
         protected override void Invoke()
         {
-            Vehicle.Move(Vehicle.Current.RoutingTable[Target], ClockTime);
-            Schedule(new Reach(Vehicle, Target, OnTarget), Vehicle.TimeToReach.Value);
-            Status.Log("{0}\tMove:{1},{2},{3}", ClockTime.ToLongTimeString(), Vehicle.Current, Vehicle.Next, Target);
+            if (!Target.Equals(Vehicle.Current))
+            {
+                Vehicle.Move(Vehicle.Current.RoutingTable[Target], ClockTime);
+                Schedule(new Reach(Vehicle, Target, OnTarget), Vehicle.TimeToReach.Value);
+            }
+            else Execute(new Reach(Vehicle, Target, OnTarget));
+            Status.Log("{0}\tMove: {1} {2} {3} {4}", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current, Vehicle.Next, Target);
         }
     }
 }

@@ -20,7 +20,6 @@ namespace O2DESNet.Test
 
         static void Main(string[] args)
         {
-
             var pm = new PathMover.Scenario();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
@@ -38,7 +37,11 @@ namespace O2DESNet.Test
             var sim = new Simulator(new Status(pm));
             sim.Status.Display = true;
 
-            while (sim.Run(1)) ;
+            while (sim.Run(1))
+            {
+                sim.Status.Display_VehiclesOnPath();
+                Console.ReadKey();
+            }
             
         }
 

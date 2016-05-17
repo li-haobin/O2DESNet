@@ -22,9 +22,12 @@ namespace O2DESNet.PathMover.Events
         }
         protected override void Invoke()
         {
-            if (!ClockTime.Equals(Vehicle.TimeToReach)) return; // for change of speed
-            Vehicle.Reach(ClockTime);
-            Status.Log("{0}\tReach:{1},{2}", ClockTime.ToLongTimeString(), Vehicle.Current, Target);
+            if (Vehicle.Next != null) // in case vehicle is not moving, skip
+            {
+                if (!ClockTime.Equals(Vehicle.TimeToReach)) return; // for change of speed
+                Vehicle.Reach(ClockTime);
+                Status.Log("{0}\tReach: {1} {2} {3}", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current, Target);
+            }
             if (Vehicle.Current.Equals(Target)) OnTarget();
             else Execute(new Move(Vehicle, Target, OnTarget));            
         }
