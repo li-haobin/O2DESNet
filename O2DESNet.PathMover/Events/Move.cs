@@ -11,20 +11,23 @@ namespace O2DESNet.PathMover.Events
     internal class Move : Event<Scenario, Status>
     {
         public Vehicle Vehicle { get; set; }
-        
+
         protected override void Invoke()
         {
-            if (!Vehicle.Current.Equals(Vehicle.Target))
+            if (!Vehicle.Current.Equals(Vehicle.Targets.First()))
             {
-                Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Target], ClockTime);
-                foreach(var v in Status.VehiclesOnPath[Vehicle.Current.PathingTable[Vehicle.Next]] )
-                Schedule(new Reach { Vehicle = v }, v.TimeToReach.Value);
+                Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);
+                var path = Vehicle.Current.PathingTable[Vehicle.Next];
+                foreach (var v in Status.VehiclesOnPath[path]) 
+                    // moving in new vehicle may update the speeds for existing vehicles
+                    Schedule(new Reach { Vehicle = v }, v.TimeToReach.Value); 
+                Status.PathUtils[path].ObserveChange(1, ClockTime);
             }
             else Execute(new Reach { Vehicle = Vehicle });
-            Status.Log("{0}\tMove: {1} {2} {3} {4}", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current, Vehicle.Next, Vehicle.Target);
-
-            Status.Display_VehiclesOnPath();
-            Console.ReadKey();
+            
+            Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
+            Status.Log(Status.GetStr_VehiclesOnPath());
+            //Console.ReadKey();
         }
     }
 }

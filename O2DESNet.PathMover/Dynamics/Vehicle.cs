@@ -18,8 +18,8 @@ namespace O2DESNet.PathMover.Dynamics
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
 
-        public ControlPoint Target { get; set; }
-        public Action OnTarget { get; set; }
+        public List<ControlPoint> Targets { get; set; }
+        public Action OnCompletion { get; set; }
 
         internal Vehicle(Status status, ControlPoint start, DateTime clockTime)
         {
@@ -83,6 +83,16 @@ namespace O2DESNet.PathMover.Dynamics
         {
             return string.Format("V{0}", Id);
         }
+
+        #region For Display
+        public string GetStr_Status()
+        {
+            string str = ToString();
+            str += string.Format(" {0}->{1} ", Current, Next);
+            foreach (var cp in Targets) str += ":" + cp;
+            return str;
+        }
+        #endregion
 
     }
 }

@@ -16,8 +16,8 @@ namespace O2DESNet.PathMover
             for (int i = 0; i < 10; i++) Status.PutOn(getCP(), ClockTime);
             foreach (var v in Status.Vehicles)
             {
-                v.Target = getCP();
-                v.OnTarget = () => { Console.WriteLine("FINISHED!"); };
+                v.Targets = new List<ControlPoint> { getCP(), getCP(), getCP(), };
+                v.OnCompletion = () => { Console.WriteLine("FINISHED!"); };
                 Schedule(new Move { Vehicle = v }, ClockTime);
             }
             //Schedule(new Start(), ClockTime);

@@ -33,15 +33,18 @@ namespace O2DESNet.Test
             pm.Connect(paths[4], paths[5], 50, 50);
             var cp1 = pm.CreateControlPoint(paths[0], 30);
             var cp2 = pm.CreateControlPoint(paths[0], 40);
-            
-            var sim = new Simulator(new Status(pm));
-            sim.Status.Display = true;
 
-            while (sim.Run(1))
-            {
-                
-            }
-            
+            //var cp3 = pm.CreateControlPoint(paths[2], 30);
+            //var cp4 = pm.CreateControlPoint(paths[2], 40);
+
+            var sim = new Simulator(new Status(pm));
+            //sim.Status.Display = true;
+
+            while (sim.Run(1)) ;
+
+            Console.WriteLine("\nPath Utilizations:\n===========================");
+            foreach (var util in sim.Status.PathUtils)
+                Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
         }
 
         static Scenario GetPM1()

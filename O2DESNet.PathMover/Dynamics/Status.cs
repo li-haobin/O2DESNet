@@ -12,12 +12,19 @@ namespace O2DESNet.PathMover
     {
         public HashSet<Vehicle> Vehicles { get; private set; }
         public Dictionary<Path,HashSet<Vehicle>> VehiclesOnPath { get; private set; }
+        public Dictionary<Path,HourCounter> PathUtils { get; private set; }
 
         internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
             scenario.Initialize();
             Vehicles = new HashSet<Vehicle>();
             VehiclesOnPath = Scenario.Paths.ToDictionary(p => p, p => new HashSet<Vehicle>());
+            PathUtils = Scenario.Paths.ToDictionary(p => p, p => new HourCounter(DateTime.MinValue));
+        }
+
+        public override void WarmedUp(DateTime clockTime)
+        {
+            foreach (var util in PathUtils.Values) util.WarmedUp(clockTime);
         }
 
         public Vehicle PutOn(ControlPoint start, DateTime clockTime)
@@ -41,15 +48,16 @@ namespace O2DESNet.PathMover
         }
 
         #region Display
-        public void Display_VehiclesOnPath()
+        public string GetStr_VehiclesOnPath()
         {
+            var str = "";
             foreach(var path in Scenario.Paths)
             {
-                Console.Write("{0}:\t", path);
-                foreach (var v in VehiclesOnPath[path].OrderBy(v => v.Id)) Console.Write("{0},", v);
-                Console.WriteLine();
+                str += string.Format("{0}:\t", path);
+                foreach (var v in VehiclesOnPath[path].OrderBy(v => v.Id)) str += string.Format("{0},", v);
+                str += "\n";
             }
-            Console.WriteLine();
+            return str;
         }
         #endregion
     }
