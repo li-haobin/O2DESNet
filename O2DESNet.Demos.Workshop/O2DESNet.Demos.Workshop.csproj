@@ -55,7 +55,7 @@
     <Compile Include="Dynamics\Product.cs" />
     <Compile Include="Dynamics\Machine.cs" />
     <Compile Include="Events\Depart.cs" />
-    <Compile Include="Status.cs" />
+    <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Events\Arrive.cs" />
     <Compile Include="Events\FinishProcess.cs" />
     <Compile Include="Events\AttemptToProcess.cs" />
@@ -64,13 +64,11 @@
     <Compile Include="Simulator.cs" />
     <Compile Include="Statics\ProductType.cs" />
     <Compile Include="Statics\WorkStation.cs" />
-    <Compile Include="Scenario.cs" />
+    <Compile Include="Statics\Scenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
-    <None Include="Workshop.cd" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
