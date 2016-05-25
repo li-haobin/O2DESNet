@@ -11,7 +11,7 @@ namespace O2DESNet
         public int Capacity { get; private set; }
         public HashSet<TLoad> Processing { get; private set; }
         public int Vacancy { get { return Capacity - Processing.Count; } }
-        public bool HasVacancy { get { return Vacancy > 0; } }
+        public bool HasVacancy() { return Vacancy > 0; }
         public HourCounter HourCounter { get; private set; }
 
         public Processor(int capacity = 1)
@@ -25,7 +25,7 @@ namespace O2DESNet
 
         public void Start(TLoad load, DateTime clockTime)
         {
-            if (!HasVacancy) throw new Exception("The Processor does not have vacancy.");
+            if (!HasVacancy()) throw new Exception("The Processor does not have vacancy.");
             Processing.Add(load);
             HourCounter.ObserveChange(1, clockTime);
         }

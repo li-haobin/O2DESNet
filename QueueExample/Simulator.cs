@@ -15,17 +15,18 @@ namespace QueueExample
             {
                 Create = () => new Load(),
                 InterArrivalTime = Scenario.GetInterArrivalTime,
-                OnCreate = c1 => {
+                OnCreate = c1 =>
+                {
                     Execute(new Enqueue<Scenario, Status, Load>
                     {
                         Queue = Status.Queue,
                         Load = c1,
-                        ToDequeue = () => Status.Server.HasVacancy,
+                        ToDequeue = Status.Processor.HasVacancy,
                         OnDequeue = c2 =>
                         {
                             Execute(new Start<Scenario, Status, Load>
                             {
-                                Server = Status.Server,
+                                Server = Status.Processor,
                                 Load = c2,
                                 ServiceTime = Scenario.GetServiceTime,
                                 OnFinish = c3 =>
@@ -37,7 +38,7 @@ namespace QueueExample
                             Status.Queue.AttemptDequeue(ClockTime);
                         },
                     });
-                },                
+                },
             });
         }
     }

@@ -11,7 +11,7 @@ namespace O2DESNet
         public List<TLoad> Waiting { get; private set; }
         public int Capacity { get; private set; }
         public int Vancancy { get { return Capacity - Waiting.Count; } }
-        public bool HasVacancy { get { return Vancancy > 0; } }
+        public bool HasVacancy() { return Vancancy > 0; }
         /// <summary>
         /// Dequeuing condition for each load
         /// </summary>
@@ -35,7 +35,7 @@ namespace O2DESNet
 
         public void Enqueue(TLoad load, Func<bool> toDequeue, Action<TLoad> onDequeue, DateTime clockTime)
         {
-            if (!HasVacancy) throw new Exception("The Queue does not have vacancy.");
+            if (!HasVacancy()) throw new Exception("The Queue does not have vacancy.");
             Waiting.Add(load);
             ToDequeues.Add(load, toDequeue);
             OnDequeues.Add(load, onDequeue);
