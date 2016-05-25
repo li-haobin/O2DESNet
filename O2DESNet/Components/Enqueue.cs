@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace O2DESNet.Components
+namespace O2DESNet
 {
     public class Enqueue<TScenario, TStatus, TLoad> : Event<TScenario, TStatus>
-       where TScenario : Scenario
-       where TStatus : Status<TScenario>
+        where TScenario : Scenario
+        where TStatus : Status<TScenario>
+        where TLoad : Load
     {
         public Queue<TLoad> Queue { get; set; }
         public TLoad Load { get; set; }

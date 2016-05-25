@@ -1,5 +1,4 @@
-﻿using O2DESNet.Components;
-using QueueExample.Dynamics;
+﻿using O2DESNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,30 +7,35 @@ using System.Threading.Tasks;
 
 namespace QueueExample
 {
-    public class Simulator : O2DESNet.Simulator<Scenario, Status>
+    public class Simulator : Simulator<Scenario, Status>
     {
         public Simulator(Status status) : base(status)
         {
-            Execute(new Arrive<Scenario, Status, Customer>
+            Execute(new Arrive<Scenario, Status, Load>
             {
-                Create = () => new Customer(),
-                InterArrivalTime = rs => TimeSpan.FromMinutes(rs.NextDouble() * 10),
+                Create = () => new Load(),
+                InterArrivalTime = Scenario.GetInterArrivalTime,
                 OnCreate = c1 => {
-                    Execute(new Enqueue<Scenario, Status, Customer>
+                    Execute(new Enqueue<Scenario, Status, Load>
                     {
                         Queue = Status.Queue,
                         Load = c1,
-                        ToDequeue = () => Status.Server.IsIdle,
-                        OnDequeue = c2 => {
-                            Execute(new Start<Scenario, Status, Customer>
+                        ToDequeue = () => Status.Server.HasVacancy,
+                        OnDequeue = c2 =>
+                        {
+                            Execute(new Start<Scenario, Status, Load>
                             {
                                 Server = Status.Server,
                                 Load = c2,
-                                ServiceTime = rs => TimeSpan.FromMinutes(rs.NextDouble() * 10),
-                                OnFinish = c3 => { Status.Queue.AttemptDequeue(ClockTime); },
+                                ServiceTime = Scenario.GetServiceTime,
+                                OnFinish = c3 =>
+                                {
+                                    Status.Queue.AttemptDequeue(ClockTime);
+                                    Status.Processed.Add(c3);
+                                },
                             });
                             Status.Queue.AttemptDequeue(ClockTime);
-                            },
+                        },
                     });
                 },                
             });

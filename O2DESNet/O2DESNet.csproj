@@ -71,9 +71,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Finish.cs" />
+    <Compile Include="Components\Load.cs" />
     <Compile Include="Components\Start.cs" />
     <Compile Include="Components\Arrive.cs" />
-    <Compile Include="Components\Server.cs" />
+    <Compile Include="Components\Processor.cs" />
     <Compile Include="Components\Queue.cs" />
     <Compile Include="Components\Enqueue.cs" />
     <Compile Include="Event.cs" />

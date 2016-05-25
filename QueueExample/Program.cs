@@ -10,8 +10,19 @@ namespace QueueExample
     {
         static void Main(string[] args)
         {
-            var sim = new Simulator(new Status(new Scenario()) { Display = true });
-            while (sim.Run(1)) Console.ReadKey();
+            var scenario = new Scenario { HourlyArrivalRate = 4, HourlyServiceRate = 5 };
+            var status = new Status(scenario, 0) {
+                //Display = true
+            };
+            var sim = new Simulator(status);
+            while (sim.Run(10000))
+            {
+                Console.WriteLine("{0}\t{1}",
+                    status.Queue.HourCounter.AverageCount,
+                    status.Processed.Average(l => l.TimeSpan_InSystem.TotalHours)
+                    );
+                Console.ReadKey();
+            }
         }
     }
 }
