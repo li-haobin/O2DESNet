@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.PathMover", "O2DES
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PMExample", "PMExample\PMExample.csproj", "{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueExample", "QueueExample\QueueExample.csproj", "{756FE16A-BB94-4989-A09C-CC5AFB34A1F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{756FE16A-BB94-4989-A09C-CC5AFB34A1F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{756FE16A-BB94-4989-A09C-CC5AFB34A1F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{756FE16A-BB94-4989-A09C-CC5AFB34A1F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{756FE16A-BB94-4989-A09C-CC5AFB34A1F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

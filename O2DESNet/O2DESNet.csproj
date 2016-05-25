@@ -70,6 +70,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Finish.cs" />
+    <Compile Include="Components\Start.cs" />
+    <Compile Include="Components\Arrive.cs" />
+    <Compile Include="Components\Server.cs" />
+    <Compile Include="Components\Queue.cs" />
+    <Compile Include="Components\Enqueue.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -84,6 +90,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
