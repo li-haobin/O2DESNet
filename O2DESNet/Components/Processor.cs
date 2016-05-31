@@ -14,7 +14,7 @@ namespace O2DESNet
         public bool HasVacancy() { return Vacancy > 0; }
         public HourCounter HourCounter { get; private set; }
 
-        public Processor(int capacity = 1)
+        public Processor(int capacity = int.MaxValue)
         {
             Capacity = capacity;
             Processing = new HashSet<TLoad>();

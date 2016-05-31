@@ -48,6 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ex1_SortNProcess\Simulator.cs" />
+    <Compile Include="Ex1_SortNProcess\Status.cs" />
     <Compile Include="MM1Queue\Scenario.cs" />
     <Compile Include="MM1Queue\Simulator.cs" />
     <Compile Include="MM1Queue\Status.cs" />
