@@ -5,11 +5,7 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet", "O2DESNet\O2DESNet.csproj", "{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.Workshop", "O2DESNet.Demos.Workshop\O2DESNet.Demos.Workshop.csproj", "{294BF521-C454-480D-BF86-8E6F906E8177}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.MM1Queue", "O2DESNet.Demos.MM1Queue\O2DESNet.Demos.MM1Queue.csproj", "{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Template", "O2DESNet.Template\O2DESNet.Template.csproj", "{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos", "O2DESNet.Demos\O2DESNet.Demos.csproj", "{FFBE5961-7334-40F6-92D0-ECCCA46481E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +17,10 @@ Global
 		{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}.Release|Any CPU.Build.0 = Release|Any CPU
-		{294BF521-C454-480D-BF86-8E6F906E8177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{294BF521-C454-480D-BF86-8E6F906E8177}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{294BF521-C454-480D-BF86-8E6F906E8177}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{294BF521-C454-480D-BF86-8E6F906E8177}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A281C07E-39A6-48D0-B725-F4A88C8EBDF8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B1955BF5-EBD1-4E1E-ACA1-101023EE323F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFBE5961-7334-40F6-92D0-ECCCA46481E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFBE5961-7334-40F6-92D0-ECCCA46481E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFBE5961-7334-40F6-92D0-ECCCA46481E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFBE5961-7334-40F6-92D0-ECCCA46481E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

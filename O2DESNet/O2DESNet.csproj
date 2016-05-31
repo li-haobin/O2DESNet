@@ -70,7 +70,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Arrive.cs" />
+    <Compile Include="Components\Enqueue.cs" />
+    <Compile Include="Components\Finish.cs" />
+    <Compile Include="Components\Load.cs" />
+    <Compile Include="Components\Processor.cs" />
+    <Compile Include="Components\Queue.cs" />
+    <Compile Include="Components\Start.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="PathMover\Dijkstra.cs" />
+    <Compile Include="PathMover\Dynamics.cs" />
+    <Compile Include="PathMover\Vehicle.cs" />
+    <Compile Include="PathMover\Move.cs" />
+    <Compile Include="PathMover\Reach.cs" />
+    <Compile Include="PathMover\ControlPoint.cs" />
+    <Compile Include="PathMover\Path.cs" />
+    <Compile Include="PathMover\Statics.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HourCounter.cs" />
