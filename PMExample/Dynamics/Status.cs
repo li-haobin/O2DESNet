@@ -11,18 +11,20 @@ namespace PMExample
 {
     public class Status : Status<Scenario>
     {
-        public PMDynamics PM { get; private set; }
+        public GridStatus GridStatus { get; private set; }
         public List<Vehicle> Vehicles { get; private set; }
+        public int JobsCount { get; set; }
 
         internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            PM = new PMDynamics(Scenario.PM);
+            GridStatus = new GridStatus(Scenario.Grid);
             Vehicles = new List<Vehicle>();
+            JobsCount = 0;
         }
 
         public override void WarmedUp(DateTime clockTime)
         {
-            PM.WarmedUp(clockTime);
+            GridStatus.WarmedUp(clockTime);
         }
 
         public Job CreateJob(Random rs)

@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dynamics\GridStatus.cs" />
     <Compile Include="Dynamics\Job.cs" />
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Events\JobFinish.cs" />

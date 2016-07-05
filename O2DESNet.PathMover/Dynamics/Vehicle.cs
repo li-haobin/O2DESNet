@@ -47,12 +47,16 @@ namespace O2DESNet.PathMover
         /// /// <summary>
         /// Update the speed of the vehicle
         /// </summary>
-        internal void SetSpeed(double speed, DateTime clockTime)
+        public void SetSpeed(double speed, DateTime clockTime)
         {
             if (Next != null && speed != Speed)
             {
                 RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
-                if (RemainingRatio < 0) throw new Exception("Vehicle has already reached next control point.");
+                if (RemainingRatio < 0)
+                {
+                    if (RemainingRatio > -1E-3) RemainingRatio = 0;
+                    else throw new Exception("Vehicle has already reached next control point.");
+                }
                 Speed = speed;
                 LastActionTime = clockTime;
                 CalTimeToReach();

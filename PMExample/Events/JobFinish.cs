@@ -16,11 +16,12 @@ namespace PMExample.Events
         protected override void Invoke()
         {
             Log("{0}\tJob Finished on {1} at {2}!", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current);
+            Status.JobsCount++;
 
             Vehicle.Targets = new List<ControlPoint> { Next.Origin };
             Vehicle.OnCompletion = () => { Execute(new JobStart { Job = Next, Vehicle = Vehicle }); };
             
-            Execute(new Move { Dynamics = Status.PM, Vehicle = Vehicle });
+            Execute(new Move { Dynamics = Status.GridStatus, Vehicle = Vehicle });
         }
     }
 }

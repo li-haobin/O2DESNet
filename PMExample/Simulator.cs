@@ -16,7 +16,7 @@ namespace PMExample
             for (int i = 0; i < Scenario.NumVehicles; i++)
             {
                 var job = Status.CreateJob(DefaultRS);
-                var vehicle = Status.PM.PutOn(job.Origin, ClockTime);
+                var vehicle = Status.GridStatus.PutOn(job.Origin, ClockTime);
                 Status.Vehicles.Add(vehicle);
                 Schedule(new JobStart { Job = job, Vehicle = vehicle }, ClockTime);
             }

@@ -11,17 +11,27 @@ namespace PMExample
     {
         static void Main(string[] args)
         {
-            var scenario = new Scenario(Enumerable.Repeat(200d, 6).ToArray(), Enumerable.Repeat(45d, 8).ToArray(), 10, 3);
-            
-            var sim = new Simulator(new Status(scenario));
-            sim.Status.Display = true;
+            int nVehicles = 10;
+            while (true)
+            {
+                var scenario = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), Enumerable.Repeat(45d, 3).ToArray(), 10, nVehicles);
+                var sim = new Simulator(new Status(scenario, 0));
+                sim.Run(TimeSpan.FromHours(3));
+                Console.WriteLine("{0}\t{1}", nVehicles, sim.Status.JobsCount);
+                Console.ReadKey();
+                nVehicles += 10;
+            }
+
+            //var sim = new Simulator(new Status(scenario));
+            //sim.Status.Display = true;
 
             //while (sim.Run(1)) Console.ReadKey();
-            sim.Run(TimeSpan.FromDays(1));
+            //sim.Run(TimeSpan.FromHours(3));
 
-            Console.WriteLine("\nPath Utilizations:\n===========================");
-            foreach (var util in sim.Status.PM.PathUtils)
-                Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
+            //Console.WriteLine("\nPath Utilizations:\n===========================");
+            //foreach (var util in sim.Status.GridStatus.PathUtils)
+            //    Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
+            //Console.WriteLine("Total # of Jobs: {0}", sim.Status.JobCount);
         }
 
         static PMStatics GetPM1()

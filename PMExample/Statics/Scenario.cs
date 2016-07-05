@@ -10,7 +10,7 @@ namespace PMExample
 {
     public class Scenario : O2DESNet.Scenario
     {
-        public Grid PM { get; private set; }
+        public Grid Grid { get; private set; }
         public ControlPoint[] QuayPoints { get; private set; }
         public ControlPoint[] YardPoints { get; private set; }
 
@@ -19,9 +19,9 @@ namespace PMExample
 
         public Scenario(double[] colSpaces, double[] rowSpaces, double fullSpeed, int numVehicles)
         {
-            PM = new Grid(colSpaces, rowSpaces, fullSpeed);
-            QuayPoints = PM.RowPaths[0].Select(p => PM.CreateControlPoint(p, p.Length / 2)).ToArray();
-            YardPoints = Enumerable.Range(1, PM.RowPaths.Length - 1).SelectMany(i => PM.RowPaths[i].Select(p => PM.CreateControlPoint(p, p.Length / 2))).ToArray();
+            Grid = new Grid(colSpaces, rowSpaces, fullSpeed);
+            QuayPoints = Grid.RowPaths[0].Select(p => Grid.CreateControlPoint(p, p.Length / 2)).ToArray();
+            YardPoints = Enumerable.Range(1, Grid.RowPaths.Length - 1).SelectMany(i => Grid.RowPaths[i].Select(p => Grid.CreateControlPoint(p, p.Length / 2))).ToArray();
             NumVehicles = numVehicles;
         }        
     }
