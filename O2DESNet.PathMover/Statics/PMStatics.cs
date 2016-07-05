@@ -41,11 +41,18 @@ namespace O2DESNet.PathMover
         /// <summary>
         /// Connect two paths at specified positions
         /// </summary>
-        public void Connect(Path path_0, Path path_1, double position_0, double position_1, ControlPoint controlPoint = null)
+        public void Connect(Path path_0, Path path_1, double position_0, double position_1)
         {
-            if (controlPoint == null) controlPoint = CreateControlPoint(path_0, position_0);
-            else path_0.Add(controlPoint, position_0);
-            path_1.Add(controlPoint, position_1);
+            path_1.Add(CreateControlPoint(path_0, position_0), position_1);
+        }
+
+        /// <summary>
+        /// Connect the Path to the Control Point at specific positions
+        /// </summary>
+        public void Connect(Path path, double position, ControlPoint controlPoint)
+        {
+            if (controlPoint.Positions.ContainsKey(path)) throw new Exception("The Control Point exists on the Path.");
+            path.Add(controlPoint, position);
         }
         
         /// <summary>
