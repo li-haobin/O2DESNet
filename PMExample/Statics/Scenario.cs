@@ -10,6 +10,7 @@ namespace PMExample
     public class Scenario : O2DESNet.Scenario
     {
         public PMStatics PM { get; set; }
+
         public double JobHourlyRate { get; set; }
     }
 }
