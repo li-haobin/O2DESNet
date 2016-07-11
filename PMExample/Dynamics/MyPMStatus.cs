@@ -7,14 +7,15 @@ using System.Threading.Tasks;
 
 namespace PMExample.Dynamics
 {
-    public class GridStatus : PMDynamics
+    public class MyPMStatus : PMDynamics
     {
-        public GridStatus(Grid grid) : base(grid) { }
+        public MyPMStatus(PMStatics pm) : base(pm) { }
 
         public override void UpdateSpeeds(Path path, DateTime clockTime)
         {
             //base.UpdateSpeeds(path, clockTime);
             foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / VehiclesOnPath[path].Count, clockTime);
+            //foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / Math.Pow(VehiclesOnPath[path].Count, 2), clockTime);
         }
     }
 }

@@ -18,20 +18,25 @@ namespace PMExample
                 var sim = new Simulator(new Status(scenario, 0));
                 sim.Run(TimeSpan.FromHours(3));
                 Console.WriteLine("{0}\t{1}", nVehicles, sim.Status.JobsCount);
+                
+                Console.WriteLine("\nPath Utilizations:\n===========================");
+                foreach (var util in sim.Status.GridStatus.PathUtils)
+                    Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
+                Console.WriteLine("Total # of Jobs: {0}", sim.Status.JobsCount);
+
                 Console.ReadKey();
                 nVehicles += 10;
             }
+
+
+
 
             //var sim = new Simulator(new Status(scenario));
             //sim.Status.Display = true;
 
             //while (sim.Run(1)) Console.ReadKey();
             //sim.Run(TimeSpan.FromHours(3));
-
-            //Console.WriteLine("\nPath Utilizations:\n===========================");
-            //foreach (var util in sim.Status.GridStatus.PathUtils)
-            //    Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
-            //Console.WriteLine("Total # of Jobs: {0}", sim.Status.JobCount);
+            
         }
 
         static PMStatics GetPM1()

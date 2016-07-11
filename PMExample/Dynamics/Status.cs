@@ -11,13 +11,13 @@ namespace PMExample
 {
     public class Status : Status<Scenario>
     {
-        public GridStatus GridStatus { get; private set; }
+        public MyPMStatus GridStatus { get; private set; }
         public List<Vehicle> Vehicles { get; private set; }
         public int JobsCount { get; set; }
 
         internal Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            GridStatus = new GridStatus(Scenario.Grid);
+            GridStatus = new MyPMStatus(Scenario.PM);
             Vehicles = new List<Vehicle>();
             JobsCount = 0;
         }
