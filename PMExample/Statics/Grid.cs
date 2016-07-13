@@ -46,6 +46,32 @@ namespace PMExample.Statics
                     Connect(ColPaths[j][i], ColPaths[j][i].Length, ConnectingPoints[i + 1, j]);
                 }
             }
+
+            #region Generate Coordinates
+            double x, y;
+            y = 0;
+            for (int i = 0; i < rowSpaces.Length + 1; i++)
+            {
+                if (i > 0) y += rowSpaces[i - 1];
+                x = 0;
+                for (int j = 0; j < colSpaces.Length; j++)
+                {
+                    PathCoordinates.Add(RowPaths[i][j], new double[] { x, y, x + colSpaces[j], y });
+                    x += colSpaces[j];
+                }
+            }
+            x = 0;
+            for (int j = 0; j < colSpaces.Length + 1; j++)
+            {
+                if (j > 0) x += colSpaces[j - 1];
+                y = 0;
+                for (int i = 0; i < rowSpaces.Length; i++)
+                {
+                    PathCoordinates.Add(ColPaths[j][i], new double[] { x, y, x, y + rowSpaces[i] });
+                    y += rowSpaces[i];
+                }
+            }
+            #endregion
         }
     }
 }

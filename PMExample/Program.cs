@@ -12,7 +12,12 @@ namespace PMExample
     {
         static void Main(string[] args)
         {
-            var pm = new Grid(Enumerable.Repeat(200d, 6).ToArray(), Enumerable.Repeat(45d, 8).ToArray(), 10);
+            var pm = new Grid(
+                Enumerable.Repeat(200d, 6).ToArray(),
+                new double[] { 200 }.Concat(Enumerable.Repeat(90d, 4)).ToArray(),
+                10);
+            pm.DrawToImage("grid.png", 2000, 2000);
+
             var quayPoints = pm.RowPaths[0].Select(p => pm.CreateControlPoint(p, p.Length / 2)).ToArray();
             var yardPoints = Enumerable.Range(1, pm.RowPaths.Length - 1).SelectMany(i => pm.RowPaths[i].Select(p => pm.CreateControlPoint(p, p.Length / 2))).ToArray();
 

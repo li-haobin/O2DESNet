@@ -1,5 +1,8 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace O2DESNet.PathMover
@@ -8,11 +11,13 @@ namespace O2DESNet.PathMover
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
+        public Dictionary<Path, double[]> PathCoordinates { get; private set; } // for display
 
         public PMStatics()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
+            PathCoordinates = new Dictionary<Path, double[]>();
         }
 
         #region Path Mover Builder
@@ -128,6 +133,101 @@ namespace O2DESNet.PathMover
             }
             return edges;
         }
+        #endregion
+
+        #region For Display
+
+        int _width, _height, _margin;
+        double _maxX, _minX, _maxY, _minY;
+        public double ArrowSize { get; set; } = 6;
+        public double ArrowAngle { get; set; } = Math.PI / 4;
+
+        public void DrawToImage(string file, int width, int height)
+        {
+            Resize(width, height);
+            Bitmap bitmap = new Bitmap(Convert.ToInt32(_width), Convert.ToInt32(_height), PixelFormat.Format32bppArgb);
+            Draw(Graphics.FromImage(bitmap));
+            bitmap.Save(file, ImageFormat.Png);
+        }
+
+        public void Draw(Graphics graphics, int width, int height)
+        {
+            // adjust width and height
+            Resize(width, height);
+            Draw(graphics);
+        }
+
+        private void Draw(Graphics graphics)
+        {
+            Func<DenseVector, Point> getPoint = vec => new Point(
+                (int)Math.Round(_margin + (_width - _margin * 2) * (vec[0] - _minX) / (_maxX - _minX), 0),
+                (int)Math.Round(_margin + (_height - _margin * 2) * (vec[1] - _minY) / (_maxY - _minY), 0)
+                );
+
+            graphics.Clear(Color.White);
+            var pen = new Pen(Color.Black, 1);            
+            foreach (var item in PathCoordinates)
+            {
+                var path = item.Key;
+                DenseVector start =  new double[] { item.Value[0], item.Value[1] };
+                DenseVector end = new double[] { item.Value[2], item.Value[3] };
+                var mid = (start + end) / 2;
+                graphics.DrawLine(pen, getPoint(start), getPoint(end));
+                DenseVector vetex, tail;
+                switch (path.Direction)
+                {                    
+                    case Direction.Forward:
+                        vetex = Slip(mid, end, ArrowSize / 2);
+                        tail = Slip(mid, start, ArrowSize / 2);
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                        break;
+                    case Direction.Backward:
+                        vetex = Slip(mid, start, ArrowSize / 2);
+                        tail = Slip(mid, end, ArrowSize / 2);
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                        break;
+                    default:
+                        vetex = Slip(mid, end, ArrowSize / 5);
+                        tail = Slip(vetex, end, ArrowSize);
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                        vetex = Slip(mid, start, ArrowSize / 5);
+                        tail = Slip(vetex, start, ArrowSize);
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                        break;
+                }
+            }
+        }
+
+        private DenseVector Rotate(DenseVector point, DenseVector centre, double theta)
+        {
+            return DenseMatrix.OfRowArrays(new double[][] {
+                new double[] {Math.Cos(theta), - Math.Sin(theta) },
+                new double[] {Math.Sin(theta), Math.Cos(theta) }
+            }) * DenseMatrix.OfColumnVectors(new DenseVector[] { point - centre }).ToColumnArrays()[0]
+            + centre;
+        }
+
+        private DenseVector Slip(DenseVector point, DenseVector towards, double distance)
+        {
+            return point + (towards - point) * distance / (towards - point).L2Norm();
+        }
+
+        private void Resize(int width, int height)
+        {
+            // adjust width and height
+            _width = width; _height = height;
+            var allX = PathCoordinates.Values.SelectMany(c => new double[] { c[0], c[2] }).ToList();
+            var allY = PathCoordinates.Values.SelectMany(c => new double[] { c[1], c[3] }).ToList();
+            _maxX = allX.Max(); _minX = allX.Min(); _maxY = allY.Max(); _minY = allY.Min();
+            _height = Math.Min(_height, (int)Math.Round(_width / (_maxX - _minX) * (_maxY - _minY), 0));
+            _width = Math.Min(_width, (int)Math.Round(_height / (_maxY - _minY) * (_maxX - _minX), 0));
+            _margin = (int)Math.Round(Math.Max(_height * 0.02, _width * 0.02));
+        }
+
         #endregion
     }
 }
