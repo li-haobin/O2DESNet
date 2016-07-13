@@ -80,6 +80,29 @@ namespace PMExample
                 }
             }
 
+            #region Generate Coordinates
+            var cpCoords = new Dictionary<ControlPoint, double[]>();
+            double x, y;
+            y = 0;
+            for (int i = 0; i < rowSpaces.Length + 1; i++)
+            {
+                if (i > 0) y += rowSpaces[i - 1];
+                x = 0;
+                for (int j = 0; j < colSpaces.Length + 1; j++)
+                {
+                    if (j > 0) x += colSpaces[j - 1];
+                    cpCoords.Add(ConnectingPoints[i, j, 0], new double[] { x, y });
+                    cpCoords.Add(ConnectingPoints[i, j, 1], new double[] { x + 10, y + 10 });
+                }
+            }
+            foreach(var path in Paths)
+            {
+                var start = path.ControlPoints.First();
+                var end = path.ControlPoints.Last();
+                PathCoordinates.Add(path, new double[] { cpCoords[start][0], cpCoords[start][1], cpCoords[end][0], cpCoords[end][1] });
+            }
+            #endregion
+
         }
     }
 }

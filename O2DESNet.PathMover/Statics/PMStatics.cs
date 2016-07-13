@@ -21,7 +21,7 @@ namespace O2DESNet.PathMover
         }
 
         #region Path Mover Builder
-        
+
         /// <summary>
         /// Create and return a new path
         /// </summary>
@@ -59,7 +59,7 @@ namespace O2DESNet.PathMover
             if (controlPoint.Positions.ContainsKey(path)) throw new Exception("The Control Point exists on the Path.");
             path.Add(controlPoint, position);
         }
-        
+
         /// <summary>
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
@@ -139,8 +139,9 @@ namespace O2DESNet.PathMover
 
         int _width, _height, _margin;
         double _maxX, _minX, _maxY, _minY;
-        public double ArrowSize { get; set; } = 6;
+        public double ArrowSize { get; set; } = 5;
         public double ArrowAngle { get; set; } = Math.PI / 4;
+        public double CPSize { get; set; } = 5;
 
         public void DrawToImage(string file, int width, int height)
         {
@@ -150,56 +151,71 @@ namespace O2DESNet.PathMover
             bitmap.Save(file, ImageFormat.Png);
         }
 
-        public void Draw(Graphics graphics, int width, int height)
+        public void Draw(Graphics g, int width, int height)
         {
             // adjust width and height
             Resize(width, height);
-            Draw(graphics);
+            Draw(g);
         }
 
-        private void Draw(Graphics graphics)
+        private void Draw(Graphics g)
         {
-            Func<DenseVector, Point> getPoint = vec => new Point(
-                (int)Math.Round(_margin + (_width - _margin * 2) * (vec[0] - _minX) / (_maxX - _minX), 0),
-                (int)Math.Round(_margin + (_height - _margin * 2) * (vec[1] - _minY) / (_maxY - _minY), 0)
-                );
+            foreach (var path in Paths) DrawPath(g, path, Color.DarkSlateGray);
+            foreach (var cp in ControlPoints) DrawControlPoint(g, cp, Color.DarkSlateGray);
+        }
 
-            graphics.Clear(Color.White);
-            var pen = new Pen(Color.Black, 1);            
-            foreach (var item in PathCoordinates)
+        private void DrawControlPoint(Graphics g, ControlPoint cp, Color color)
+        {
+            var pos = cp.Positions.First();
+            var coords = PathCoordinates[pos.Key];
+            DenseVector start = new double[] { coords[0], coords[1] };
+            DenseVector end = new double[] { coords[2], coords[3] };
+            DenseVector coord = new double[] {
+                coords[0] + (coords[2]- coords[0])/ pos.Key.Length * pos.Value,
+                coords[1] + (coords[3]- coords[1])/ pos.Key.Length * pos.Value
+            };
+            var tail = Slip(coord, coord + (end - start), CPSize / 2);
+
+            var pen = new Pen(color, 2);
+            g.DrawLine(pen, GetPoint(Rotate(tail, coord, Math.PI / 4)), GetPoint(Rotate(tail, coord, -3 * Math.PI / 4)));
+            g.DrawLine(pen, GetPoint(Rotate(tail, coord, -Math.PI / 4)), GetPoint(Rotate(tail, coord, 3 * Math.PI / 4)));
+        }
+
+        private void DrawPath(Graphics g, Path path, Color color)
+        {
+            if (!PathCoordinates.ContainsKey(path))
+                throw new Exception(string.Format("Coordinates for {0} are not specified.", path.Id));
+            var coords = PathCoordinates[path];
+            DenseVector start = new double[] { coords[0], coords[1] };
+            DenseVector end = new double[] { coords[2], coords[3] };
+            var mid = (start + end) / 2;
+
+            var pen = new Pen(color, 1);
+            g.DrawLine(pen, GetPoint(start), GetPoint(end));
+            // draw arrows on path
+            DenseVector vetex, tail;
+            if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
             {
-                var path = item.Key;
-                DenseVector start =  new double[] { item.Value[0], item.Value[1] };
-                DenseVector end = new double[] { item.Value[2], item.Value[3] };
-                var mid = (start + end) / 2;
-                graphics.DrawLine(pen, getPoint(start), getPoint(end));
-                DenseVector vetex, tail;
-                switch (path.Direction)
-                {                    
-                    case Direction.Forward:
-                        vetex = Slip(mid, end, ArrowSize / 2);
-                        tail = Slip(mid, start, ArrowSize / 2);
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
-                        break;
-                    case Direction.Backward:
-                        vetex = Slip(mid, start, ArrowSize / 2);
-                        tail = Slip(mid, end, ArrowSize / 2);
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
-                        break;
-                    default:
-                        vetex = Slip(mid, end, ArrowSize / 5);
-                        tail = Slip(vetex, end, ArrowSize);
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
-                        vetex = Slip(mid, start, ArrowSize / 5);
-                        tail = Slip(vetex, start, ArrowSize);
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                        graphics.DrawLine(pen, getPoint(vetex), getPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
-                        break;
-                }
+                vetex = Slip(mid, start, (end - start).L2Norm() * 0.1);
+                tail = Slip(vetex, start, ArrowSize);
+                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
             }
+            if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
+            {
+                vetex = Slip(mid, end, (end - start).L2Norm() * 0.1);
+                tail = Slip(vetex, end, ArrowSize);
+                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, ArrowAngle / 2)));
+                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+            }
+        }
+        
+        private Point GetPoint(DenseVector coord)
+        {
+            return new Point(
+                (int)Math.Round(_margin + (_width - _margin * 2) * (coord[0] - _minX) / (_maxX - _minX), 0),
+                (int)Math.Round(_margin + (_height - _margin * 2) * (coord[1] - _minY) / (_maxY - _minY), 0)
+                );
         }
 
         private DenseVector Rotate(DenseVector point, DenseVector centre, double theta)
