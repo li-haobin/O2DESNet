@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PMExample.Statics
+namespace PMExample
 {
     public class Grid : PMStatics
     {

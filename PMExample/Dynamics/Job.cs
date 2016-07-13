@@ -11,7 +11,5 @@ namespace PMExample.Dynamics
     {
         public ControlPoint Origin { get; set; }
         public ControlPoint Destination { get; set; }
-        public Vehicle Vehicle { get; set; }
-
     }
 }

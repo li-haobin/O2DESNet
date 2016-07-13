@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dynamics\MyPMStatus.cs" />
     <Compile Include="Dynamics\Job.cs" />
     <Compile Include="Dynamics\Status.cs" />
     <Compile Include="Events\JobFinish.cs" />
@@ -52,7 +53,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Statics\Grid.cs" />
+    <Compile Include="Statics\TwoWayScenario.cs" />
     <Compile Include="Statics\Scenario.cs" />
+    <Compile Include="Statics\TwoWayGrid.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

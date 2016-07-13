@@ -12,15 +12,14 @@ namespace PMExample.Events
     public class JobStart : Event<Scenario, Status>
     {
         public Job Job { get; set; }
+        public Vehicle Vehicle { get; set; }
         protected override void Invoke()
         {
-            Job.Vehicle = Status.PM.PutOn(Job.Origin, ClockTime);
-            Job.Vehicle.Targets = new List<ControlPoint> { Job.Destination };
-            Job.Vehicle.OnCompletion = () => { Execute(new JobFinish { Job = Job }); };
+            Vehicle.Targets = new List<ControlPoint> { Job.Destination };
+            Vehicle.OnCompletion = () => { Execute(new JobFinish { Next = Status.CreateJob(DefaultRS), Vehicle = Vehicle }); };
 
-            Log("{0}\tJob Started!", ClockTime.ToLongTimeString());
-            Schedule(new JobStart { Job = Status.CreateJob() }, TimeSpan.FromSeconds(DefaultRS.NextDouble() * 3600 / Scenario.JobHourlyRate));
-            Execute(new Move { Dynamics = Status.PM, Vehicle = Job.Vehicle });
+            Log("{0}\tJob Started on {1} at {2}!", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current);
+            Execute(new Move { Dynamics = Status.GridStatus, Vehicle = Vehicle });
         }
     }
 }

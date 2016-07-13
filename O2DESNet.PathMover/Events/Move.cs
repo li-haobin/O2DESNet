@@ -27,8 +27,7 @@ namespace O2DESNet.PathMover
             else Execute(new Reach<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = Vehicle });
             
             Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
-            Status.Log(Dynamics.GetStr_VehiclesOnPath());
-            //Console.ReadKey();
+            //Status.Log(Dynamics.GetStr_VehiclesOnPath());
         }
     }
 }

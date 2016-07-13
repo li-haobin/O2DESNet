@@ -11,11 +11,17 @@ namespace PMExample.Events
 {
     public class JobFinish : Event<Scenario, Status>
     {
-        public Job Job { get; set; }
+        public Job Next { get; set; }
+        public Vehicle Vehicle { get; set; }
         protected override void Invoke()
         {
-            Status.PM.PutOff(Job.Vehicle);
-            Log("{0}\tJob Finished!", ClockTime.ToLongTimeString());
+            Log("{0}\tJob Finished on {1} at {2}!", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current);
+            Status.JobsCount++;
+
+            Vehicle.Targets = new List<ControlPoint> { Next.Origin };
+            Vehicle.OnCompletion = () => { Execute(new JobStart { Job = Next, Vehicle = Vehicle }); };
+            
+            Execute(new Move { Dynamics = Status.GridStatus, Vehicle = Vehicle });
         }
     }
 }
