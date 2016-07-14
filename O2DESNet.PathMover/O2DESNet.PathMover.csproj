@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dijkstra.cs" />
+    <Compile Include="DrawingParams.cs" />
     <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Events\Reach.cs" />
     <Compile Include="Events\Move.cs" />

@@ -136,35 +136,28 @@ namespace O2DESNet.PathMover
         #endregion
 
         #region For Display
-
-        int _width, _height, _margin;
-        double _maxX, _minX, _maxY, _minY;
-        public double ArrowSize { get; set; } = 5;
-        public double ArrowAngle { get; set; } = Math.PI / 4;
-        public double CPSize { get; set; } = 5;
-
-        public void DrawToImage(string file, int width, int height)
+        
+        private void InitDrawingParams(DrawingParams dParams)
         {
-            Resize(width, height);
-            Bitmap bitmap = new Bitmap(Convert.ToInt32(_width), Convert.ToInt32(_height), PixelFormat.Format32bppArgb);
-            Draw(Graphics.FromImage(bitmap));
+            dParams.Init(PathCoordinates.Values.SelectMany(c => new List<double[]> { new double[] { c[0], c[1] }, new double[] { c[2], c[3] } }));
+        }
+
+        public void DrawToImage(string file, DrawingParams dParams)
+        {
+            InitDrawingParams(dParams);
+            Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
+            Draw(Graphics.FromImage(bitmap), dParams, init: false);
             bitmap.Save(file, ImageFormat.Png);
         }
 
-        public void Draw(Graphics g, int width, int height)
+        public void Draw(Graphics g, DrawingParams dParams, bool init = true)
         {
-            // adjust width and height
-            Resize(width, height);
-            Draw(g);
+            if (init) InitDrawingParams(dParams);
+            foreach (var path in Paths) DrawPath(g, path, dParams);
+            foreach (var cp in ControlPoints) DrawControlPoint(g, cp, dParams);
         }
 
-        private void Draw(Graphics g)
-        {
-            foreach (var path in Paths) DrawPath(g, path, Color.DarkSlateGray);
-            foreach (var cp in ControlPoints) DrawControlPoint(g, cp, Color.DarkSlateGray);
-        }
-
-        private void DrawControlPoint(Graphics g, ControlPoint cp, Color color)
+        private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
         {
             var pos = cp.Positions.First();
             var coords = PathCoordinates[pos.Key];
@@ -174,14 +167,14 @@ namespace O2DESNet.PathMover
                 coords[0] + (coords[2]- coords[0])/ pos.Key.Length * pos.Value,
                 coords[1] + (coords[3]- coords[1])/ pos.Key.Length * pos.Value
             };
-            var tail = Slip(coord, coord + (end - start), CPSize / 2);
+            var tail = Slip(coord, coord + (end - start), dParams.ControlPointSize / 2);
 
-            var pen = new Pen(color, 2);
-            g.DrawLine(pen, GetPoint(Rotate(tail, coord, Math.PI / 4)), GetPoint(Rotate(tail, coord, -3 * Math.PI / 4)));
-            g.DrawLine(pen, GetPoint(Rotate(tail, coord, -Math.PI / 4)), GetPoint(Rotate(tail, coord, 3 * Math.PI / 4)));
+            var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
+            g.DrawLine(pen, dParams.GetPoint(Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(Rotate(tail, coord, -3 * Math.PI / 4)));
+            g.DrawLine(pen, dParams.GetPoint(Rotate(tail, coord, -Math.PI / 4)), dParams.GetPoint(Rotate(tail, coord, 3 * Math.PI / 4)));
         }
 
-        private void DrawPath(Graphics g, Path path, Color color)
+        private void DrawPath(Graphics g, Path path, DrawingParams dParams)
         {
             if (!PathCoordinates.ContainsKey(path))
                 throw new Exception(string.Format("Coordinates for {0} are not specified.", path.Id));
@@ -190,34 +183,26 @@ namespace O2DESNet.PathMover
             DenseVector end = new double[] { coords[2], coords[3] };
             var mid = (start + end) / 2;
 
-            var pen = new Pen(color, 1);
-            g.DrawLine(pen, GetPoint(start), GetPoint(end));
+            var pen = new Pen(dParams.PathColor, dParams.PathThickness);
+            g.DrawLine(pen, dParams.GetPoint(start), dParams.GetPoint(end));
             // draw arrows on path
             DenseVector vetex, tail;
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
             {
                 vetex = Slip(mid, start, (end - start).L2Norm() * 0.1);
-                tail = Slip(vetex, start, ArrowSize);
-                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                tail = Slip(vetex, start, dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
             {
                 vetex = Slip(mid, end, (end - start).L2Norm() * 0.1);
-                tail = Slip(vetex, end, ArrowSize);
-                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, ArrowAngle / 2)));
-                g.DrawLine(pen, GetPoint(vetex), GetPoint(Rotate(tail, vetex, -ArrowAngle / 2)));
+                tail = Slip(vetex, end, dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
         }
         
-        private Point GetPoint(DenseVector coord)
-        {
-            return new Point(
-                (int)Math.Round(_margin + (_width - _margin * 2) * (coord[0] - _minX) / (_maxX - _minX), 0),
-                (int)Math.Round(_margin + (_height - _margin * 2) * (coord[1] - _minY) / (_maxY - _minY), 0)
-                );
-        }
-
         private DenseVector Rotate(DenseVector point, DenseVector centre, double theta)
         {
             return DenseMatrix.OfRowArrays(new double[][] {
@@ -230,18 +215,6 @@ namespace O2DESNet.PathMover
         private DenseVector Slip(DenseVector point, DenseVector towards, double distance)
         {
             return point + (towards - point) * distance / (towards - point).L2Norm();
-        }
-
-        private void Resize(int width, int height)
-        {
-            // adjust width and height
-            _width = width; _height = height;
-            var allX = PathCoordinates.Values.SelectMany(c => new double[] { c[0], c[2] }).ToList();
-            var allY = PathCoordinates.Values.SelectMany(c => new double[] { c[1], c[3] }).ToList();
-            _maxX = allX.Max(); _minX = allX.Min(); _maxY = allY.Max(); _minY = allY.Min();
-            _height = Math.Min(_height, (int)Math.Round(_width / (_maxX - _minX) * (_maxY - _minY), 0));
-            _width = Math.Min(_width, (int)Math.Round(_height / (_maxY - _minY) * (_maxX - _minX), 0));
-            _margin = (int)Math.Round(Math.Max(_height * 0.02, _width * 0.02));
         }
 
         #endregion

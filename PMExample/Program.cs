@@ -11,11 +11,13 @@ namespace PMExample
     {
         static void Main(string[] args)
         {
+            var dParams = new DrawingParams(2000, 2000);
+
             var sc = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
-            sc.PM.DrawToImage("grid.png", 2000, 2000);
+            sc.PM.DrawToImage("grid.png", dParams);
 
             var twsc = new TwoWayScenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
-            twsc.PM.DrawToImage("tw-grid.png", 3000, 3000);
+            twsc.PM.DrawToImage("tw-grid.png", dParams);
 
             int nVehicles = 10;
             while (true)

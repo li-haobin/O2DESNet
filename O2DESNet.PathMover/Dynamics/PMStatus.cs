@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,6 +62,27 @@ namespace O2DESNet.PathMover
             }
             return str;
         }
-        #endregion
+
+        //public void DrawToImage(string file, int width, int height)
+        //{
+        //    Resize(width, height);
+        //    Bitmap bitmap = new Bitmap(Convert.ToInt32(_width), Convert.ToInt32(_height), PixelFormat.Format32bppArgb);
+        //    Draw(Graphics.FromImage(bitmap));
+        //    bitmap.Save(file, ImageFormat.Png);
+        //}
+
+        //public void Draw(Graphics g, int width, int height)
+        //{
+        //    // adjust width and height
+        //    Resize(width, height);
+        //    Draw(g);
+        //}
+
+        //private void Draw(Graphics g)
+        //{
+        //    //foreach (var path in Paths) DrawPath(g, path, Color.DarkSlateGray);
+        //    //foreach (var cp in ControlPoints) DrawControlPoint(g, cp, Color.DarkSlateGray);
+        //}
+        #endregion        
     }
 }
