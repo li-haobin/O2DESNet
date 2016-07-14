@@ -63,9 +63,9 @@ namespace O2DESNet.PathMover
             return str;
         }
 
-        public Image DrawToImage(DrawingParams dParams, DateTime now)
+        public Bitmap DrawToImage(DrawingParams dParams, DateTime now, bool init = true)
         {
-            PMScenario.InitDrawingParams(dParams);
+            if (!init) PMScenario.InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
             Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
             return bitmap;
@@ -74,9 +74,7 @@ namespace O2DESNet.PathMover
         public void DrawToFile(string file, DrawingParams dParams, DateTime now)
         {
             PMScenario.InitDrawingParams(dParams);
-            Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
-            Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
-            bitmap.Save(file, ImageFormat.Png);
+            DrawToImage(dParams, now, init: false).Save(file, ImageFormat.Png);
         }
 
 

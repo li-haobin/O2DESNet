@@ -161,12 +161,18 @@ namespace O2DESNet.PathMover
             dParams.Init(Paths.SelectMany(p => GetCoords(p)));
         }
 
-        public void DrawToImage(string file, DrawingParams dParams)
+        public Bitmap DrawToImage(DrawingParams dParams, bool init = true)
         {
-            InitDrawingParams(dParams);
+            if (init) InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
             Draw(Graphics.FromImage(bitmap), dParams, init: false);
-            bitmap.Save(file, ImageFormat.Png);
+            return bitmap;
+        }
+
+        public void DrawToFile(string file, DrawingParams dParams)
+        {
+            InitDrawingParams(dParams);
+            DrawToImage(dParams, init: false).Save(file, ImageFormat.Png);
         }
 
         public void Draw(Graphics g, DrawingParams dParams, bool init = true)

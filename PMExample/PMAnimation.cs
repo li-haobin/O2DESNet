@@ -31,15 +31,10 @@ namespace PMExample
             _sim.Scenario.PM.Draw(e.Graphics, _drawingParams);
         }
 
-        //private void DrawPMStatus(object sender, PaintEventArgs e)
-        //{
-        //    _sim.Status.GridStatus.Draw(e.Graphics, _drawingParams, _sim, );
-        //}
-
         private void PMAnimation_Load(object sender, EventArgs e)
         {
-            var scenario = new TwoWayScenario(
-                Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
+            var scenario = new Scenario(
+                Enumerable.Repeat(200d, 5).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 6)).ToArray(), 10, numVehicles: 10);
             _sim = new Simulator(new Status(scenario, 0));
             _now = DateTime.MinValue;
             
