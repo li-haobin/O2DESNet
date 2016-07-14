@@ -15,15 +15,15 @@ namespace PMExample
     {
         private Simulator _sim;
         private DrawingParams _drawingParams;
-        private DateTime _clockTime;
+        private DateTime _now;
 
         public PMAnimation()
         {
             InitializeComponent();
 
             SetStyle(ControlStyles.UserPaint, true);
-            SetStyle(ControlStyles.AllPaintingInWmPaint, true); // 禁止擦除背景.
-            SetStyle(ControlStyles.DoubleBuffer, true); //双缓冲
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.DoubleBuffer, true);
         }
 
         private void DrawPMScenario(object sender, PaintEventArgs e)
@@ -31,35 +31,32 @@ namespace PMExample
             _sim.Scenario.PM.Draw(e.Graphics, _drawingParams);
         }
 
-        private void DrawPMStatus(object sender, PaintEventArgs e)
-        {
-            _sim.Status.GridStatus.Draw(e.Graphics, _drawingParams);
-            _sim.Status.GridStatus.Changed = false;
-        }
+        //private void DrawPMStatus(object sender, PaintEventArgs e)
+        //{
+        //    _sim.Status.GridStatus.Draw(e.Graphics, _drawingParams, _sim, );
+        //}
 
         private void PMAnimation_Load(object sender, EventArgs e)
         {
-            var scenario = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
+            var scenario = new TwoWayScenario(
+                Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
             _sim = new Simulator(new Status(scenario, 0));
-            _clockTime = DateTime.MinValue;
+            _now = DateTime.MinValue;
             
             _drawingParams = new DrawingParams(this.Width, this.Height);
-            this.label1.Text = _clockTime.ToLongTimeString();
+            this.label1.Text = _now.ToLongTimeString();
         }
         
         private void timer1_Tick(object sender, EventArgs e)
         {
-            this.label1.Text = _clockTime.ToLongTimeString();
+            this.label1.Text = _now.ToLongTimeString();
             double speed = 10;
-            _clockTime += TimeSpan.FromSeconds(timer1.Interval * speed / 1000);
+            _now += TimeSpan.FromSeconds(timer1.Interval * speed / 1000);
             this.SuspendLayout();
-            _sim.Run(_clockTime);
-            if (_sim.Status.GridStatus.Changed)
-            {
-                this.BackgroundImage = _sim.Status.GridStatus.DrawToImage(_drawingParams);
-                this.Width = _drawingParams.Width + 20;
-                this.Height = _drawingParams.Height + 55;
-            }
+            this.BackgroundImage = _sim.Status.GridStatus.DrawToImage(_drawingParams, _now);
+            this.Width = _drawingParams.Width + 20;
+            this.Height = _drawingParams.Height + 55;
+            _sim.Run(_now);
             this.ResumeLayout();
         }
     }

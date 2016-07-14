@@ -13,8 +13,8 @@ namespace PMExample.Dynamics
 
         public override void UpdateSpeeds(Path path, DateTime clockTime)
         {
-            //base.UpdateSpeeds(path, clockTime);
-            foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / VehiclesOnPath[path].Count, clockTime);
+            base.UpdateSpeeds(path, clockTime);
+            //foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / VehiclesOnPath[path].Count, clockTime);
             //foreach (var v in VehiclesOnPath[path]) v.SetSpeed(path.FullSpeed / Math.Pow(VehiclesOnPath[path].Count, 2), clockTime);
         }
     }

@@ -15,7 +15,6 @@ namespace O2DESNet.PathMover
         public Dictionary<Path, HashSet<Vehicle>> VehiclesOnPath { get; private set; }
         public Dictionary<Path, HourCounter> PathUtils { get; private set; }
         internal int VehicleId { get; set; } = 0;
-        public bool Changed { get; set; } = true;
 
         public PMStatus(PMScenario statics)
         {
@@ -24,7 +23,6 @@ namespace O2DESNet.PathMover
             Vehicles = new HashSet<Vehicle>();
             VehiclesOnPath = PMScenario.Paths.ToDictionary(p => p, p => new HashSet<Vehicle>());
             PathUtils = PMScenario.Paths.ToDictionary(p => p, p => new HourCounter(DateTime.MinValue));
-            Changed = true; 
         }
 
         public void WarmedUp(DateTime clockTime)
@@ -65,39 +63,35 @@ namespace O2DESNet.PathMover
             return str;
         }
 
-        public Image DrawToImage(DrawingParams dParams)
+        public Image DrawToImage(DrawingParams dParams, DateTime now)
         {
             PMScenario.InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
-            Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
             return bitmap;
         }
 
-        public void DrawToFile(string file, DrawingParams dParams)
+        public void DrawToFile(string file, DrawingParams dParams, DateTime now)
         {
             PMScenario.InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
-            Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
             bitmap.Save(file, ImageFormat.Png);
         }
 
 
-        public void Draw(Graphics g, DrawingParams dParams, bool init = true)
+        public void Draw(Graphics g, DrawingParams dParams, DateTime now, bool init = true)
         {
             if (init) PMScenario.InitDrawingParams(dParams);
             //PMScenario.Draw(g, dParams, init: false);
             var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder);
 
-            foreach (var path in PMScenario.Paths)
+            foreach (var v in VehiclesOnPath.Values.SelectMany(vs => vs))
             {
-                int n = VehiclesOnPath[path].Count;
-                var coords = PMScenario.GetCoords(path);
-                for (int i = 0; i < n;i++)
-                {
-                    var p = dParams.GetPoint(LinearTool.SlipByRatio(coords[0], coords[1], (i + 0.5) / n));
-                    g.DrawEllipse(pen, p.X - dParams.VehicleRadius, p.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
-                }
-                
+                var start = PMScenario.GetCoord(v.Current);
+                var end = PMScenario.GetCoord(v.Next);
+                var p = dParams.GetPoint(LinearTool.SlipByRatio(start, end, Math.Min(1, 1 - v.RemainingRatio + (now - v.LastActionTime).TotalSeconds / (v.TimeToReach.Value - v.LastActionTime).TotalSeconds)));
+                g.DrawEllipse(pen, p.X - dParams.VehicleRadius, p.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
             }
         }
 

@@ -28,7 +28,6 @@ namespace O2DESNet.PathMover
             
             Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             //Status.Log(Dynamics.GetStr_VehiclesOnPath());
-            PMStatus.Changed = true;
         }
     }
 }

@@ -27,8 +27,6 @@ namespace O2DESNet.PathMover
             if (Vehicle.Current.Equals(Vehicle.Targets.First())) Vehicle.Targets.RemoveAt(0);
             if (Vehicle.Targets.Count==0) Vehicle.OnCompletion();
             else Execute(new Move<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
-
-            PMStatus.Changed = true;
         }
     }
 }

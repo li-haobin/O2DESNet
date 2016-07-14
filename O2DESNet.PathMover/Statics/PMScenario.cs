@@ -147,6 +147,15 @@ namespace O2DESNet.PathMover
             return new DenseVector[] { start, end };
         }
 
+        internal DenseVector GetCoord(ControlPoint cp)
+        {
+            var pos = cp.Positions.First();
+            var coords = GetCoords(pos.Key);
+            var start = coords[0];
+            var end = coords[1];
+            return LinearTool.SlipByRatio(start, end, pos.Value / pos.Key.Length);
+        }
+
         internal void InitDrawingParams(DrawingParams dParams)
         {
             dParams.Init(Paths.SelectMany(p => GetCoords(p)));
@@ -169,13 +178,9 @@ namespace O2DESNet.PathMover
 
         private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
         {
-            var pos = cp.Positions.First();
-            var coords = GetCoords(pos.Key);
-            var start = coords[0];
-            var end = coords[1];
-
-            DenseVector coord = LinearTool.SlipByRatio(start, end, pos.Value / pos.Key.Length);
-            var tail = LinearTool.SlipByDistance(coord, coord + (end - start), dParams.ControlPointSize / 2);
+            DenseVector coord = GetCoord(cp);
+            var pathCoords = GetCoords(cp.Positions.First().Key);
+            var tail = LinearTool.SlipByDistance(coord, coord + (pathCoords[1] - pathCoords[0]), dParams.ControlPointSize / 2);
 
             var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
             g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, -3 * Math.PI / 4)));
