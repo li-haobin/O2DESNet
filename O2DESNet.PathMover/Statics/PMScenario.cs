@@ -7,13 +7,13 @@ using System.Linq;
 
 namespace O2DESNet.PathMover
 {
-    public class PMStatics
+    public class PMScenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         public Dictionary<Path, double[]> PathCoordinates { get; private set; } // for display
 
-        public PMStatics()
+        public PMScenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();

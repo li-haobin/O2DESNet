@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace PMExample.Dynamics
 {
-    public class MyPMStatus : PMDynamics
+    public class MyPMStatus : PMStatus
     {
-        public MyPMStatus(PMStatics pm) : base(pm) { }
+        public MyPMStatus(PMScenario pm) : base(pm) { }
 
         public override void UpdateSpeeds(Path path, DateTime clockTime)
         {

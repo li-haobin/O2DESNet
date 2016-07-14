@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PMExample
 {
-    public class TwoWayGrid : PMStatics
+    public class TwoWayGrid : PMScenario
     {
         /// <summary>
         /// All control points that connect paths in the grid, with dimension [row, col, out/in]

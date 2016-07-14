@@ -45,9 +45,9 @@ namespace PMExample
             
         }
 
-        static PMStatics GetPM1()
+        static PMScenario GetPM1()
         {
-            var pm = new PMStatics();
+            var pm = new PMScenario();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 10, direction: Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
@@ -66,7 +66,7 @@ namespace PMExample
             return pm;
         }
         
-        static void DisplayRouteTable(PMStatics pm)
+        static void DisplayRouteTable(PMScenario pm)
         {
             foreach (var cp in pm.ControlPoints)
             {

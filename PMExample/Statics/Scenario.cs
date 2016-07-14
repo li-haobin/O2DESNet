@@ -10,7 +10,7 @@ namespace PMExample
 {
     public class Scenario : O2DESNet.Scenario
     {
-        public PMStatics PM { get; protected set; }
+        public PMScenario PM { get; protected set; }
         public ControlPoint[] QuayPoints { get; protected set; }
         public ControlPoint[] YardPoints { get; protected set; }
 

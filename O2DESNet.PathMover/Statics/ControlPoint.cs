@@ -5,7 +5,7 @@ namespace O2DESNet.PathMover
 {
     public class ControlPoint
     {
-        public PMStatics Scenario { get; private set; }
+        public PMScenario Scenario { get; private set; }
         public int Id { get; private set; }
         /// <summary>
         /// Check for the position on each path
@@ -20,7 +20,7 @@ namespace O2DESNet.PathMover
         /// </summary>
         internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
 
-        internal ControlPoint(PMStatics scenario)
+        internal ControlPoint(PMScenario scenario)
         {
             Scenario = scenario;
             Id = Scenario.ControlPoints.Count;

@@ -8,7 +8,7 @@ namespace O2DESNet.PathMover
 {
     public class Vehicle
     {
-        public PMDynamics Status { get; private set; }
+        public PMStatus Status { get; private set; }
         public int Id { get; private set; }
         public ControlPoint Current { get; private set; } = null;
         public ControlPoint Next { get; private set; } = null;
@@ -20,7 +20,7 @@ namespace O2DESNet.PathMover
         public List<ControlPoint> Targets { get; set; }
         public Action OnCompletion { get; set; }
 
-        internal Vehicle(PMDynamics status, ControlPoint start, DateTime clockTime)
+        internal Vehicle(PMStatus status, ControlPoint start, DateTime clockTime)
         {
             Status = status;
             Id = Status.VehicleId++;

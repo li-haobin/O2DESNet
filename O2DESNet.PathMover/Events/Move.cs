@@ -10,7 +10,7 @@ namespace O2DESNet.PathMover
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
-        public PMDynamics Dynamics { get; set; }
+        public PMStatus Dynamics { get; set; }
         public Vehicle Vehicle { get; set; }
 
         protected override void Invoke()

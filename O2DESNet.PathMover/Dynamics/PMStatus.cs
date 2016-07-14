@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.PathMover
 {
-    public class PMDynamics
+    public class PMStatus
     {
-        public PMStatics Statics { get; private set; }        
+        public PMScenario Statics { get; private set; }        
         public HashSet<Vehicle> Vehicles { get; private set; }
         public Dictionary<Path, HashSet<Vehicle>> VehiclesOnPath { get; private set; }
         public Dictionary<Path, HourCounter> PathUtils { get; private set; }
         internal int VehicleId { get; set; } = 0;
 
-        public PMDynamics(PMStatics statics)
+        public PMStatus(PMScenario statics)
         {
             Statics = statics;
             Statics.Initialize();

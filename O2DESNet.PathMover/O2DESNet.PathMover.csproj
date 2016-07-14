@@ -57,11 +57,11 @@
     <Compile Include="Dynamics\Vehicle.cs" />
     <Compile Include="Events\Reach.cs" />
     <Compile Include="Events\Move.cs" />
-    <Compile Include="Dynamics\PMDynamics.cs" />
+    <Compile Include="Dynamics\PMStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Statics\ControlPoint.cs" />
     <Compile Include="Statics\Path.cs" />
-    <Compile Include="Statics\PMStatics.cs" />
+    <Compile Include="Statics\PMScenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
