@@ -25,6 +25,8 @@ namespace PMExample
                 var scenario = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), Enumerable.Repeat(45d, 3).ToArray(), 10, nVehicles);
                 var sim = new Simulator(new Status(scenario, 0));
                 sim.Run(TimeSpan.FromHours(3));
+                sim.Status.GridStatus.DrawToImage("grid_status.png", dParams);
+
                 Console.WriteLine("{0}\t{1}", nVehicles, sim.Status.JobsCount);
                 
                 Console.WriteLine("\nPath Utilizations:\n===========================");

@@ -23,10 +23,13 @@ namespace O2DESNet.PathMover
         public double ArrowSize { get; set; } = 6; // relative value
         public double ArrowAngle { get; set; } = Math.PI / 5; // radius
         public double ControlPointSize { get; set; } = 6; // relative value
+        public int VehicleBorder { get; set; } = 3; // pixels
+        public int VehicleRadius { get; set; } = 5; // pixels
 
         // colors
         public Color PathColor { get; set; } = Color.DarkSlateGray;
         public Color ControlPointColor { get; set; } = Color.DarkRed;
+        public Color VehicleColor { get; set; } = Color.DarkGreen;
 
         public DrawingParams(int width, int height)
         {
@@ -42,12 +45,12 @@ namespace O2DESNet.PathMover
                 );
         }
 
-        public void Init(IEnumerable<double[]> coords)
+        public void Init(IEnumerable<IEnumerable<double>> coords)
         {
-            _maxX = coords.Max(c => c[0]);
-            _minX = coords.Min(c => c[0]);
-            _maxY = coords.Max(c => c[1]);
-            _minY = coords.Min(c => c[1]);
+            _maxX = coords.Max(c => c.ElementAt(0));
+            _minX = coords.Min(c => c.ElementAt(0));
+            _maxY = coords.Max(c => c.ElementAt(1));
+            _minY = coords.Min(c => c.ElementAt(1));
             Height = Math.Min(Height, (int)Math.Round(Width / (_maxX - _minX) * (_maxY - _minY), 0));
             Width = Math.Min(Width, (int)Math.Round(Height / (_maxY - _minY) * (_maxX - _minX), 0));
             Margin = Math.Max(Margin, (int)Math.Round(Math.Max(Height * 0.02, Width * 0.02)));

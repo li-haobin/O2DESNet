@@ -10,7 +10,7 @@ namespace O2DESNet.PathMover
 {
     public class PMStatus
     {
-        public PMScenario Statics { get; private set; }        
+        public PMScenario PMScenario { get; private set; }        
         public HashSet<Vehicle> Vehicles { get; private set; }
         public Dictionary<Path, HashSet<Vehicle>> VehiclesOnPath { get; private set; }
         public Dictionary<Path, HourCounter> PathUtils { get; private set; }
@@ -18,11 +18,11 @@ namespace O2DESNet.PathMover
 
         public PMStatus(PMScenario statics)
         {
-            Statics = statics;
-            Statics.Initialize();
+            PMScenario = statics;
+            PMScenario.Initialize();
             Vehicles = new HashSet<Vehicle>();
-            VehiclesOnPath = Statics.Paths.ToDictionary(p => p, p => new HashSet<Vehicle>());
-            PathUtils = Statics.Paths.ToDictionary(p => p, p => new HourCounter(DateTime.MinValue));
+            VehiclesOnPath = PMScenario.Paths.ToDictionary(p => p, p => new HashSet<Vehicle>());
+            PathUtils = PMScenario.Paths.ToDictionary(p => p, p => new HourCounter(DateTime.MinValue));
         }
 
         public void WarmedUp(DateTime clockTime)
@@ -54,7 +54,7 @@ namespace O2DESNet.PathMover
         public string GetStr_VehiclesOnPath()
         {
             var str = "";
-            foreach (var path in Statics.Paths)
+            foreach (var path in PMScenario.Paths)
             {
                 str += string.Format("{0}:\t", path);
                 foreach (var v in VehiclesOnPath[path].OrderBy(v => v.Id)) str += string.Format("{0},", v);
@@ -63,26 +63,33 @@ namespace O2DESNet.PathMover
             return str;
         }
 
-        //public void DrawToImage(string file, int width, int height)
-        //{
-        //    Resize(width, height);
-        //    Bitmap bitmap = new Bitmap(Convert.ToInt32(_width), Convert.ToInt32(_height), PixelFormat.Format32bppArgb);
-        //    Draw(Graphics.FromImage(bitmap));
-        //    bitmap.Save(file, ImageFormat.Png);
-        //}
+        public void DrawToImage(string file, DrawingParams dParams)
+        {
+            PMScenario.InitDrawingParams(dParams);
+            Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
+            Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            bitmap.Save(file, ImageFormat.Png);
+        }
 
-        //public void Draw(Graphics g, int width, int height)
-        //{
-        //    // adjust width and height
-        //    Resize(width, height);
-        //    Draw(g);
-        //}
+        public void Draw(Graphics g, DrawingParams dParams, bool init = true)
+        {
+            if (init) PMScenario.InitDrawingParams(dParams);
+            PMScenario.Draw(g, dParams, init: false);
+            var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder);
 
-        //private void Draw(Graphics g)
-        //{
-        //    //foreach (var path in Paths) DrawPath(g, path, Color.DarkSlateGray);
-        //    //foreach (var cp in ControlPoints) DrawControlPoint(g, cp, Color.DarkSlateGray);
-        //}
+            foreach (var path in PMScenario.Paths)
+            {
+                int n = VehiclesOnPath[path].Count;
+                var coords = PMScenario.GetCoords(path);
+                for (int i = 0; i < n;i++)
+                {
+                    var p = dParams.GetPoint(LinearTool.SlipByRatio(coords[0], coords[1], (i + 0.5) / n));
+                    g.DrawEllipse(pen, p.X - dParams.VehicleRadius, p.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+                }
+                
+            }
+        }
+
         #endregion        
     }
 }

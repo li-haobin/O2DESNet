@@ -137,9 +137,19 @@ namespace O2DESNet.PathMover
 
         #region For Display
         
-        private void InitDrawingParams(DrawingParams dParams)
+        internal DenseVector[] GetCoords(Path path)
         {
-            dParams.Init(PathCoordinates.Values.SelectMany(c => new List<double[]> { new double[] { c[0], c[1] }, new double[] { c[2], c[3] } }));
+            if (!PathCoordinates.ContainsKey(path))
+                throw new Exception(string.Format("Coordinates for {0} are not specified.", path.Id));
+            var coords = PathCoordinates[path];
+            DenseVector start = new double[] { coords[0], coords[1] };
+            DenseVector end = new double[] { coords[2], coords[3] };
+            return new DenseVector[] { start, end };
+        }
+
+        internal void InitDrawingParams(DrawingParams dParams)
+        {
+            dParams.Init(Paths.SelectMany(p => GetCoords(p)));
         }
 
         public void DrawToImage(string file, DrawingParams dParams)
@@ -160,27 +170,23 @@ namespace O2DESNet.PathMover
         private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
         {
             var pos = cp.Positions.First();
-            var coords = PathCoordinates[pos.Key];
-            DenseVector start = new double[] { coords[0], coords[1] };
-            DenseVector end = new double[] { coords[2], coords[3] };
-            DenseVector coord = new double[] {
-                coords[0] + (coords[2]- coords[0])/ pos.Key.Length * pos.Value,
-                coords[1] + (coords[3]- coords[1])/ pos.Key.Length * pos.Value
-            };
-            var tail = Slip(coord, coord + (end - start), dParams.ControlPointSize / 2);
+            var coords = GetCoords(pos.Key);
+            var start = coords[0];
+            var end = coords[1];
+
+            DenseVector coord = LinearTool.SlipByRatio(start, end, pos.Value / pos.Key.Length);
+            var tail = LinearTool.SlipByDistance(coord, coord + (end - start), dParams.ControlPointSize / 2);
 
             var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
-            g.DrawLine(pen, dParams.GetPoint(Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(Rotate(tail, coord, -3 * Math.PI / 4)));
-            g.DrawLine(pen, dParams.GetPoint(Rotate(tail, coord, -Math.PI / 4)), dParams.GetPoint(Rotate(tail, coord, 3 * Math.PI / 4)));
+            g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, -3 * Math.PI / 4)));
+            g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, -Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, 3 * Math.PI / 4)));
         }
 
         private void DrawPath(Graphics g, Path path, DrawingParams dParams)
         {
-            if (!PathCoordinates.ContainsKey(path))
-                throw new Exception(string.Format("Coordinates for {0} are not specified.", path.Id));
-            var coords = PathCoordinates[path];
-            DenseVector start = new double[] { coords[0], coords[1] };
-            DenseVector end = new double[] { coords[2], coords[3] };
+            var coords = GetCoords(path);
+            var start = coords[0];
+            var end = coords[1];
             var mid = (start + end) / 2;
 
             var pen = new Pen(dParams.PathColor, dParams.PathThickness);
@@ -189,32 +195,18 @@ namespace O2DESNet.PathMover
             DenseVector vetex, tail;
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
             {
-                vetex = Slip(mid, start, (end - start).L2Norm() * 0.1);
-                tail = Slip(vetex, start, dParams.ArrowSize);
-                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, dParams.ArrowAngle / 2)));
-                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+                vetex = LinearTool.SlipByDistance(mid, start, (end - start).L2Norm() * 0.1);
+                tail = LinearTool.SlipByDistance(vetex, start, dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
             {
-                vetex = Slip(mid, end, (end - start).L2Norm() * 0.1);
-                tail = Slip(vetex, end, dParams.ArrowSize);
-                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, dParams.ArrowAngle / 2)));
-                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+                vetex = LinearTool.SlipByDistance(mid, end, (end - start).L2Norm() * 0.1);
+                tail = LinearTool.SlipByDistance(vetex, end, dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
-        }
-        
-        private DenseVector Rotate(DenseVector point, DenseVector centre, double theta)
-        {
-            return DenseMatrix.OfRowArrays(new double[][] {
-                new double[] {Math.Cos(theta), - Math.Sin(theta) },
-                new double[] {Math.Sin(theta), Math.Cos(theta) }
-            }) * DenseMatrix.OfColumnVectors(new DenseVector[] { point - centre }).ToColumnArrays()[0]
-            + centre;
-        }
-
-        private DenseVector Slip(DenseVector point, DenseVector towards, double distance)
-        {
-            return point + (towards - point) * distance / (towards - point).L2Norm();
         }
 
         #endregion
