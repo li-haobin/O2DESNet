@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace PMExample
 {
@@ -11,32 +12,37 @@ namespace PMExample
     {
         static void Main(string[] args)
         {
-            var dParams = new DrawingParams(2000, 2000);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new PMAnimation());
+            return;
+            
+            //var dParams = new DrawingParams(2000, 2000);
 
-            var sc = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
-            sc.PM.DrawToImage("grid.png", dParams);
+            //var sc = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
+            //sc.PM.DrawToImage("grid.png", dParams);
 
-            var twsc = new TwoWayScenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
-            twsc.PM.DrawToImage("tw-grid.png", dParams);
+            //var twsc = new TwoWayScenario(Enumerable.Repeat(200d, 4).ToArray(), new double[] { 90 }.Concat(Enumerable.Repeat(50d, 3)).ToArray(), 10, numVehicles: 10);
+            //twsc.PM.DrawToImage("tw-grid.png", dParams);
 
-            int nVehicles = 10;
-            while (true)
-            {
-                var scenario = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), Enumerable.Repeat(45d, 3).ToArray(), 10, nVehicles);
-                var sim = new Simulator(new Status(scenario, 0));
-                sim.Run(TimeSpan.FromHours(3));
-                sim.Status.GridStatus.DrawToImage("grid_status.png", dParams);
+            //int nVehicles = 10;
+            //while (true)
+            //{
+            //    var scenario = new Scenario(Enumerable.Repeat(200d, 4).ToArray(), Enumerable.Repeat(45d, 3).ToArray(), 10, nVehicles);
+            //    var sim = new Simulator(new Status(scenario, 0));
+            //    sim.Run(TimeSpan.FromHours(3));
+            //    sim.Status.GridStatus.DrawToImage("grid_status.png", dParams);
 
-                Console.WriteLine("{0}\t{1}", nVehicles, sim.Status.JobsCount);
+            //    Console.WriteLine("{0}\t{1}", nVehicles, sim.Status.JobsCount);
                 
-                Console.WriteLine("\nPath Utilizations:\n===========================");
-                foreach (var util in sim.Status.GridStatus.PathUtils)
-                    Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
-                Console.WriteLine("Total # of Jobs: {0}", sim.Status.JobsCount);
+            //    Console.WriteLine("\nPath Utilizations:\n===========================");
+            //    foreach (var util in sim.Status.GridStatus.PathUtils)
+            //        Console.WriteLine("{0}\t{1}", util.Key, util.Value.AverageCount);
+            //    Console.WriteLine("Total # of Jobs: {0}", sim.Status.JobsCount);
 
-                Console.ReadKey();
-                nVehicles += 10;
-            }
+            //    Console.ReadKey();
+            //    nVehicles += 10;
+            //}
 
 
 

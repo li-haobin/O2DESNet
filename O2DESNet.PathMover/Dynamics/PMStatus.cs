@@ -15,6 +15,7 @@ namespace O2DESNet.PathMover
         public Dictionary<Path, HashSet<Vehicle>> VehiclesOnPath { get; private set; }
         public Dictionary<Path, HourCounter> PathUtils { get; private set; }
         internal int VehicleId { get; set; } = 0;
+        public bool Changed { get; set; } = true;
 
         public PMStatus(PMScenario statics)
         {
@@ -23,6 +24,7 @@ namespace O2DESNet.PathMover
             Vehicles = new HashSet<Vehicle>();
             VehiclesOnPath = PMScenario.Paths.ToDictionary(p => p, p => new HashSet<Vehicle>());
             PathUtils = PMScenario.Paths.ToDictionary(p => p, p => new HourCounter(DateTime.MinValue));
+            Changed = true; 
         }
 
         public void WarmedUp(DateTime clockTime)
@@ -63,7 +65,15 @@ namespace O2DESNet.PathMover
             return str;
         }
 
-        public void DrawToImage(string file, DrawingParams dParams)
+        public Image DrawToImage(DrawingParams dParams)
+        {
+            PMScenario.InitDrawingParams(dParams);
+            Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
+            Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            return bitmap;
+        }
+
+        public void DrawToFile(string file, DrawingParams dParams)
         {
             PMScenario.InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
@@ -71,10 +81,11 @@ namespace O2DESNet.PathMover
             bitmap.Save(file, ImageFormat.Png);
         }
 
+
         public void Draw(Graphics g, DrawingParams dParams, bool init = true)
         {
             if (init) PMScenario.InitDrawingParams(dParams);
-            PMScenario.Draw(g, dParams, init: false);
+            //PMScenario.Draw(g, dParams, init: false);
             var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder);
 
             foreach (var path in PMScenario.Paths)

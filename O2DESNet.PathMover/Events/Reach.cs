@@ -10,7 +10,7 @@ namespace O2DESNet.PathMover
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
-        public PMStatus Dynamics { get; set; }
+        public PMStatus PMStatus { get; set; }
         public Vehicle Vehicle { get; set; }
         
         protected override void Invoke()
@@ -21,12 +21,14 @@ namespace O2DESNet.PathMover
                 if (!ClockTime.Equals(Vehicle.TimeToReach)) return; // for change of speed
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];
                 Vehicle.Reach(ClockTime);
-                Dynamics.PathUtils[path].ObserveChange(-1, ClockTime);
+                PMStatus.PathUtils[path].ObserveChange(-1, ClockTime);
                 Status.Log("{0}\tReach: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             }
             if (Vehicle.Current.Equals(Vehicle.Targets.First())) Vehicle.Targets.RemoveAt(0);
             if (Vehicle.Targets.Count==0) Vehicle.OnCompletion();
-            else Execute(new Move<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = Vehicle });
+            else Execute(new Move<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
+
+            PMStatus.Changed = true;
         }
     }
 }

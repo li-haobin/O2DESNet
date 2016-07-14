@@ -19,7 +19,7 @@ namespace PMExample.Events
             Vehicle.OnCompletion = () => { Execute(new JobFinish { Next = Status.CreateJob(DefaultRS), Vehicle = Vehicle }); };
 
             Log("{0}\tJob Started on {1} at {2}!", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current);
-            Execute(new Move { Dynamics = Status.GridStatus, Vehicle = Vehicle });
+            Execute(new Move { PMStatus = Status.GridStatus, Vehicle = Vehicle });
         }
     }
 }

@@ -21,7 +21,7 @@ namespace PMExample.Events
             Vehicle.Targets = new List<ControlPoint> { Next.Origin };
             Vehicle.OnCompletion = () => { Execute(new JobStart { Job = Next, Vehicle = Vehicle }); };
             
-            Execute(new Move { Dynamics = Status.GridStatus, Vehicle = Vehicle });
+            Execute(new Move { PMStatus = Status.GridStatus, Vehicle = Vehicle });
         }
     }
 }

@@ -10,7 +10,7 @@ namespace O2DESNet.PathMover
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
-        public PMStatus Dynamics { get; set; }
+        public PMStatus PMStatus { get; set; }
         public Vehicle Vehicle { get; set; }
 
         protected override void Invoke()
@@ -19,15 +19,16 @@ namespace O2DESNet.PathMover
             {
                 Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];
-                foreach (var v in Dynamics.VehiclesOnPath[path]) 
+                foreach (var v in PMStatus.VehiclesOnPath[path]) 
                     // moving in new vehicle may update the speeds for existing vehicles
-                    Schedule(new Reach<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = v }, v.TimeToReach.Value);
-                Dynamics.PathUtils[path].ObserveChange(1, ClockTime);
+                    Schedule(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = v }, v.TimeToReach.Value);
+                PMStatus.PathUtils[path].ObserveChange(1, ClockTime);
             }
-            else Execute(new Reach<TScenario, TStatus> { Dynamics = Dynamics, Vehicle = Vehicle });
+            else Execute(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
             
             Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             //Status.Log(Dynamics.GetStr_VehiclesOnPath());
+            PMStatus.Changed = true;
         }
     }
 }
