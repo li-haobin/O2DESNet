@@ -11,13 +11,11 @@ namespace O2DESNet.PathMover
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
-        public Dictionary<Path, double[]> PathCoordinates { get; private set; } // for display
 
         public PMScenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
-            PathCoordinates = new Dictionary<Path, double[]>();
         }
 
         #region Path Mover Builder
@@ -137,28 +135,17 @@ namespace O2DESNet.PathMover
 
         #region For Display
         
-        internal DenseVector[] GetCoords(Path path)
-        {
-            if (!PathCoordinates.ContainsKey(path))
-                throw new Exception(string.Format("Coordinates for {0} are not specified.", path.Id));
-            var coords = PathCoordinates[path];
-            DenseVector start = new double[] { coords[0], coords[1] };
-            DenseVector end = new double[] { coords[2], coords[3] };
-            return new DenseVector[] { start, end };
-        }
-
         internal DenseVector GetCoord(ControlPoint cp)
         {
             var pos = cp.Positions.First();
-            var coords = GetCoords(pos.Key);
-            var start = coords[0];
-            var end = coords[1];
+            var start = pos.Key.Coordinates.First();
+            var end = pos.Key.Coordinates.Last();
             return LinearTool.SlipByRatio(start, end, pos.Value / pos.Key.Length);
         }
 
         internal void InitDrawingParams(DrawingParams dParams)
         {
-            dParams.Init(Paths.SelectMany(p => GetCoords(p)));
+            dParams.Init(Paths.SelectMany(p => p.Coordinates));
         }
 
         public Bitmap DrawToImage(DrawingParams dParams, bool init = true)
@@ -185,7 +172,7 @@ namespace O2DESNet.PathMover
         private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
         {
             DenseVector coord = GetCoord(cp);
-            var pathCoords = GetCoords(cp.Positions.First().Key);
+            var pathCoords = cp.Positions.First().Key.Coordinates;
             var tail = LinearTool.SlipByDistance(coord, coord + (pathCoords[1] - pathCoords[0]), dParams.ControlPointSize / 2);
 
             var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
@@ -195,9 +182,8 @@ namespace O2DESNet.PathMover
 
         private void DrawPath(Graphics g, Path path, DrawingParams dParams)
         {
-            var coords = GetCoords(path);
-            var start = coords[0];
-            var end = coords[1];
+            var start = path.Coordinates.First();
+            var end = path.Coordinates.Last();
             var mid = (start + end) / 2;
 
             var pen = new Pen(dParams.PathColor, dParams.PathThickness);

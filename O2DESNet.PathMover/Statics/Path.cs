@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 using System.Collections.Generic;
 
 namespace O2DESNet.PathMover
@@ -12,6 +13,7 @@ namespace O2DESNet.PathMover
         public Direction Direction { get; private set; }
         public double FullSpeed { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
+        public List<DenseVector> Coordinates { get; private set; }
 
         internal Path(PMScenario scenario, double length, double fullSpeed, Direction direction)
         {
@@ -21,6 +23,7 @@ namespace O2DESNet.PathMover
             FullSpeed = fullSpeed;
             Direction = direction;
             ControlPoints = new List<ControlPoint>();
+            Coordinates = new List<DenseVector>();
         }
 
         internal void Add(ControlPoint controlPoint, double position)

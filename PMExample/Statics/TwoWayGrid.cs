@@ -1,4 +1,5 @@
-﻿using O2DESNet.PathMover;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using O2DESNet.PathMover;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +82,7 @@ namespace PMExample
             }
 
             #region Generate Coordinates
-            var cpCoords = new Dictionary<ControlPoint, double[]>();
+            var cpCoords = new Dictionary<ControlPoint, DenseVector>();
             double x, y;
             y = 0;
             for (int i = 0; i < rowSpaces.Length + 1; i++)
@@ -97,9 +98,8 @@ namespace PMExample
             }
             foreach(var path in Paths)
             {
-                var start = path.ControlPoints.First();
-                var end = path.ControlPoints.Last();
-                PathCoordinates.Add(path, new double[] { cpCoords[start][0], cpCoords[start][1], cpCoords[end][0], cpCoords[end][1] });
+                path.Coordinates.Add(cpCoords[path.ControlPoints.First()]);
+                path.Coordinates.Add(cpCoords[path.ControlPoints.Last()]);
             }
             #endregion
 

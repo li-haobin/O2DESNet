@@ -56,7 +56,8 @@ namespace PMExample
                 x = 0;
                 for (int j = 0; j < colSpaces.Length; j++)
                 {
-                    PathCoordinates.Add(RowPaths[i][j], new double[] { x, y, x + colSpaces[j], y });
+                    RowPaths[i][j].Coordinates.Add(new double[] { x, y });
+                    RowPaths[i][j].Coordinates.Add(new double[] { x + colSpaces[j], y });
                     x += colSpaces[j];
                 }
             }
@@ -67,7 +68,8 @@ namespace PMExample
                 y = 0;
                 for (int i = 0; i < rowSpaces.Length; i++)
                 {
-                    PathCoordinates.Add(ColPaths[j][i], new double[] { x, y, x, y + rowSpaces[i] });
+                    ColPaths[j][i].Coordinates.Add(new double[] { x, y });
+                    ColPaths[j][i].Coordinates.Add(new double[] { x, y + rowSpaces[i] });
                     y += rowSpaces[i];
                 }
             }
