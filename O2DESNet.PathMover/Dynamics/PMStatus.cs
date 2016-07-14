@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -86,9 +87,17 @@ namespace O2DESNet.PathMover
 
             foreach (var v in VehiclesOnPath.Values.SelectMany(vs => vs))
             {
-                var start = PMScenario.GetCoord(v.Current);
-                var end = PMScenario.GetCoord(v.Next);
-                var p = dParams.GetPoint(LinearTool.SlipByRatio(start, end, Math.Min(1, 1 - v.RemainingRatio + (now - v.LastActionTime).TotalSeconds / (v.TimeToReach.Value - v.LastActionTime).TotalSeconds)));
+                DenseVector towards = null;
+                var start = PMScenario.GetCoord(v.Current, ref towards);
+                var end = PMScenario.GetCoord(v.Next, ref towards);
+
+                var ratio = Math.Min(1, 1 - v.RemainingRatio + (now - v.LastActionTime).TotalSeconds / (v.TimeToReach.Value - v.LastActionTime).TotalSeconds);
+
+                var path = v.Current.PathingTable[v.Next];
+                var rCurrent = v.Current.Positions[path] / path.Length;
+                var rNext = v.Next.Positions[path] / path.Length;
+
+                var p = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
                 g.DrawEllipse(pen, p.X - dParams.VehicleRadius, p.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
             }
         }

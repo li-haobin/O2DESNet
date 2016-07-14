@@ -27,5 +27,26 @@ namespace O2DESNet.PathMover
         {
             return point + (towards - point) * ratio;
         }
+
+        internal static DenseVector SlipOnCurve(List<DenseVector> points, ref DenseVector towards, double ratio)
+        {
+            var distances = new List<double>();
+            for (int i = 0; i < points.Count - 1; i++)
+                distances.Add((points[i + 1] - points[i]).L2Norm());
+            var total = distances.Sum();
+            var cum = 0d;
+            var dist = total * ratio;
+            for (int i = 0; i < distances.Count; i++)
+            {
+                cum += distances[i];
+                if (dist <= cum)
+                {
+                    var  p = points[i + 1] - (points[i + 1] - points[i]) / distances[i] * (cum - dist);
+                    towards = p + (points[i + 1] - points[i]);
+                    return p;
+                }
+            }
+            return null;
+        }
     }
 }

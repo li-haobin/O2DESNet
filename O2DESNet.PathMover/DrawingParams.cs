@@ -22,7 +22,7 @@ namespace O2DESNet.PathMover
         public int ControlPointThickness { get; set; } = 2; // pixels
         public double ArrowSize { get; set; } = 6; // relative value
         public double ArrowAngle { get; set; } = Math.PI / 5; // radius
-        public double ControlPointSize { get; set; } = 6; // relative value
+        public double ControlPointSize { get; set; } = 7; // relative value
         public int VehicleBorder { get; set; } = 3; // pixels
         public int VehicleRadius { get; set; } = 5; // pixels
 

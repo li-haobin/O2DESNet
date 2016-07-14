@@ -74,6 +74,16 @@ namespace PMExample
                 }
             }
             #endregion
+
+            var x0 = RowPaths[0][3].Coordinates.First()[0];
+            RowPaths[0][3].Coordinates.Insert(1, new double[] { x0 + 10, 5 });
+            RowPaths[0][3].Coordinates.Insert(2, new double[] { x0 + 30, 10 });
+            RowPaths[0][3].Coordinates.Insert(3, new double[] { x0 + 50, 15 });
+            RowPaths[0][3].Coordinates.Insert(4, new double[] { x0 + 70, 18 });
+            RowPaths[0][3].Coordinates.Insert(5, new double[] { x0 + 90, 15 });
+            RowPaths[0][3].Coordinates.Insert(6, new double[] { x0 + 110, 10 });
+            RowPaths[0][3].Coordinates.Insert(7, new double[] { x0 + 130, 5 });
+
         }
     }
 }

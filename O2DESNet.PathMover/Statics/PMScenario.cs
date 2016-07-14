@@ -135,12 +135,10 @@ namespace O2DESNet.PathMover
 
         #region For Display
         
-        internal DenseVector GetCoord(ControlPoint cp)
+        internal DenseVector GetCoord(ControlPoint cp, ref DenseVector towards)
         {
             var pos = cp.Positions.First();
-            var start = pos.Key.Coordinates.First();
-            var end = pos.Key.Coordinates.Last();
-            return LinearTool.SlipByRatio(start, end, pos.Value / pos.Key.Length);
+            return LinearTool.SlipOnCurve(pos.Key.Coordinates, ref towards, pos.Value / pos.Key.Length);
         }
 
         internal void InitDrawingParams(DrawingParams dParams)
@@ -171,9 +169,9 @@ namespace O2DESNet.PathMover
 
         private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
         {
-            DenseVector coord = GetCoord(cp);
-            var pathCoords = cp.Positions.First().Key.Coordinates;
-            var tail = LinearTool.SlipByDistance(coord, coord + (pathCoords[1] - pathCoords[0]), dParams.ControlPointSize / 2);
+            DenseVector towards = null;
+            DenseVector coord = GetCoord(cp, ref towards);
+            var tail = LinearTool.SlipByDistance(coord, coord + (towards - coord), dParams.ControlPointSize / 2);
 
             var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
             g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, -3 * Math.PI / 4)));
@@ -187,20 +185,21 @@ namespace O2DESNet.PathMover
             var mid = (start + end) / 2;
 
             var pen = new Pen(dParams.PathColor, dParams.PathThickness);
-            g.DrawLine(pen, dParams.GetPoint(start), dParams.GetPoint(end));
+            for (int i = 0; i < path.Coordinates.Count - 1; i++)
+                g.DrawLine(pen, dParams.GetPoint(path.Coordinates[i]), dParams.GetPoint(path.Coordinates[i + 1]));
             // draw arrows on path
-            DenseVector vetex, tail;
+            DenseVector vetex, tail, towards = null;
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
             {
-                vetex = LinearTool.SlipByDistance(mid, start, (end - start).L2Norm() * 0.1);
-                tail = LinearTool.SlipByDistance(vetex, start, dParams.ArrowSize);
+                vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.4);
+                tail = LinearTool.SlipByDistance(vetex, towards, -dParams.ArrowSize);
                 g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
                 g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
             {
-                vetex = LinearTool.SlipByDistance(mid, end, (end - start).L2Norm() * 0.1);
-                tail = LinearTool.SlipByDistance(vetex, end, dParams.ArrowSize);
+                vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.6);
+                tail = LinearTool.SlipByDistance(vetex, towards, dParams.ArrowSize);
                 g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
                 g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
             }
