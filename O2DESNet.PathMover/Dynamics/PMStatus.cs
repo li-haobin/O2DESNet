@@ -97,43 +97,46 @@ namespace O2DESNet.PathMover
 
                 var ratio = Math.Min(1, 1 - v.RemainingRatio + (now - v.LastActionTime).TotalSeconds / (v.TimeToReach.Value - v.LastActionTime).TotalSeconds);
 
-                var path = v.Current.PathingTable[v.Next];
-                var rCurrent = v.Current.Positions[path] / path.Length;
-                var rNext = v.Next.Positions[path] / path.Length;
+                var curPath = v.Current.PathingTable[v.Next];
+                var rCurrent = v.Current.Positions[curPath] / curPath.Length;
+                var rNext = v.Next.Positions[curPath] / curPath.Length;
 
                 // draw vehicle shape                
                 pen.Color = vColor;
-                var curPoint = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
+                var curRatioOnPath = rCurrent + (rNext - rCurrent) * ratio;
+                var curCoord = LinearTool.SlipOnCurve(curPath.Coordinates, ref towards, curRatioOnPath);
+                var curPoint = dParams.GetPoint(curCoord);
                 g.DrawEllipse(pen, curPoint.X - dParams.VehicleRadius, curPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
 
                 // draw destination
                 var destPoint = dParams.GetPoint(PMScenario.GetCoord(v.Targets.Last(), ref towards));
                 g.DrawRectangle(pen, destPoint.X - dParams.VehicleRadius, destPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
-
-
+                
                 // draw vehicle direction
                 if ((now - v.DepartureTime).TotalSeconds < 5)
                 {
                     var pen2 = new Pen(vColor, 5); // for vehicle direction
 
                     var next = v.Next;
-                    var cps = new List<ControlPoint> { next };
+                    var coords = new List<DenseVector>();
+                    coords.AddRange(LinearTool.GetCoordsInRange(curPath.Coordinates, curRatioOnPath, next.Positions[curPath] / curPath.Length));
                     foreach (var target in v.Targets)
                     {
                         while (next != target)
                         {
+                            var curCP = next;
                             next = next.RoutingTable[target];
-                            cps.Add(next);
+                            var p = curCP.PathingTable[next];
+                            coords.AddRange(LinearTool.GetCoordsInRange(p.Coordinates, curCP.Positions[p] / p.Length, next.Positions[p] / p.Length));
                         }
                     }
-                    foreach (var cp in cps)
+                    foreach (var coord in coords)
                     {
-                        var destination = dParams.GetPoint(PMScenario.GetCoord(cp, ref towards));
+                        var destination = dParams.GetPoint(coord);
                         g.DrawLine(pen2, curPoint, destination);
                         curPoint = destination;
                     }
                 }
-
             }
         }
 
