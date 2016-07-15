@@ -49,19 +49,12 @@ namespace O2DESNet.PathMover
             return null;
         }
 
-        internal static List<DenseVector> GetCoordsInRange(IEnumerable<DenseVector> coords, double lbRatio, double ubRatio)
+        internal static List<DenseVector> GetCoordsInRange(List<DenseVector> coords, double lbRatio, double ubRatio)
         {
-            var coordsList = coords.ToList();
-            if (lbRatio > ubRatio)
-            {
-                lbRatio = 1 - lbRatio;
-                ubRatio = 1 - ubRatio;
-                coordsList.Reverse();
-            }
             var range = new List<DenseVector>();
             var distances = new List<double>();
-            for (int i = 0; i < coordsList.Count - 1; i++)
-                distances.Add((coordsList[i + 1] - coordsList[i]).L2Norm());
+            for (int i = 0; i < coords.Count - 1; i++)
+                distances.Add((coords[i + 1] - coords[i]).L2Norm());
             var total = distances.Sum();
             var cum = 0d;
             var lbDist = total * lbRatio;
@@ -70,9 +63,9 @@ namespace O2DESNet.PathMover
             {
                 cum += distances[i];
                 if (cum > ubDist) return range;
-                if (cum >= lbDist) range.Add(coordsList[i]);
+                if (cum >= lbDist) range.Add(coords[i]);                
             }
-            return range;
+            return null;
         }
     }
 }
