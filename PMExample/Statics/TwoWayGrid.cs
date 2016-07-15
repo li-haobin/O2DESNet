@@ -37,8 +37,8 @@ namespace PMExample
                 CreatePath(colSpaces[j], fullSpeed, Direction.Backward)
             }).ToArray()).ToArray();
             ColPaths = Enumerable.Range(0, colSpaces.Length + 1).Select(j => Enumerable.Range(0, rowSpaces.Length).Select(i => new Path[] {
-                CreatePath(colSpaces[i], fullSpeed, Direction.Forward),
-                CreatePath(colSpaces[i], fullSpeed, Direction.Backward)
+                CreatePath(rowSpaces[i], fullSpeed, Direction.Forward),
+                CreatePath(rowSpaces[i], fullSpeed, Direction.Backward)
             }).ToArray()).ToArray();
             JunctionPaths = Enumerable.Range(0, rowSpaces.Length + 1).Select(i => Enumerable.Range(0, colSpaces.Length + 1).Select(j => CreatePath(1E-6, fullSpeed, Direction.Forward)).ToArray()).ToArray();
 
