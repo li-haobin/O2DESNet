@@ -15,6 +15,11 @@ namespace O2DESNet.PathMover
 
         protected override void Invoke()
         {
+            if (Vehicle.Origin == null)
+            {
+                Vehicle.Origin = Vehicle.Current;
+                Vehicle.DepartureTime = ClockTime;
+            }
             if (!Vehicle.Current.Equals(Vehicle.Targets.First()))
             {
                 Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);

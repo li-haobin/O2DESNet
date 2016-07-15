@@ -28,11 +28,11 @@ namespace O2DESNet.PathMover
             return point + (towards - point) * ratio;
         }
 
-        internal static DenseVector SlipOnCurve(List<DenseVector> points, ref DenseVector towards, double ratio)
+        internal static DenseVector SlipOnCurve(List<DenseVector> coords, ref DenseVector towards, double ratio)
         {
             var distances = new List<double>();
-            for (int i = 0; i < points.Count - 1; i++)
-                distances.Add((points[i + 1] - points[i]).L2Norm());
+            for (int i = 0; i < coords.Count - 1; i++)
+                distances.Add((coords[i + 1] - coords[i]).L2Norm());
             var total = distances.Sum();
             var cum = 0d;
             var dist = total * ratio;
@@ -41,10 +41,29 @@ namespace O2DESNet.PathMover
                 cum += distances[i];
                 if (dist <= cum)
                 {
-                    var  p = points[i + 1] - (points[i + 1] - points[i]) / distances[i] * (cum - dist);
-                    towards = p + (points[i + 1] - points[i]);
+                    var  p = coords[i + 1] - (coords[i + 1] - coords[i]) / distances[i] * (cum - dist);
+                    towards = p + (coords[i + 1] - coords[i]);
                     return p;
                 }
+            }
+            return null;
+        }
+
+        internal static List<DenseVector> GetCoordsInRange(List<DenseVector> coords, double lbRatio, double ubRatio)
+        {
+            var range = new List<DenseVector>();
+            var distances = new List<double>();
+            for (int i = 0; i < coords.Count - 1; i++)
+                distances.Add((coords[i + 1] - coords[i]).L2Norm());
+            var total = distances.Sum();
+            var cum = 0d;
+            var lbDist = total * lbRatio;
+            var ubDist = total * ubRatio;
+            for (int i = 0; i < distances.Count; i++)
+            {
+                cum += distances[i];
+                if (cum > ubDist) return range;
+                if (cum >= lbDist) range.Add(coords[i]);                
             }
             return null;
         }

@@ -83,13 +83,15 @@ namespace O2DESNet.PathMover
         {
             if (init) PMScenario.InitDrawingParams(dParams);
             //PMScenario.Draw(g, dParams, init: false);
+
             var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder); // for vehicle
-            var pen2 = new Pen(Color.LightPink, 3); // for vehicle direction
+            var colors = new List<Color> { Color.DarkBlue, Color.DarkCyan, Color.DarkGoldenrod, Color.DarkGreen, Color.DarkRed, Color.DarkSeaGreen, Color.DarkKhaki, Color.DarkMagenta, Color.DarkOliveGreen, Color.DarkOrange, Color.DarkOrchid, Color.DarkSalmon, Color.DarkSlateBlue, Color.DarkTurquoise, Color.DarkViolet };
 
             // draw for each vehicle
             foreach (var v in VehiclesOnPath.Values.SelectMany(vs => vs))
             {
                 DenseVector towards = null;
+                var vColor = colors[v.Id % colors.Count];
                 var start = PMScenario.GetCoord(v.Current, ref towards);
                 var end = PMScenario.GetCoord(v.Next, ref towards);
 
@@ -99,16 +101,37 @@ namespace O2DESNet.PathMover
                 var rCurrent = v.Current.Positions[path] / path.Length;
                 var rNext = v.Next.Positions[path] / path.Length;
 
-                // draw vehicle shape
-                var curPosition = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
-                g.DrawEllipse(pen, curPosition.X - dParams.VehicleRadius, curPosition.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+                // draw vehicle shape                
+                pen.Color = vColor;
+                var curPoint = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
+                g.DrawEllipse(pen, curPoint.X - dParams.VehicleRadius, curPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+
+                // draw destination
+                var destPoint = dParams.GetPoint(PMScenario.GetCoord(v.Targets.Last(), ref towards));
+                g.DrawRectangle(pen, destPoint.X - dParams.VehicleRadius, destPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+
 
                 // draw vehicle direction
-                foreach (var target in v.Targets)
+                if ((now - v.DepartureTime).TotalSeconds < 5)
                 {
-                    var destination = dParams.GetPoint(PMScenario.GetCoord(target, ref towards));
-                    g.DrawLine(pen2, curPosition, destination);
-                    curPosition = destination;
+                    var pen2 = new Pen(vColor, 5); // for vehicle direction
+
+                    var next = v.Next;
+                    var cps = new List<ControlPoint> { next };
+                    foreach (var target in v.Targets)
+                    {
+                        while (next != target)
+                        {
+                            next = next.RoutingTable[target];
+                            cps.Add(next);
+                        }
+                    }
+                    foreach (var cp in cps)
+                    {
+                        var destination = dParams.GetPoint(PMScenario.GetCoord(cp, ref towards));
+                        g.DrawLine(pen2, curPoint, destination);
+                        curPoint = destination;
+                    }
                 }
 
             }

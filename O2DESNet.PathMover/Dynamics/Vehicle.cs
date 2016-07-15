@@ -17,6 +17,8 @@ namespace O2DESNet.PathMover
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
 
+        public ControlPoint Origin { get; set; }
+        public DateTime DepartureTime { get; set; }
         public List<ControlPoint> Targets { get; set; }
         public Action OnCompletion { get; set; }
 

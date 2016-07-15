@@ -25,7 +25,11 @@ namespace O2DESNet.PathMover
                 Status.Log("{0}\tReach: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             }
             if (Vehicle.Current.Equals(Vehicle.Targets.First())) Vehicle.Targets.RemoveAt(0);
-            if (Vehicle.Targets.Count==0) Vehicle.OnCompletion();
+            if (Vehicle.Targets.Count == 0)
+            {
+                Vehicle.Origin = null;
+                Vehicle.OnCompletion();
+            }
             else Execute(new Move<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
         }
     }
