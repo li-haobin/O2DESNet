@@ -83,8 +83,10 @@ namespace O2DESNet.PathMover
         {
             if (init) PMScenario.InitDrawingParams(dParams);
             //PMScenario.Draw(g, dParams, init: false);
-            var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder);
+            var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder); // for vehicle
+            var pen2 = new Pen(Color.LightPink, 3); // for vehicle direction
 
+            // draw for each vehicle
             foreach (var v in VehiclesOnPath.Values.SelectMany(vs => vs))
             {
                 DenseVector towards = null;
@@ -97,8 +99,18 @@ namespace O2DESNet.PathMover
                 var rCurrent = v.Current.Positions[path] / path.Length;
                 var rNext = v.Next.Positions[path] / path.Length;
 
-                var p = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
-                g.DrawEllipse(pen, p.X - dParams.VehicleRadius, p.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+                // draw vehicle shape
+                var curPosition = dParams.GetPoint(LinearTool.SlipOnCurve(path.Coordinates, ref towards, rCurrent + (rNext - rCurrent) * ratio));
+                g.DrawEllipse(pen, curPosition.X - dParams.VehicleRadius, curPosition.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+
+                // draw vehicle direction
+                foreach (var target in v.Targets)
+                {
+                    var destination = dParams.GetPoint(PMScenario.GetCoord(target, ref towards));
+                    g.DrawLine(pen2, curPosition, destination);
+                    curPosition = destination;
+                }
+
             }
         }
 
