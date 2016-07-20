@@ -1,15 +1,18 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 
 namespace O2DESNet.PathMover
 {
-    public class Statics
+    public class PMScenario
     {
         public List<Path> Paths { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
 
-        public Statics()
+        public PMScenario()
         {
             Paths = new List<Path>();
             ControlPoints = new List<ControlPoint>();
@@ -41,13 +44,20 @@ namespace O2DESNet.PathMover
         /// <summary>
         /// Connect two paths at specified positions
         /// </summary>
-        public void Connect(Path path_0, Path path_1, double position_0, double position_1, ControlPoint controlPoint = null)
+        public void Connect(Path path_0, Path path_1, double position_0, double position_1)
         {
-            if (controlPoint == null) controlPoint = CreateControlPoint(path_0, position_0);
-            else path_0.Add(controlPoint, position_0);
-            path_1.Add(controlPoint, position_1);
+            path_1.Add(CreateControlPoint(path_0, position_0), position_1);
         }
         
+        /// <summary>
+        /// Connect the Path to the Control Point at specific positions
+        /// </summary>
+        public void Connect(Path path, double position, ControlPoint controlPoint)
+        {
+            if (controlPoint.Positions.ContainsKey(path)) throw new Exception("The Control Point exists on the Path.");
+            path.Add(controlPoint, position);
+        }
+
         /// <summary>
         /// Connect the end of path_0 to the start of path_1
         /// </summary>
@@ -121,6 +131,76 @@ namespace O2DESNet.PathMover
             }
             return edges;
         }
+        #endregion
+
+        #region For Display
+        
+        internal DenseVector GetCoord(ControlPoint cp, ref DenseVector towards)
+        {
+            var pos = cp.Positions.First();
+            return LinearTool.SlipOnCurve(pos.Key.Coordinates, ref towards, pos.Value / pos.Key.Length);
+        }
+
+        internal void InitDrawingParams(DrawingParams dParams)
+        {
+            dParams.Init(Paths.SelectMany(p => p.Coordinates));
+        }
+
+        public Bitmap DrawToImage(DrawingParams dParams, bool init = true)
+        {
+            if (init) InitDrawingParams(dParams);
+            Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
+            Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            return bitmap;
+        }
+
+        public void DrawToFile(string file, DrawingParams dParams)
+        {
+            InitDrawingParams(dParams);
+            DrawToImage(dParams, init: false).Save(file, ImageFormat.Png);
+        }
+
+        public void Draw(Graphics g, DrawingParams dParams, bool init = true)
+        {
+            if (init) InitDrawingParams(dParams);
+            foreach (var path in Paths) DrawPath(g, path, dParams);
+            foreach (var cp in ControlPoints) DrawControlPoint(g, cp, dParams);
+        }
+
+        private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
+        {
+            DenseVector towards = null;
+            DenseVector coord = GetCoord(cp, ref towards);
+            var tail = LinearTool.SlipByDistance(coord, coord + (towards - coord), dParams.ControlPointSize / 2);
+
+            var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
+            g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, -3 * Math.PI / 4)));
+            g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, -Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, 3 * Math.PI / 4)));
+        }
+
+        private void DrawPath(Graphics g, Path path, DrawingParams dParams)
+        {
+            var pen = new Pen(dParams.PathColor, dParams.PathThickness);
+            for (int i = 0; i < path.Coordinates.Count - 1; i++)
+                g.DrawLine(pen, dParams.GetPoint(path.Coordinates[i]), dParams.GetPoint(path.Coordinates[i + 1]));
+            // draw arrows on path
+            DenseVector vetex, tail, towards = null;
+            if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
+            {
+                vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.4);
+                tail = LinearTool.SlipByDistance(vetex, towards, -dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+            }
+            if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
+            {
+                vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.6);
+                tail = LinearTool.SlipByDistance(vetex, towards, dParams.ArrowSize);
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+                g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+            }
+        }
+
         #endregion
     }
 }
