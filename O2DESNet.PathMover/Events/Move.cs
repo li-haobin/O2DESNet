@@ -13,7 +13,7 @@ namespace O2DESNet.PathMover
         public PMStatus PMStatus { get; set; }
         public Vehicle Vehicle { get; set; }
 
-        protected override void Invoke()
+        public override void Invoke()
         {
             if (Vehicle.Origin == null)
             {

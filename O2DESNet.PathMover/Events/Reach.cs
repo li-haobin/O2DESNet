@@ -12,8 +12,8 @@ namespace O2DESNet.PathMover
     {
         public PMStatus PMStatus { get; set; }
         public Vehicle Vehicle { get; set; }
-        
-        protected override void Invoke()
+
+        public override void Invoke()
         {
             if (Vehicle.Targets.Count == 0) return;
             if (Vehicle.Next != null) // in case vehicle is not moving, skip

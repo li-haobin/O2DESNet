@@ -13,7 +13,7 @@ namespace PMExample.Events
     {
         public Job Job { get; set; }
         public Vehicle Vehicle { get; set; }
-        protected override void Invoke()
+        public override void Invoke()
         {
             Vehicle.Targets = new List<ControlPoint> { Job.Destination };
             Vehicle.OnCompletion = () => { Execute(new JobFinish { Next = Status.CreateJob(DefaultRS), Vehicle = Vehicle }); };

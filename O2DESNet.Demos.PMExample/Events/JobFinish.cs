@@ -13,7 +13,7 @@ namespace PMExample.Events
     {
         public Job Next { get; set; }
         public Vehicle Vehicle { get; set; }
-        protected override void Invoke()
+        public override void Invoke()
         {
             Log("{0}\tJob Finished on {1} at {2}!", ClockTime.ToLongTimeString(), Vehicle, Vehicle.Current);
             Status.JobsCount++;
