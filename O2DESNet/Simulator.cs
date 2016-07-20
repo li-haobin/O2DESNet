@@ -34,11 +34,6 @@ namespace O2DESNet
             evnt.ScheduledTime = time;
             FutureEventList.Add(evnt);
         }
-        internal protected void Execute(Event<TScenario, TStatus> evnt)
-        {
-            evnt.Simulator = this;
-            evnt.Invoke();
-        }
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL
@@ -71,8 +66,7 @@ namespace O2DESNet
             return true;
         }
 
-        public bool WarmUp(TimeSpan duration)
-        {
+        public bool WarmUp(TimeSpan duration) {
             var r = Run(duration);
             Status.WarmedUp(ClockTime);
             return r; // to be continued

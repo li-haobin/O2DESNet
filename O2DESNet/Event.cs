@@ -13,7 +13,7 @@ namespace O2DESNet
         protected DateTime ClockTime { get { return Simulator.ClockTime; } }
         protected Event() { }
         protected Event(Simulator<TScenario, TStatus> simulator) { Simulator = simulator; }
-        public abstract void Invoke();
+        internal protected abstract void Invoke();
         protected void Execute(Event<TScenario, TStatus> evnt) { evnt.Simulator = Simulator; evnt.Invoke(); }
         protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time) { Simulator.Schedule(evnt, time); }
         protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Simulator.Schedule(evnt, delay); }
