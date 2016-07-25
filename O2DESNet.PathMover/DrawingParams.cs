@@ -18,16 +18,15 @@ namespace O2DESNet.PathMover
         private double _minX, _maxX, _minY, _maxY;
 
         // element size
-        public int PathThickness { get; set; } = 1; // pixels
+        public Pen PathStyle { get; set; }
         public int ControlPointThickness { get; set; } = 2; // pixels
-        public double ArrowSize { get; set; } = 6; // relative value
+        public double ArrowSize { get; set; } = 1; // relative value
         public double ArrowAngle { get; set; } = Math.PI / 5; // radius
-        public double ControlPointSize { get; set; } = 7; // relative value
+        public double ControlPointSize { get; set; } = 1; // relative value
         public int VehicleBorder { get; set; } = 3; // pixels
         public int VehicleRadius { get; set; } = 5; // pixels
 
         // colors
-        public Color PathColor { get; set; } = Color.DarkSlateGray;
         public Color ControlPointColor { get; set; } = Color.DarkRed;
         public Color VehicleColor { get; set; } = Color.DarkGreen;
 
@@ -35,6 +34,7 @@ namespace O2DESNet.PathMover
         {
             Width = width;
             Height = height;
+            PathStyle = new Pen(Color.DarkSlateGray, 1);
         }
 
         public Point GetPoint(IEnumerable<double> coord)
@@ -45,7 +45,7 @@ namespace O2DESNet.PathMover
                 );
         }
 
-        public void Init(IEnumerable<IEnumerable<double>> coords)
+        public void Resize(IEnumerable<IEnumerable<double>> coords)
         {
             _maxX = coords.Max(c => c.ElementAt(0));
             _minX = coords.Min(c => c.ElementAt(0));

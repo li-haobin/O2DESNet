@@ -141,9 +141,9 @@ namespace O2DESNet.PathMover
             return LinearTool.SlipOnCurve(pos.Key.Coordinates, ref towards, pos.Value / pos.Key.Length);
         }
 
-        internal void InitDrawingParams(DrawingParams dParams)
+        internal protected virtual void InitDrawingParams(DrawingParams dParams)
         {
-            dParams.Init(Paths.SelectMany(p => p.Coordinates));
+            dParams.Resize(Paths.SelectMany(p => p.Coordinates));
         }
 
         public Bitmap DrawToImage(DrawingParams dParams, bool init = true)
@@ -160,7 +160,7 @@ namespace O2DESNet.PathMover
             DrawToImage(dParams, init: false).Save(file, ImageFormat.Png);
         }
 
-        public void Draw(Graphics g, DrawingParams dParams, bool init = true)
+        public virtual void Draw(Graphics g, DrawingParams dParams, bool init = true)
         {
             if (init) InitDrawingParams(dParams);
             foreach (var path in Paths) DrawPath(g, path, dParams);
@@ -180,7 +180,7 @@ namespace O2DESNet.PathMover
 
         private void DrawPath(Graphics g, Path path, DrawingParams dParams)
         {
-            var pen = new Pen(dParams.PathColor, dParams.PathThickness);
+            var pen = dParams.PathStyle;
             for (int i = 0; i < path.Coordinates.Count - 1; i++)
                 g.DrawLine(pen, dParams.GetPoint(path.Coordinates[i]), dParams.GetPoint(path.Coordinates[i + 1]));
             // draw arrows on path
