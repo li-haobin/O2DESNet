@@ -9,7 +9,7 @@ namespace O2DESNet.PathMover
         public PMScenario Statics { get; private set; }
         public int Id { get; private set; }
 
-        public double Length { get; private set; }
+        public double Length { get; set; }
         public Direction Direction { get; private set; }
         public double FullSpeed { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }

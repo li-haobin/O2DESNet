@@ -180,6 +180,7 @@ namespace O2DESNet.PathMover
 
         private void DrawPath(Graphics g, Path path, DrawingParams dParams)
         {
+            if (path.Coordinates.Count == 0) return;
             var pen = dParams.PathStyle;
             for (int i = 0; i < path.Coordinates.Count - 1; i++)
                 g.DrawLine(pen, dParams.GetPoint(path.Coordinates[i]), dParams.GetPoint(path.Coordinates[i + 1]));
