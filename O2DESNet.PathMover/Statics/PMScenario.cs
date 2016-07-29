@@ -94,13 +94,20 @@ namespace O2DESNet.PathMover
             {
                 var sinkIndex = sinkIndices.First();
                 var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
-                path.Add(sourceIndex);
-                path.Reverse();
-                for (int i = 0; i < path.Count - 1; i++)
+                if (path.Count > 0)
                 {
-                    for (int j = i + 1; j < path.Count; j++)
-                        ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
-                    sinkIndices.Remove(path[i + 1]);
+                    path.Add(sourceIndex);
+                    path.Reverse();
+                    for (int i = 0; i < path.Count - 1; i++)
+                    {
+                        for (int j = i + 1; j < path.Count; j++)
+                            ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
+                        sinkIndices.Remove(path[i + 1]);
+                    }
+                }
+                else {
+                    ControlPoints[sourceIndex].RoutingTable[ControlPoints[sinkIndex]] = null;
+                    sinkIndices.Remove(sinkIndex);
                 }
             }
         }

@@ -13,12 +13,11 @@ namespace O2DESNet.PathMover
         public Dijkstra() { Vertices = new Dictionary<int, Dictionary<int, double>>(); }
         public Dijkstra(List<Tuple<int, int, double>> edges)
         {
-            Vertices = new Dictionary<int, Dictionary<int, double>>();
+            Vertices = edges.Select(e => e.Item1).Concat(edges.Select(e => e.Item2)).Distinct().ToDictionary(i => i, i => new Dictionary<int, double>());
             foreach (var edge in edges)
             {
                 int from = edge.Item1, to = edge.Item2;
                 double distance = edge.Item3;
-                if (!Vertices.ContainsKey(from)) Vertices[from] = new Dictionary<int, double>();
                 Vertices[from].Add(to, distance);
             }
         }
@@ -55,6 +54,7 @@ namespace O2DESNet.PathMover
                 nodes.Add(vertex.Key);
             }
 
+            path = new List<int>();
             while (nodes.Count != 0)
             {
                 nodes.Sort((x, y) => dist[x].CompareTo(dist[y]));
@@ -64,7 +64,7 @@ namespace O2DESNet.PathMover
 
                 if (smallest == finish)
                 {
-                    path = new List<int>();
+                    //path = new List<int>();
                     while (prev.ContainsKey(smallest))
                     {
                         path.Add(smallest);
