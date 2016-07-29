@@ -22,7 +22,7 @@ namespace O2DESNet.PathMover
         public List<ControlPoint> Targets { get; set; }
         public Action OnCompletion { get; set; }
 
-        internal Vehicle(PMStatus status, ControlPoint start, DateTime clockTime)
+        internal protected Vehicle(PMStatus status, ControlPoint start, DateTime clockTime)
         {
             Status = status;
             Id = Status.VehicleId++;

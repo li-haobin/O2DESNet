@@ -31,7 +31,7 @@ namespace O2DESNet.PathMover
             foreach (var util in PathUtils.Values) util.WarmedUp(clockTime);
         }
 
-        public Vehicle PutOn(ControlPoint start, DateTime clockTime)
+        public virtual Vehicle PutOn(ControlPoint start, DateTime clockTime)
         {
             var vehicle = new Vehicle(this, start, clockTime);
             Vehicles.Add(vehicle);
