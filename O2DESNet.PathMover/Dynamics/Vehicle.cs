@@ -1,5 +1,7 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Double;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -98,6 +100,71 @@ namespace O2DESNet.PathMover
             return str;
         }
         #endregion
+
+        private static List<Color> _colors = new List<Color> {
+            Color.DarkBlue, Color.DarkCyan, Color.DarkGoldenrod, Color.DarkGreen, Color.DarkRed, Color.DarkSeaGreen,
+            Color.DarkKhaki, Color.DarkMagenta, Color.DarkOliveGreen, Color.DarkOrange, Color.DarkOrchid, Color.DarkSalmon,
+            Color.DarkSlateBlue, Color.DarkTurquoise, Color.DarkViolet
+        };
+
+        public virtual void Draw(Graphics g, DrawingParams dParams, PMScenario pm, DateTime now)
+        {
+            var pen = new Pen(dParams.VehicleColor, dParams.VehicleBorder); // for vehicle
+
+            DenseVector towards = null;
+            var vColor = _colors[Id % _colors.Count];
+            var start = pm.GetCoord(Current, ref towards);
+            var end = pm.GetCoord(Next, ref towards);
+
+            var ratio = Math.Min(1, 1 - RemainingRatio + (now - LastActionTime).TotalSeconds / (TimeToReach.Value - LastActionTime).TotalSeconds);
+
+            var curPath = Current.PathingTable[Next];
+            var rCurrent = Current.Positions[curPath] / curPath.Length;
+            var rNext = Next.Positions[curPath] / curPath.Length;
+
+            // draw vehicle shape                
+            pen.Color = vColor;
+            var curRatioOnPath = rCurrent + (rNext - rCurrent) * ratio;
+            var curCoord = LinearTool.SlipOnCurve(curPath.Coordinates, ref towards, curRatioOnPath);            
+            DrawShape(g, dParams, pen, curCoord, towards);            
+
+            // draw destination
+            var destPoint = dParams.GetPoint(pm.GetCoord(Targets.Last(), ref towards));
+            g.DrawRectangle(pen, destPoint.X - dParams.VehicleRadius, destPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+
+            // draw vehicle direction
+            var curPoint = dParams.GetPoint(curCoord);
+            if ((now - DepartureTime).TotalSeconds < 5)
+            {
+                var pen2 = new Pen(vColor, 5); // for vehicle direction
+
+                var next = Next;
+                var coords = new List<DenseVector>();
+                coords.AddRange(LinearTool.GetCoordsInRange(curPath.Coordinates, curRatioOnPath, next.Positions[curPath] / curPath.Length));
+                foreach (var target in Targets)
+                {
+                    while (next != target)
+                    {
+                        var curCP = next;
+                        next = next.RoutingTable[target];
+                        var p = curCP.PathingTable[next];
+                        coords.AddRange(LinearTool.GetCoordsInRange(p.Coordinates, curCP.Positions[p] / p.Length, next.Positions[p] / p.Length));
+                    }
+                }
+                foreach (var coord in coords)
+                {
+                    var destination = dParams.GetPoint(coord);
+                    g.DrawLine(pen2, curPoint, destination);
+                    curPoint = destination;
+                }
+            }
+        }
+
+        protected virtual void DrawShape(Graphics g, DrawingParams dParams, Pen pen, DenseVector curCoord, DenseVector towards)
+        {
+            var curPoint = dParams.GetPoint(curCoord);
+            g.DrawEllipse(pen, curPoint.X - dParams.VehicleRadius, curPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
+        }
 
     }
 }
