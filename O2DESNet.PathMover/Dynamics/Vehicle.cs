@@ -24,6 +24,8 @@ namespace O2DESNet.PathMover
         public List<ControlPoint> Targets { get; set; }
         public Action OnCompletion { get; set; }
 
+        public DenseVector Direction { get; set; } // for drawing
+
         internal protected Vehicle(PMStatus status, ControlPoint start, DateTime clockTime)
         {
             Status = status;
@@ -125,8 +127,9 @@ namespace O2DESNet.PathMover
             // draw vehicle shape                
             pen.Color = vColor;
             var curRatioOnPath = rCurrent + (rNext - rCurrent) * ratio;
-            var curCoord = LinearTool.SlipOnCurve(curPath.Coordinates, ref towards, curRatioOnPath);            
-            DrawShape(g, dParams, pen, curCoord, towards);            
+            var curCoord = LinearTool.SlipOnCurve(curPath.Coordinates, ref towards, curRatioOnPath);
+            if (Direction == null || !curPath.Crab) Direction = (DenseVector)(towards - curCoord).Normalize(2);
+            DrawShape(g, dParams, pen, curCoord);            
 
             // draw destination
             var destPoint = dParams.GetPoint(pm.GetCoord(Targets.Last(), ref towards));
@@ -160,7 +163,7 @@ namespace O2DESNet.PathMover
             }
         }
 
-        protected virtual void DrawShape(Graphics g, DrawingParams dParams, Pen pen, DenseVector curCoord, DenseVector towards)
+        protected virtual void DrawShape(Graphics g, DrawingParams dParams, Pen pen, DenseVector curCoord)
         {
             var curPoint = dParams.GetPoint(curCoord);
             g.DrawEllipse(pen, curPoint.X - dParams.VehicleRadius, curPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);

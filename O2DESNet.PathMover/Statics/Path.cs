@@ -14,6 +14,7 @@ namespace O2DESNet.PathMover
         public double FullSpeed { get; private set; }
         public List<ControlPoint> ControlPoints { get; private set; }
         public List<DenseVector> Coordinates { get; private set; }
+        public bool Crab { get; set; } = false;
 
         internal Path(PMScenario scenario, double length, double fullSpeed, Direction direction)
         {
