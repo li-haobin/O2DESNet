@@ -18,7 +18,7 @@ namespace O2DESNet.PathMover
         /// <summary>
         /// Check for the path to take, providing the next control point to visit
         /// </summary>
-        internal Dictionary<ControlPoint, Path> PathingTable { get; set; }
+        public Dictionary<ControlPoint, Path> PathingTable { get; set; }
 
         internal ControlPoint(PMScenario scenario)
         {
