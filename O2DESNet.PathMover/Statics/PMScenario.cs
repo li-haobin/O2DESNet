@@ -142,7 +142,7 @@ namespace O2DESNet.PathMover
 
         #region For Display
         
-        internal DenseVector GetCoord(ControlPoint cp, ref DenseVector towards)
+        public DenseVector GetCoord(ControlPoint cp, ref DenseVector towards)
         {
             var pos = cp.Positions.First();
             return LinearTool.SlipOnCurve(pos.Key.Coordinates, ref towards, pos.Value / pos.Key.Length);
@@ -189,8 +189,7 @@ namespace O2DESNet.PathMover
         {
             if (path.Coordinates.Count == 0) return;
             var pen = dParams.PathStyle;
-            for (int i = 0; i < path.Coordinates.Count - 1; i++)
-                g.DrawLine(pen, dParams.GetPoint(path.Coordinates[i]), dParams.GetPoint(path.Coordinates[i + 1]));
+            path.Draw(g, dParams, pen, 0, 1);
             // draw arrows on path
             DenseVector vetex, tail, towards = null;
             if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)

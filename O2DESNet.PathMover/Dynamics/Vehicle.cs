@@ -167,7 +167,7 @@ namespace O2DESNet.PathMover
         {
             var curPoint = dParams.GetPoint(curCoord);
             g.DrawEllipse(pen, curPoint.X - dParams.VehicleRadius, curPoint.Y - dParams.VehicleRadius, dParams.VehicleRadius * 2, dParams.VehicleRadius * 2);
-        }
+        }       
 
     }
 }

@@ -35,7 +35,7 @@ namespace O2DESNet.PathMover
             return point + (towards - point) * ratio;
         }
 
-        internal static DenseVector SlipOnCurve(List<DenseVector> coords, ref DenseVector towards, double ratio)
+        public static DenseVector SlipOnCurve(List<DenseVector> coords, ref DenseVector towards, double ratio)
         {
             var distances = new List<double>();
             for (int i = 0; i < coords.Count - 1; i++)

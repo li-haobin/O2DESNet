@@ -1,6 +1,8 @@
 ﻿using MathNet.Numerics.LinearAlgebra.Double;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 
 namespace O2DESNet.PathMover
 {
@@ -50,6 +52,11 @@ namespace O2DESNet.PathMover
         public override string ToString()
         {
             return string.Format("PATH{0}", Id);
+        }
+
+        public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
+        {
+            g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
         }
     }
 

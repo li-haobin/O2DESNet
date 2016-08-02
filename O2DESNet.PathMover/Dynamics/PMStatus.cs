@@ -64,9 +64,14 @@ namespace O2DESNet.PathMover
             return str;
         }
 
+        protected void InitDrawingParams(DrawingParams dParams)
+        {
+            PMScenario.InitDrawingParams(dParams);
+        }
+
         public Bitmap DrawToImage(DrawingParams dParams, DateTime now, bool init = true)
         {
-            if (!init) PMScenario.InitDrawingParams(dParams);
+            if (!init) InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
             Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
             return bitmap;
@@ -74,14 +79,14 @@ namespace O2DESNet.PathMover
 
         public void DrawToFile(string file, DrawingParams dParams, DateTime now)
         {
-            PMScenario.InitDrawingParams(dParams);
+            InitDrawingParams(dParams);
             DrawToImage(dParams, now, init: false).Save(file, ImageFormat.Png);
         }
 
 
-        public void Draw(Graphics g, DrawingParams dParams, DateTime now, bool init = true)
+        public virtual void Draw(Graphics g, DrawingParams dParams, DateTime now, bool init = true)
         {
-            if (init) PMScenario.InitDrawingParams(dParams);
+            if (!init) InitDrawingParams(dParams);
             //PMScenario.Draw(g, dParams, init: false);
 
             // draw for each vehicle
