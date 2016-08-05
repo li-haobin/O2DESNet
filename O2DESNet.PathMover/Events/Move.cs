@@ -14,7 +14,7 @@ namespace O2DESNet.PathMover
         public Vehicle Vehicle { get; set; }
 
         public override void Invoke()
-        {
+        {            
             if (Vehicle.Origin == null)
             {
                 Vehicle.Origin = Vehicle.Current;
@@ -28,6 +28,7 @@ namespace O2DESNet.PathMover
                     // moving in new vehicle may update the speeds for existing vehicles
                     Schedule(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = v }, v.TimeToReach.Value);
                 PMStatus.PathUtils[path].ObserveChange(1, ClockTime);
+                if (Vehicle.OnMove != null) Vehicle.OnMove();
             }
             else Execute(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
             

@@ -18,10 +18,21 @@ namespace O2DESNet.PathMover
         public DateTime LastActionTime { get; private set; }
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
+        public Path Path
+        {
+            get
+            {
+                if (Current == null || Next == null) return null;
+                return Current.PathingTable[Current.RoutingTable[Next]];
+            }
+        }
 
         public ControlPoint Origin { get; set; }
         public DateTime DepartureTime { get; set; }
         public List<ControlPoint> Targets { get; set; }
+
+        public Action OnMove { get; set; }
+        public Action OnReach { get; set; }
         public Action OnCompletion { get; set; }
 
         public DenseVector Direction { get; set; } // for drawing
@@ -41,12 +52,12 @@ namespace O2DESNet.PathMover
         /// <param name="next">A control point next to the current one</param>
         public void Move(ControlPoint next, DateTime clockTime)
         {
-            Status.VehiclesOnPath[Current.PathingTable[next]].Add(this);
-            Status.UpdateSpeeds(Current.PathingTable[next], clockTime);
             Next = next;
             RemainingRatio = 1;
-            LastActionTime = clockTime;            
-            CalTimeToReach();
+            Status.VehiclesOnPath[Current.PathingTable[next]].Add(this);
+            Status.UpdateSpeeds(Current.PathingTable[next], clockTime);            
+            LastActionTime = clockTime;
+            if (TimeToReach == null) CalTimeToReach();
         }
 
         /// <summary>
@@ -70,6 +81,25 @@ namespace O2DESNet.PathMover
             else Speed = speed;
         }
 
+        public void SetTimeToReach(DateTime timeToReach, DateTime clockTime)
+        {
+            if (timeToReach < clockTime) throw new Exception("Time to reach cannot be earlier than the clock time.");
+            if (Next != null && timeToReach != TimeToReach)
+            {
+                RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
+                if (RemainingRatio < 0)
+                {
+                    if (RemainingRatio > -1E-3) RemainingRatio = 0;
+                    else throw new Exception("Vehicle has already reached next control point.");
+                }
+                TimeToReach = timeToReach;
+                LastActionTime = clockTime;
+                CalSpeed();
+                if (Speed > Current.PathingTable[Next].FullSpeed)
+                    throw new Exception("Speed excceds the limit.");
+            }
+        }
+
         /// <summary>
         /// Change the status of vehicle as reached the next control point
         /// </summary>
@@ -86,6 +116,10 @@ namespace O2DESNet.PathMover
         private void CalTimeToReach()
         {
             TimeToReach = LastActionTime + TimeSpan.FromSeconds(Current.GetDistanceTo(Next) * RemainingRatio / Speed);
+        }
+        private void CalSpeed()
+        {
+            Speed = Current.GetDistanceTo(Next) * RemainingRatio / (TimeToReach.Value - LastActionTime).TotalSeconds;
         }
 
         public override string ToString()

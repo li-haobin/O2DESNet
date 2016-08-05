@@ -14,7 +14,7 @@ namespace O2DESNet.PathMover
         public Vehicle Vehicle { get; set; }
 
         public override void Invoke()
-        {
+        {            
             if (Vehicle.Targets.Count == 0) return;
             if (Vehicle.Next != null) // in case vehicle is not moving, skip
             {
@@ -25,10 +25,11 @@ namespace O2DESNet.PathMover
                 Status.Log("{0}\tReach: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             }
             if (Vehicle.Current.Equals(Vehicle.Targets.First())) Vehicle.Targets.RemoveAt(0);
+            if (Vehicle.OnReach != null) Vehicle.OnReach();
             if (Vehicle.Targets.Count == 0)
             {
                 Vehicle.Origin = null;
-                Vehicle.OnCompletion();
+                if (Vehicle.OnCompletion != null) Vehicle.OnCompletion();
             }
             else Execute(new Move<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
         }
