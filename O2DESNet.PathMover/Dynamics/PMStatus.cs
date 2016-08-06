@@ -71,7 +71,7 @@ namespace O2DESNet.PathMover
 
         public Bitmap DrawToImage(DrawingParams dParams, DateTime now, bool init = true)
         {
-            if (!init) InitDrawingParams(dParams);
+            if (init) InitDrawingParams(dParams);
             Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
             Draw(Graphics.FromImage(bitmap), dParams, now, init: false);
             return bitmap;
@@ -86,10 +86,10 @@ namespace O2DESNet.PathMover
 
         public virtual void Draw(Graphics g, DrawingParams dParams, DateTime now, bool init = true)
         {
-            if (!init) InitDrawingParams(dParams);
+            if (init) InitDrawingParams(dParams);
             //PMScenario.Draw(g, dParams, init: false);
 
-            // draw for each vehicle
+            // draw for each vehicle            
             foreach (var v in VehiclesOnPath.Values.SelectMany(vs => vs)) v.Draw(g, dParams, PMScenario, now);
         }
 
