@@ -23,12 +23,12 @@ namespace O2DESNet.PathMover
             if (!Vehicle.Current.Equals(Vehicle.Targets.First()))
             {
                 Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);
-                var path = Vehicle.Current.PathingTable[Vehicle.Next];
+                if (Vehicle.OnMove != null) Vehicle.OnMove();
+                var path = Vehicle.Current.PathingTable[Vehicle.Next];                
                 foreach (var v in PMStatus.VehiclesOnPath[path]) 
                     // moving in new vehicle may update the speeds for existing vehicles
                     Schedule(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = v }, v.TimeToReach.Value);
                 PMStatus.PathUtils[path].ObserveChange(1, ClockTime);
-                if (Vehicle.OnMove != null) Vehicle.OnMove();
             }
             else Execute(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
             

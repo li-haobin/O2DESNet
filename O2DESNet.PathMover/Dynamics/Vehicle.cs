@@ -68,7 +68,8 @@ namespace O2DESNet.PathMover
         {
             if (Next != null && speed != Speed)
             {
-                RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
+                if (clockTime > LastActionTime)
+                    RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
                 if (RemainingRatio < 0)
                 {
                     if (RemainingRatio > -1E-3) RemainingRatio = 0;
@@ -86,6 +87,7 @@ namespace O2DESNet.PathMover
             if (timeToReach < clockTime) throw new Exception("Time to reach cannot be earlier than the clock time.");
             if (Next != null && timeToReach != TimeToReach)
             {
+                var dist = Current.GetDistanceTo(Next);
                 RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
                 if (RemainingRatio < 0)
                 {
@@ -95,8 +97,8 @@ namespace O2DESNet.PathMover
                 TimeToReach = timeToReach;
                 LastActionTime = clockTime;
                 CalSpeed();
-                if (Speed > Current.PathingTable[Next].FullSpeed)
-                    throw new Exception("Speed excceds the limit.");
+                //if (Speed > Current.PathingTable[Next].FullSpeed)
+                //    throw new Exception("Speed excceds the limit.");
             }
         }
 
