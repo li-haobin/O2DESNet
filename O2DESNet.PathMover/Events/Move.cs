@@ -27,10 +27,10 @@ namespace O2DESNet.PathMover
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];                
                 foreach (var v in PMStatus.VehiclesOnPath[path]) 
                     // moving in new vehicle may update the speeds for existing vehicles
-                    Schedule(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = v }, v.TimeToReach.Value);
+                    Schedule(new Reach<TScenario, TStatus>(PMStatus, v), v.TimeToReach.Value);
                 PMStatus.PathUtils[path].ObserveChange(1, ClockTime);
             }
-            else Execute(new Reach<TScenario, TStatus> { PMStatus = PMStatus, Vehicle = Vehicle });
+            else Execute(new Reach<TScenario, TStatus>(PMStatus, Vehicle));
             
             Status.Log("{0}\tMove: {1}", ClockTime.ToLongTimeString(), Vehicle.GetStr_Status());
             //Status.Log(Dynamics.GetStr_VehiclesOnPath());

@@ -10,15 +10,22 @@ namespace O2DESNet.PathMover
         where TScenario : Scenario
         where TStatus : Status<TScenario>
     {
-        public PMStatus PMStatus { get; set; }
-        public Vehicle Vehicle { get; set; }
+        public PMStatus PMStatus { get; private set; }
+        public Vehicle Vehicle { get; private set; }
+
+        public Reach(PMStatus pmStatus, Vehicle vehicle)
+        {
+            PMStatus = pmStatus;
+            Vehicle = vehicle;
+            Vehicle.ReachEventHashCode = GetHashCode();
+        }
 
         public override void Invoke()
         {            
             if (Vehicle.Targets.Count == 0) return;
             if (Vehicle.Next != null) // in case vehicle is not moving, skip
             {
-                if (!ClockTime.Equals(Vehicle.TimeToReach)) return; // for change of speed
+                if (GetHashCode() != Vehicle.ReachEventHashCode) return; // for change of speed
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];
                 Vehicle.Reach(ClockTime);
                 PMStatus.PathUtils[path].ObserveChange(-1, ClockTime);

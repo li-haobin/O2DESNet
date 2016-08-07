@@ -18,6 +18,7 @@ namespace O2DESNet.PathMover
         public DateTime LastActionTime { get; private set; }
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
+        internal int ReachEventHashCode { get; set; }
         public Path Path
         {
             get
