@@ -34,6 +34,11 @@ namespace O2DESNet
             evnt.ScheduledTime = time;
             FutureEventList.Add(evnt);
         }
+        internal protected void Execute(Event<TScenario, TStatus> evnt)
+        {
+            evnt.Simulator = this;
+            evnt.Invoke();
+        }
         protected bool ExecuteHeadEvent()
         {
             /// pop out the head event from FEL

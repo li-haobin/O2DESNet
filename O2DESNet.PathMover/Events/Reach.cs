@@ -21,11 +21,14 @@ namespace O2DESNet.PathMover
         }
 
         public override void Invoke()
-        {            
+        {
+            if (!PMStatus.Vehicles.Contains(Vehicle)) return;
             if (Vehicle.Targets.Count == 0) return;
             if (Vehicle.Next != null) // in case vehicle is not moving, skip
             {
-                if (GetHashCode() != Vehicle.ReachEventHashCode) return; // for change of speed
+                if (PMStatus.Vehicles.Contains(Vehicle) && // in case of put-off
+                    GetHashCode() != Vehicle.ReachEventHashCode // in case of rescheduling
+                    ) return;
                 var path = Vehicle.Current.PathingTable[Vehicle.Next];
                 Vehicle.Reach(ClockTime);
                 PMStatus.PathUtils[path].ObserveChange(-1, ClockTime);

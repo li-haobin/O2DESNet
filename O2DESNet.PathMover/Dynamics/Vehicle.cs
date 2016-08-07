@@ -18,7 +18,7 @@ namespace O2DESNet.PathMover
         public DateTime LastActionTime { get; private set; }
         public double Speed { get; private set; } = 0; // m/s
         public DateTime? TimeToReach { get; private set; }
-        internal int ReachEventHashCode { get; set; }
+        internal int? ReachEventHashCode { get; set; }
         public Path Path
         {
             get
@@ -45,6 +45,7 @@ namespace O2DESNet.PathMover
             Current = start;
             LastActionTime = clockTime;
             TimeToReach = null;
+            ReachEventHashCode = null;
         }
 
         /// <summary>
@@ -98,6 +99,7 @@ namespace O2DESNet.PathMover
                 TimeToReach = timeToReach;
                 LastActionTime = clockTime;
                 CalSpeed();
+                ReachEventHashCode = null;
                 //if (Speed > Current.PathingTable[Next].FullSpeed)
                 //    throw new Exception("Speed excceds the limit.");
             }
@@ -114,6 +116,7 @@ namespace O2DESNet.PathMover
             RemainingRatio = 0;
             LastActionTime = clockTime;
             TimeToReach = null;
+
         }
 
         private void CalTimeToReach()

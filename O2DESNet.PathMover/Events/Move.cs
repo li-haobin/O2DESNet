@@ -14,7 +14,8 @@ namespace O2DESNet.PathMover
         public Vehicle Vehicle { get; set; }
 
         public override void Invoke()
-        {            
+        {
+            if (!PMStatus.Vehicles.Contains(Vehicle)) return;
             if (Vehicle.Origin == null)
             {
                 Vehicle.Origin = Vehicle.Current;
@@ -22,10 +23,13 @@ namespace O2DESNet.PathMover
             }
             if (!Vehicle.Current.Equals(Vehicle.Targets.First()))
             {
-                Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);
+                Vehicle.Move(Vehicle.Current.RoutingTable[Vehicle.Targets.First()], ClockTime);                
+                var path = Vehicle.Current.PathingTable[Vehicle.Next];
+
                 if (Vehicle.OnMove != null) Vehicle.OnMove();
-                var path = Vehicle.Current.PathingTable[Vehicle.Next];                
-                foreach (var v in PMStatus.VehiclesOnPath[path]) 
+                if (!PMStatus.Vehicles.Contains(Vehicle)) return;
+
+                foreach (var v in PMStatus.VehiclesOnPath[path])
                     // moving in new vehicle may update the speeds for existing vehicles
                     Schedule(new Reach<TScenario, TStatus>(PMStatus, v), v.TimeToReach.Value);
                 PMStatus.PathUtils[path].ObserveChange(1, ClockTime);

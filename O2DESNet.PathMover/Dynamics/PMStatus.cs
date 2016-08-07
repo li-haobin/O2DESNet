@@ -43,6 +43,7 @@ namespace O2DESNet.PathMover
             if (!Vehicles.Contains(vehicle)) throw new Exception("Vehicle does not exist in the path-mover.");
             if (vehicle.Next != null) throw new Exception("Vehicle has not reached next control point.");
             Vehicles.Remove(vehicle);
+            vehicle.ReachEventHashCode = null;
         }
 
         public virtual void UpdateSpeeds(Path path, DateTime clockTime)
