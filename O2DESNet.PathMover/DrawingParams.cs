@@ -28,7 +28,7 @@ namespace O2DESNet.PathMover
 
         // colors
         public Color ControlPointColor { get; set; } = Color.DarkRed;
-        public Color VehicleColor { get; set; } = Color.DarkGreen;
+        public Color VehicleColor { get; set; } = Color.Green;
 
         public DrawingParams(int width, int height)
         {
@@ -43,6 +43,10 @@ namespace O2DESNet.PathMover
                 (int)Math.Round(Margin + (Width - Margin * 2) * (coord.ElementAt(0) - _minX) / (_maxX - _minX), 0),
                 (int)Math.Round(Margin + (Height - Margin * 2) * (coord.ElementAt(1) - _minY) / (_maxY - _minY), 0)
                 );
+        }
+
+        public double PixelPerMeter {
+            get { return ((Width - Margin * 2) / (_maxX - _minX)); }
         }
 
         public void Resize(IEnumerable<IEnumerable<double>> coords)
