@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("O2DESNet")]
 [assembly: AssemblyDescription("A framework for Object-Oriented Discrete Event Simulation")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Centre for Next Generation Logistics, National University of Singapore")]
+[assembly: AssemblyCompany("Haobin Li, Giulia Pedrielli, Loo Hay Lee")]
 [assembly: AssemblyProduct("O2DESNet")]
-[assembly: AssemblyCopyright("Copyright © Pedriel(Li)² 2016")]
+[assembly: AssemblyCopyright("Copyright © 2015 - 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

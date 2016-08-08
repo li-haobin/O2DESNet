@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("O2DESNet.Optimizer")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A framework for Object-Oriented Discrete Event Simulation")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Haobin Li, Giulia Pedrielli, Loo Hay Lee")]
 [assembly: AssemblyProduct("O2DESNet.Optimizer")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright © 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
