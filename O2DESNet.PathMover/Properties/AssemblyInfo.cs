@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("O2DESNet.PathMover")]
-[assembly: AssemblyDescription("The Path Mover toolkit with O2DES framework, for Object-Oriented Discrete Event Simulation")]
+[assembly: AssemblyDescription("The Path Mover toolkit with O2DESNet framework")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Haobin Li, Giulia Pedrielli, Loo Hay Lee")]
 [assembly: AssemblyProduct("O2DESNet.PathMover")]
