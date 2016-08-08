@@ -8,5 +8,4 @@ using System.Threading.Tasks;
 namespace PMExample.Events
 {
     internal class Move : Move<Scenario, Status> { }
-    internal class Reach : Reach<Scenario, Status> { }
 }
