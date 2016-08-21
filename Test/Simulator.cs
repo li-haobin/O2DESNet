@@ -24,7 +24,7 @@ namespace Test
             Status.Server.ServiceTime = Scenario.GetServiceTime;
             Status.Server.OnFinish = c =>
             {
-                Status.Queue.AttemptDequeue(ClockTime);
+                Status.Queue.Dequeue(ClockTime);
                 Status.Processed.Add(c);
             };
 

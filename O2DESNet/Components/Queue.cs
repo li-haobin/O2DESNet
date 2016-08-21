@@ -38,7 +38,7 @@ namespace O2DESNet
         /// Attempt to dequeue the first load
         /// </summary>
         /// <returns>If the first is dequeued</returns>
-        public bool AttemptDequeue(DateTime clockTime)
+        public bool Dequeue(DateTime clockTime)
         {
             if (Waiting.Count == 0 || !ToDequeue()) return false;
             OnDequeue(Waiting.FirstOrDefault());
@@ -69,7 +69,7 @@ namespace O2DESNet
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
 
-                Queue.AttemptDequeue(ClockTime);
+                Queue.Dequeue(ClockTime);
             }
         }
     }    
