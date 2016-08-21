@@ -1,5 +1,4 @@
-﻿using Test.Dynamics;
-using O2DESNet;
+﻿using O2DESNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace Test
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
             Generator = new Generator<Scenario, Status, Load>();
-            Queue = new Queue<Scenario, Status, Load>();
+            Queue = new Queue<Scenario, Status, Load>(5);
             Server = new Server<Scenario, Status, Load>(1);
             Processed = new List<Load>();
         }

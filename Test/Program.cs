@@ -10,7 +10,7 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var sim = new Simulator(new Status(new Scenario(hourlyArrivalRate: 4, hourlyServiceRate: 5), 2));
+            var sim = new Simulator(new Status(new Scenario(hourlyArrivalRate: 4, hourlyServiceRate: 5)));
             while (sim.Run(10000))
             {
                 Console.WriteLine("{0}\t{1}",
