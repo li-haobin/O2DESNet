@@ -61,7 +61,7 @@ namespace O2DESNet
                     if (Generator.Count > 1 || !Generator.SkipFirst) foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
                 }
             }
-            public override string ToString() { return "Arrive"; }
+            public override string ToString() { return string.Format("{0}_Arrive", Generator); }
         }
         #endregion
 
@@ -76,13 +76,16 @@ namespace O2DESNet
         }
         #endregion
 
+        private static int _count = 0;
+        public int Id { get; protected set; }
         public Generator(int seed = -1) {
+            Id = _count++;
             On = false;
             RS = seed < 0 ? null : new Random(seed);
             Count = 0;
             OnArrive = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-
         public void WarmedUp(DateTime clockTime) { StartTime = clockTime; Count = 0; }
+        public override string ToString() { return string.Format("Generator#{0}", Id); }
     }   
 }

@@ -20,10 +20,12 @@ namespace O2DESNet
         /// Random generator for service time
         /// </summary>
         public Func<Random, TimeSpan> ServiceTime { get; set; }
+        public Func<bool> ToDepart { get; set; }
         #endregion
 
         #region Dynamic Properties
         public HashSet<TLoad> Serving { get; private set; }
+        public List<TLoad> Served { get; private set; }
         public int Vancancy { get { return Capacity - Serving.Count; } }
                 
         public HourCounter HourCounter { get; private set; } // statistics
@@ -32,6 +34,7 @@ namespace O2DESNet
 
         #region Input Events - Generators
         public Event<TScenario, TStatus> Start(TLoad load) { return new StartEvent(this, load); }
+        public Event<TScenario, TStatus> Depart() { return new DepartEvent(this); }
         private class StartEvent : Event<TScenario, TStatus>
         {
             public Server<TScenario, TStatus, TLoad> Server { get; private set; }
@@ -49,7 +52,7 @@ namespace O2DESNet
                 Server.HourCounter.ObserveChange(1, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.ServiceTime(Server.RS == null ? DefaultRS : Server.RS));
             }
-            public override string ToString() { return "Server_Start"; }
+            public override string ToString() { return string.Format("{0}_Start", Server); }
         }
         private class FinishEvent : Event<TScenario, TStatus>
         {
@@ -64,10 +67,33 @@ namespace O2DESNet
             {
                 Load.Log(this);
                 Server.Serving.Remove(Load);
-                Server.HourCounter.ObserveChange(-1, ClockTime);
-                foreach (var evnt in Server.OnFinish) Execute(evnt(Load));
+                Server.Served.Add(Load);
+                Execute(new DepartEvent(Server));
             }
-            public override string ToString() { return "Server_Finish"; }
+            public override string ToString() { return string.Format("{0}_Finish", Server); }
+        }
+        private class DepartEvent : Event<TScenario, TStatus>
+        {
+            public Server<TScenario, TStatus, TLoad> Server { get; private set; }
+            internal DepartEvent(Server<TScenario, TStatus, TLoad> server)
+            {
+                Server = server;
+            }
+            public override void Invoke()
+            {
+                if (Server.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+                if (Server.ToDepart())
+                {
+                    var load = Server.Served.FirstOrDefault();
+                    if (load == null) return;
+                    load.Log(this);
+                    Server.Served.RemoveAt(0);
+                    Server.HourCounter.ObserveChange(-1, ClockTime);
+                    foreach (var evnt in Server.OnFinish) Execute(evnt(load));
+                    Execute(new DepartEvent(Server));
+                }                
+            }
+            public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
         #endregion
 
@@ -84,18 +110,26 @@ namespace O2DESNet
         {
             public ServiceTimeNotSpecifiedException() : base("Set ServiceTime as a random generator.") { }
         }
+        public class DepartConditionNotSpecifiedException : Exception
+        {
+            public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
+        }
         #endregion
 
+        private static int _count = 0;
+        public int Id { get; private set; }
         public Server(int capacity = int.MaxValue, int seed = -1)
         {
+            Id = _count++;
             Capacity = capacity;
             Serving = new HashSet<TLoad>();
+            Served = new List<TLoad>();
             RS = seed < 0 ? null : new Random(seed);
             HourCounter = new HourCounter(DateTime.MinValue);
             OnFinish = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
+        public override string ToString() { return string.Format("Server#{0}", Id); }
 
     }
 }

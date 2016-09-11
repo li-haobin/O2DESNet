@@ -53,7 +53,7 @@ namespace O2DESNet
                 Queue.HourCounter.ObserveChange(1, ClockTime);
                 Execute(Queue.Dequeue());
             }
-            public override string ToString() { return "Enqueue"; }
+            public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
         }
         /// <summary>
         /// Attempt to dequeue the first load
@@ -79,7 +79,7 @@ namespace O2DESNet
                     foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
                 }
             }
-            public override string ToString() { return "Dequeue"; }
+            public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }
         #endregion
 
@@ -97,18 +97,19 @@ namespace O2DESNet
             public DequeueConditionNotSpecifiedException() : base("Set ToDequeue for the dequeue condition.") { }
         }
         #endregion
-        
-        // Constructor
+
+        private static int _count = 0;
+        public int Id { get; protected set; }
         public Queue(int capacity = int.MaxValue, Func<bool> toDequeue = null)
         {
+            Id = _count++;
             Capacity = capacity;
             ToDequeue = toDequeue;
             Waiting = new List<TLoad>();  
             HourCounter = new HourCounter(DateTime.MinValue);
             OnDequeue = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-
-        // Warmup method
-        public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }        
+        public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
+        public override string ToString() { return string.Format("Queue#{0}", Id); }
     }    
 }

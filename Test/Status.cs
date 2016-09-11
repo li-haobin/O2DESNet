@@ -24,7 +24,8 @@ namespace Test
             Server = new Server<Scenario, Status, Load>(seed: DefaultRS.Next())
             {
                 Capacity = Scenario.ServerCapacity,
-                ServiceTime = Scenario.GetServiceTime,                
+                ServiceTime = Scenario.GetServiceTime,
+                ToDepart = () => true,
             };
             Queue = new Queue<Scenario, Status, Load>
             {
