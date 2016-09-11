@@ -10,10 +10,10 @@ namespace Test
     /// <summary>
     /// O2DESNet Event - Depart
     /// </summary>
-    public class Depart : Event<Scenario, Status>
+    public class Archive : Event<Scenario, Status>
     {
         public Load Load { get; private set; }
-        public Depart(Load load) { Load = load; }
+        public Archive(Load load) { Load = load; }
         public override void Invoke()
         {
             Status.Processed.Add(Load);

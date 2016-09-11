@@ -12,42 +12,25 @@ namespace Test
     /// </summary>
     public class Status : Status<Scenario>
     {
-        public Generator<Scenario, Status, Load> Generator { get; private set; }
-        public Queue<Scenario, Status, Load> Queue { get; private set; }
-        public Server<Scenario, Status, Load> Server { get; private set; }
-
+        public GGnQueue<Scenario, Status, Load> GGnQueue { get; private set; }
         public List<Load<Scenario, Status>> Processed { get; private set; }
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {            
             Processed = new List<Load<Scenario, Status>>();
-            Server = new Server<Scenario, Status, Load>(seed: DefaultRS.Next())
-            {
-                Capacity = Scenario.ServerCapacity,
-                ServiceTime = Scenario.GetServiceTime,
-                ToDepart = () => true,
-            };
-            Queue = new Queue<Scenario, Status, Load>
-            {
-                ToDequeue = () => Server.Vancancy > 0,
-            };
-            Generator = new Generator<Scenario, Status, Load>(seed: DefaultRS.Next())
-            {
-                InterArrivalTime = Scenario.GetInterArrivalTime,
-                SkipFirst = false,
-                Create = () => new Load(),
-            };
+            GGnQueue = new GGnQueue<Scenario, Status, Load>(
+                interArrivalTime: Scenario.InterArrivalTime,
+                create: () => new Load(),
+                serviceTime: Scenario.ServiceTime,
+                serverCapacity: Scenario.ServerCapacity,
+                seed: DefaultRS.Next());
 
-            Generator.OnArrive.Add(Queue.Enqueue);
-            Queue.OnDequeue.Add(Server.Start);
-            Server.OnFinish.Add(load => Queue.Dequeue());
-            Server.OnFinish.Add(load => new Depart(load));
+            GGnQueue.OnDepart.Add(load => new Archive(load));
         }
 
         public override void WarmedUp(DateTime clockTime)
         {
-            Queue.WarmedUp(clockTime);
-            Server.WarmedUp(clockTime);
+            GGnQueue.WarmedUp(clockTime);
             Processed = new List<Load<Scenario, Status>>();
         }
     }

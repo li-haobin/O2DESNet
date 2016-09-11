@@ -89,7 +89,7 @@ namespace O2DESNet
                     load.Log(this);
                     Server.Served.RemoveAt(0);
                     Server.HourCounter.ObserveChange(-1, ClockTime);
-                    foreach (var evnt in Server.OnFinish) Execute(evnt(load));
+                    foreach (var evnt in Server.OnDepart) Execute(evnt(load));
                     Execute(new DepartEvent(Server));
                 }                
             }
@@ -98,7 +98,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Event Generators
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnFinish { get; set; }
+        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get; private set; }
         #endregion
         
         #region Exeptions
@@ -126,7 +126,7 @@ namespace O2DESNet
             Served = new List<TLoad>();
             RS = seed < 0 ? null : new Random(seed);
             HourCounter = new HourCounter(DateTime.MinValue);
-            OnFinish = new List<Func<TLoad, Event<TScenario, TStatus>>>();
+            OnDepart = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
         public override string ToString() { return string.Format("Server#{0}", Id); }

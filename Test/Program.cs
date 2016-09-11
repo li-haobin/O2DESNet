@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MathNet.Numerics.Distributions;
 
 namespace Test
 {
@@ -10,11 +11,21 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            var sim = new Simulator(new Status(new Scenario(hourlyArrivalRate: 4, hourlyServiceRate: 5, serverCapacity: 1)));
-            while (sim.Run(100000))
+            var hourlyArrivalRate = 4;
+            var hourlyServiceRate = 5;
+            var scenario = new Scenario
+            {
+                InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)),
+                ServiceTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)),
+                ServerCapacity = 1
+            };
+
+            var sim = new Simulator(new Status(scenario));
+
+            while (sim.Run(300000))
             {
                 Console.WriteLine("{0}\t{1}",
-                    sim.Status.Queue.HourCounter.AverageCount,
+                    sim.Status.GGnQueue.Queue.HourCounter.AverageCount,
                     sim.Status.Processed.Average(l => l.TotalTimeSpan.TotalHours)
                     );
                 Console.ReadKey();

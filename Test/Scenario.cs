@@ -12,17 +12,8 @@ namespace Test
     /// </summary>
     public class Scenario : O2DESNet.Scenario
     {
-        public double HourlyArrivalRate { get; private set; }
-        public double HourlyServiceRate { get; private set; }
-        public TimeSpan GetInterArrivalTime(Random rs) { return TimeSpan.FromHours(Exponential.Sample(rs, HourlyArrivalRate)); }
-        public TimeSpan GetServiceTime(Random rs) { return TimeSpan.FromHours(Exponential.Sample(rs, HourlyServiceRate)); }
-        public int ServerCapacity { get; private set; }
-
-        public Scenario(double hourlyArrivalRate, double hourlyServiceRate, int serverCapacity)
-        {
-            HourlyArrivalRate = hourlyArrivalRate;
-            HourlyServiceRate = hourlyServiceRate;
-            ServerCapacity = serverCapacity;
-        }
+        public Func<Random, TimeSpan> InterArrivalTime { get; set; }
+        public Func<Random, TimeSpan> ServiceTime { get; set; }
+        public int ServerCapacity { get; set; }        
     }
 }

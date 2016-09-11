@@ -66,7 +66,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Event Generators
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnArrive { get; set; }
+        public List<Func<TLoad, Event<TScenario, TStatus>>> OnArrive { get; private set; }
         #endregion
 
         #region Exeptions

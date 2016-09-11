@@ -14,7 +14,7 @@ namespace Test
     {
         public Simulator(Status status) : base(status)
         {
-            Execute(Status.Generator.Start());
+            Execute(Status.GGnQueue.Start());
         }
     }
 }
