@@ -16,11 +16,13 @@ namespace Test
         public double HourlyServiceRate { get; private set; }
         public TimeSpan GetInterArrivalTime(Random rs) { return TimeSpan.FromHours(Exponential.Sample(rs, HourlyArrivalRate)); }
         public TimeSpan GetServiceTime(Random rs) { return TimeSpan.FromHours(Exponential.Sample(rs, HourlyServiceRate)); }
+        public int ServerCapacity { get; private set; }
 
-        public Scenario(double hourlyArrivalRate, double hourlyServiceRate)
+        public Scenario(double hourlyArrivalRate, double hourlyServiceRate, int serverCapacity)
         {
             HourlyArrivalRate = hourlyArrivalRate;
             HourlyServiceRate = hourlyServiceRate;
+            ServerCapacity = serverCapacity;
         }
     }
 }

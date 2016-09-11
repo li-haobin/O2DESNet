@@ -35,6 +35,21 @@ namespace O2DESNet
             if (Display) Console.WriteLine(format, args);
             if (LogFile != null) using (var sw = new StreamWriter(LogFile, true)) sw.WriteLine(format, args);
         }
+        public void Log(params object[] args)
+        {
+            if (Display)
+                foreach (var arg in args)
+                {
+                    Console.Write("{0}\t", args);
+                    Console.WriteLine();
+                }
+            if (LogFile != null)
+                using (var sw = new StreamWriter(LogFile, true))
+                {
+                    foreach (var arg in args) sw.Write("{0},", args);
+                    sw.WriteLine();
+                }
+        }
         #endregion
     }
 }

@@ -9,29 +9,80 @@ namespace O2DESNet
     public class Generator<TScenario, TStatus, TLoad>
         where TScenario : Scenario
         where TStatus : Status<TScenario>
-        where TLoad : Load
+        where TLoad : Load<TScenario, TStatus>
     {
-        public Func<TLoad> Create { get; set; }
-        public Action<TLoad> OnCreate { get; set; }
+        #region Static Properties
         public Func<Random, TimeSpan> InterArrivalTime { get; set; }
+        public bool SkipFirst { get; set; } = true;
+        public Func<TLoad> Create { get; set; }
+        #endregion
 
-        public Generator() { }
+        #region Dynamic Properties
+        public DateTime? StartTime { get; private set; }
+        public bool On { get; private set; }
+        public int Count { get; private set; } // number of loads generated
+        internal Random RS { get; private set; } // random stream
+        #endregion
 
-        public Arrive ArriveEvent() { return new Arrive(this); }
-
-        public class Arrive : Event<TScenario, TStatus>
+        #region Input Events - Generators
+        public Event<TScenario, TStatus> Start() { return new StartEvent(this); }
+        public Event<TScenario, TStatus> End() { return new EndEvent(this); }
+        private class StartEvent : Event<TScenario, TStatus>
         {
             public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
-            internal Arrive(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
-
+            internal StartEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                var load = Generator.Create();
-                load.TimeStamp_Arrive = ClockTime;
-                Log("{0} {1} arrives.", ClockTime.ToLongTimeString(), load);
-                Generator.OnCreate(load);
-                Schedule(new Arrive(Generator), Generator.InterArrivalTime(DefaultRS));
+                if (Generator.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                Generator.On = true;
+                Generator.StartTime = ClockTime;
+                Generator.Count = 0;
+                Execute(new ArriveEvent(Generator));
             }
         }
+        private class EndEvent : Event<TScenario, TStatus>
+        {
+            public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
+            internal EndEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
+            public override void Invoke() { Generator.On = false; }
+        }
+        private class ArriveEvent : Event<TScenario, TStatus>
+        {
+            public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
+            internal ArriveEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
+            public override void Invoke()
+            {
+                if (Generator.On)
+                {
+                    var load = Generator.Create();
+                    load.Log(this);
+                    Generator.Count++;                    
+                    Schedule(new ArriveEvent(Generator), Generator.InterArrivalTime(Generator.RS == null ? DefaultRS : Generator.RS));
+                    if (Generator.Count > 1 || !Generator.SkipFirst) foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
+                }
+            }
+            public override string ToString() { return "Arrive"; }
+        }
+        #endregion
+
+        #region Output Events - Reference to Event Generators
+        public List<Func<TLoad, Event<TScenario, TStatus>>> OnArrive { get; set; }
+        #endregion
+
+        #region Exeptions
+        public class InterArrivalTimeNotSpecifiedException : Exception
+        {
+            public InterArrivalTimeNotSpecifiedException() : base("Set InterArrivalTime as a random generator.") { }
+        }
+        #endregion
+
+        public Generator(int seed = -1) {
+            On = false;
+            RS = seed < 0 ? null : new Random(seed);
+            Count = 0;
+            OnArrive = new List<Func<TLoad, Event<TScenario, TStatus>>>();
+        }
+
+        public void WarmedUp(DateTime clockTime) { StartTime = clockTime; Count = 0; }
     }   
 }

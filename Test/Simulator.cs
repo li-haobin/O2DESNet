@@ -14,21 +14,7 @@ namespace Test
     {
         public Simulator(Status status) : base(status)
         {
-            Status.Generator.Create = () => new Load();
-            Status.Generator.InterArrivalTime = Scenario.GetInterArrivalTime;
-            Status.Generator.OnCreate = c => { Execute(Status.Queue.EnqueueEvent(c)); };
-
-            Status.Queue.ToDequeue = Status.Server.HasVacancy;
-            Status.Queue.OnDequeue = c => { Execute(Status.Server.StartEvent(c)); };
-
-            Status.Server.ServiceTime = Scenario.GetServiceTime;
-            Status.Server.OnFinish = c =>
-            {
-                Status.Queue.Dequeue(ClockTime);
-                Status.Processed.Add(c);
-            };
-
-            Execute(Status.Generator.ArriveEvent());
+            Execute(Status.Generator.Start());
         }
     }
 }
