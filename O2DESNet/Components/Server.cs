@@ -50,7 +50,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
-                Schedule(new FinishEvent(Server, Load), Server.ServiceTime(Server.RS == null ? DefaultRS : Server.RS));
+                Schedule(new FinishEvent(Server, Load), Server.ServiceTime(Load, Server.RS == null ? DefaultRS : Server.RS));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
