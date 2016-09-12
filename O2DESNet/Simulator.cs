@@ -70,7 +70,15 @@ namespace O2DESNet
                 if (!ExecuteHeadEvent()) return false;
             return true;
         }
-
+        private DateTime? _realTimeForLastRun = null;
+        public virtual bool Run(double speed)
+        {
+            var rtn = true;
+            if (_realTimeForLastRun != null)
+                rtn = Run(terminate: ClockTime.AddSeconds((DateTime.Now - _realTimeForLastRun.Value).TotalSeconds * speed));
+            _realTimeForLastRun = DateTime.Now;
+            return rtn;
+        }
         public bool WarmUp(TimeSpan duration) {
             var r = Run(duration);
             Status.WarmedUp(ClockTime);

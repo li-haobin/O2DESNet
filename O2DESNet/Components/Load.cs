@@ -23,7 +23,7 @@ namespace O2DESNet
         public virtual void Log(Event<TScenario, TStatus> evnt)
         {
             TimeStamps.Add(new Tuple<DateTime, Event<TScenario, TStatus>>(evnt.ClockTime, evnt));
-            evnt.Status.Log(evnt.ClockTime, this, evnt);
+            evnt.Log(this, evnt);
         }
     }
 }

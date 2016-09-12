@@ -22,14 +22,23 @@ namespace Test
 
             var sim = new Simulator(new Status(scenario));
 
-            while (sim.Run(300000))
+            while (true)
             {
-                Console.WriteLine("{0}\t{1}",
-                    sim.Status.GGnQueue.Queue.HourCounter.AverageCount,
-                    sim.Status.Processed.Average(l => l.TotalTimeSpan.TotalHours)
-                    );
-                Console.ReadKey();
+                sim.Run(speed: 1000);
+                Console.Clear();
+                Console.WriteLine(sim.ClockTime);
+                sim.Status.WriteToConsole();
+                System.Threading.Thread.Sleep(100);
             }
+
+            //while (sim.Run(300000))
+            //{
+            //    Console.WriteLine("{0}\t{1}",
+            //        sim.Status.GGnQueue.Queue.HourCounter.AverageCount,
+            //        sim.Status.Processed.Average(l => l.TotalTimeSpan.TotalHours)
+            //        );
+            //    Console.ReadKey();
+            //}
         }
     }
 }

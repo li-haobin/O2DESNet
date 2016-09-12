@@ -86,5 +86,12 @@ namespace Test
             Server.WarmedUp(clockTime);
         }
         public override string ToString() { return string.Format("GGnQueue#{0}", Id); }
+
+        public virtual void WriteToConsole()
+        {
+            Console.WriteLine("===[{0}]===", this); Console.WriteLine();
+            Queue.WriteToConsole(); Console.WriteLine();
+            Server.WriteToConsole(); Console.WriteLine();
+        }
     }
 }

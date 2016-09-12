@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace O2DESNet
 {
@@ -7,7 +9,7 @@ namespace O2DESNet
         where TStatus : Status<TScenario>
     {
         internal protected Simulator<TScenario, TStatus> Simulator { get; set; }
-        internal protected TStatus Status { get { return Simulator.Status; } }
+        protected TStatus Status { get { return Simulator.Status; } }
         protected TScenario Scenario { get { return Status.Scenario; } }
         protected Random DefaultRS { get { return Status.DefaultRS; } }
         internal protected DateTime ClockTime { get { return Simulator.ClockTime; } }
@@ -17,7 +19,8 @@ namespace O2DESNet
         protected void Execute(Event<TScenario, TStatus> evnt) { evnt.Simulator = Simulator; evnt.Invoke(); }
         protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time) { Simulator.Schedule(evnt, time); }
         protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Simulator.Schedule(evnt, delay); }
-        protected void Log(string format, params object[] args) { Status.Log(format, args); }
+        internal protected void Log(string format, params object[] args) { Status.Log(format, args); }
+        internal protected void Log(params object[] args) { Status.Log(new object[] { ClockTime }.Concat(args).ToArray()); }
         public DateTime ScheduledTime { get; set; }
     }
 }

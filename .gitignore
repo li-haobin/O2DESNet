@@ -1,0 +1,21 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/O2DESNet/bin
+/.vs/O2DESNet/v14
+/O2DESNet/obj
+/O2DESNet/O2DESNet.1.0.1.2.nupkg
+/O2DESNet/O2DESNet.1.0.1.1.nupkg
+/O2DESNet/O2DESNet.1.0.1.0.nupkg
+/O2DESNet/O2DESNet.1.0.0.0.nupkg
+/O2DESNet.Demos/obj/Debug
+/O2DESNet.Demos.PMExample/bin
+/O2DESNet.Demos.PMExample/obj
+/O2DESNet.Optimizer/bin
+/O2DESNet.Optimizer/obj
+/O2DESNet.PathMover/bin
+/O2DESNet.PathMover/obj
+/packages
+/Test/bin
+/Test/obj

@@ -111,5 +111,11 @@ namespace O2DESNet
         }
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
         public override string ToString() { return string.Format("Queue#{0}", Id); }
+        public virtual void WriteToConsole()
+        {
+            Console.Write("[{0}]: ", this);
+            foreach (var load in Waiting) Console.Write("{0} ", load);
+            Console.WriteLine();
+        }
     }    
 }

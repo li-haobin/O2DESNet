@@ -33,5 +33,12 @@ namespace Test
             GGnQueue.WarmedUp(clockTime);
             Processed = new List<Load<Scenario, Status>>();
         }
+
+        public virtual void WriteToConsole()
+        {
+            GGnQueue.WriteToConsole();
+            Console.WriteLine();
+            Console.WriteLine("Processed:\t{0}", Processed.Count);
+        }
     }
 }

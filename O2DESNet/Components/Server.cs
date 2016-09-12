@@ -130,6 +130,15 @@ namespace O2DESNet
         }
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
         public override string ToString() { return string.Format("Server#{0}", Id); }
-
+        public virtual void WriteToConsole()
+        {
+            Console.WriteLine("[{0}]", this);
+            Console.Write("Serving: ");
+            foreach (var load in Serving) Console.Write("{0} ", load);
+            Console.WriteLine();
+            Console.Write("Served: ");
+            foreach (var load in Served) Console.Write("{0} ", load);
+            Console.WriteLine();
+        }
     }
 }
