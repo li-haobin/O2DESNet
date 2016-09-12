@@ -100,6 +100,7 @@ namespace O2DESNet
 
         private static int _count = 0;
         public int Id { get; protected set; }
+        public string Tag { get; set; }
         public Queue(int capacity = int.MaxValue, Func<bool> toDequeue = null)
         {
             Id = _count++;
@@ -110,7 +111,11 @@ namespace O2DESNet
             OnDequeue = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
-        public override string ToString() { return string.Format("Queue#{0}", Id); }
+        public override string ToString()
+        {
+            if (Tag != null && Tag.Length > 0) return Tag;
+            return string.Format("Queue#{0}", Id);
+        }
         public virtual void WriteToConsole()
         {
             Console.Write("[{0}]: ", this);

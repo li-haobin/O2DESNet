@@ -26,7 +26,7 @@ namespace O2DESNet
         #region Dynamic Properties
         public HashSet<TLoad> Serving { get; private set; }
         public List<TLoad> Served { get; private set; }
-        public int Vancancy { get { return Capacity - Serving.Count; } }
+        public int Vancancy { get { return Capacity - Serving.Count - Served.Count; } }
                 
         public HourCounter HourCounter { get; private set; } // statistics
         internal Random RS { get; private set; } // random stream
@@ -46,7 +46,7 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Server.Vancancy == 0) throw new HasZeroVacancyException();
+                if (Server.Vancancy < 1) throw new HasZeroVacancyException();
                 Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
@@ -118,6 +118,7 @@ namespace O2DESNet
 
         private static int _count = 0;
         public int Id { get; private set; }
+        public string Tag { get; set; }
         public Server(int capacity = int.MaxValue, int seed = -1)
         {
             Id = _count++;
@@ -129,7 +130,11 @@ namespace O2DESNet
             OnDepart = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
         public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
-        public override string ToString() { return string.Format("Server#{0}", Id); }
+        public override string ToString()
+        {
+            if (Tag != null && Tag.Length > 0) return Tag;
+            return string.Format("Server#{0}", Id);
+        }
         public virtual void WriteToConsole()
         {
             Console.WriteLine("[{0}]", this);

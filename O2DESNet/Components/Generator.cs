@@ -78,6 +78,7 @@ namespace O2DESNet
 
         private static int _count = 0;
         public int Id { get; protected set; }
+        public string Tag { get; set; }
         public Generator(int seed = -1) {
             Id = _count++;
             On = false;
@@ -86,6 +87,10 @@ namespace O2DESNet
             OnArrive = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
         public void WarmedUp(DateTime clockTime) { StartTime = clockTime; Count = 0; }
-        public override string ToString() { return string.Format("Generator#{0}", Id); }
+        public override string ToString()
+        {
+            if (Tag != null && Tag.Length > 0) return Tag;
+            return string.Format("Generator#{0}", Id);
+        }
     }   
 }

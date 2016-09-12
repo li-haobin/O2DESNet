@@ -19,12 +19,20 @@ namespace Test
             set { Generator.InterArrivalTime = value; }
         }
         public Func<Random, TimeSpan> ServiceTime {
-            get { return Server.ServiceTime; }
-            set { Server.ServiceTime = value; }
+            get { return Server2.ServiceTime; }
+            set
+            {
+                Server1.ServiceTime = value;
+                Server2.ServiceTime = value;
+            }
         }
         public int ServerCapacity {
-            get { return Server.Capacity; }
-            set { Server.Capacity = value; }
+            get { return Server2.Capacity; }
+            set
+            {
+                Server1.Capacity = value;
+                Server2.Capacity = value;
+            }
         }
         public Func<TLoad> Create
         {
@@ -36,7 +44,9 @@ namespace Test
         #region Dynamic Properties
         public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
         public Queue<TScenario, TStatus, TLoad> Queue { get; private set; }
-        public Server<TScenario, TStatus, TLoad> Server { get; private set; }
+        public Server<TScenario, TStatus, TLoad> Server1 { get; private set; }
+        public Server<TScenario, TStatus, TLoad> Server2 { get; private set; }
+        public int NCompleted { get { return (int)Server2.HourCounter.TotalDecrementCount; } }
 
         internal Random RS { get; private set; }
         #endregion
@@ -47,7 +57,7 @@ namespace Test
         #endregion
 
         #region Output Events - Reference to Event Generators
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return Server.OnDepart; } }
+        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return Server2.OnDepart; } }
         #endregion
 
         private static int _count = 0;
@@ -57,13 +67,19 @@ namespace Test
             Id = _count++;     
             RS = seed < 0 ? null : new Random(seed);
 
-            Server = new Server<TScenario, TStatus, TLoad>(seed: RS.Next())
+            Server2 = new Server<TScenario, TStatus, TLoad>(seed: RS.Next())
             {
+                Tag = "2nd Server",
                 ToDepart = () => true,
+            };
+            Server1 = new Server<TScenario, TStatus, TLoad>(seed: RS.Next())
+            {
+                Tag = "1st Server",
+                ToDepart = () => Server2.Vancancy > 0,
             };
             Queue = new Queue<TScenario, TStatus, TLoad>
             {
-                ToDequeue = () => Server.Vancancy > 0,
+                ToDequeue = () => Server1.Vancancy > 0,
             };
             Generator = new Generator<TScenario, TStatus, TLoad>(seed: RS.Next())
             {
@@ -76,14 +92,16 @@ namespace Test
             ServerCapacity = serverCapacity;
 
             Generator.OnArrive.Add(Queue.Enqueue);
-            Queue.OnDequeue.Add(Server.Start);
-            Server.OnDepart.Add(load => Queue.Dequeue());
+            Queue.OnDequeue.Add(Server1.Start);
+            Server1.OnDepart.Add(load => Queue.Dequeue());
+            Server1.OnDepart.Add(Server2.Start);
+            Server2.OnDepart.Add(load => Server1.Depart());
         }
         public void WarmedUp(DateTime clockTime)
         {
             Generator.WarmedUp(clockTime);
             Queue.WarmedUp(clockTime);
-            Server.WarmedUp(clockTime);
+            Server2.WarmedUp(clockTime);
         }
         public override string ToString() { return string.Format("GGnQueue#{0}", Id); }
 
@@ -91,7 +109,11 @@ namespace Test
         {
             Console.WriteLine("===[{0}]===", this); Console.WriteLine();
             Queue.WriteToConsole(); Console.WriteLine();
-            Server.WriteToConsole(); Console.WriteLine();
+            Server1.WriteToConsole(); Console.WriteLine();
+            Server2.WriteToConsole(); Console.WriteLine();
+            Console.WriteLine("Competed: {0}", NCompleted);
         }
     }
+
+    public class Load : Load<Scenario, Status> { }
 }

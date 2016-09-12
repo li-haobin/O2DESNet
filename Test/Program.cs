@@ -17,7 +17,7 @@ namespace Test
             {
                 InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)),
                 ServiceTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)),
-                ServerCapacity = 1
+                ServerCapacity = 2
             };
 
             var sim = new Simulator(new Status(scenario));

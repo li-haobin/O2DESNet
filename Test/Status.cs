@@ -13,32 +13,26 @@ namespace Test
     public class Status : Status<Scenario>
     {
         public GGnQueue<Scenario, Status, Load> GGnQueue { get; private set; }
-        public List<Load<Scenario, Status>> Processed { get; private set; }
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {            
-            Processed = new List<Load<Scenario, Status>>();
             GGnQueue = new GGnQueue<Scenario, Status, Load>(
                 interArrivalTime: Scenario.InterArrivalTime,
                 create: () => new Load(),
                 serviceTime: Scenario.ServiceTime,
                 serverCapacity: Scenario.ServerCapacity,
                 seed: DefaultRS.Next());
-
-            GGnQueue.OnDepart.Add(load => new Archive(load));
+            
         }
 
         public override void WarmedUp(DateTime clockTime)
         {
             GGnQueue.WarmedUp(clockTime);
-            Processed = new List<Load<Scenario, Status>>();
         }
 
         public virtual void WriteToConsole()
         {
             GGnQueue.WriteToConsole();
-            Console.WriteLine();
-            Console.WriteLine("Processed:\t{0}", Processed.Count);
         }
     }
 }

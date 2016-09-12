@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.PMExample", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Optimizer", "O2DESNet.Optimizer\O2DESNet.Optimizer.csproj", "{B7406337-F0C7-4DAC-931A-8FB09134D12A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_MM1Queue", "Test\Test_MM1Queue.csproj", "{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_HybridQueues", "Test\Test_HybridQueues.csproj", "{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
