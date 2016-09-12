@@ -15,14 +15,13 @@ namespace Test
         public GGnQueue<Scenario, Status, Load> GGnQueue { get; private set; }
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
-        {            
+        {
             GGnQueue = new GGnQueue<Scenario, Status, Load>(
                 interArrivalTime: Scenario.InterArrivalTime,
                 create: () => new Load(),
-                serviceTime: Scenario.ServiceTime,
+                serviceTime: (l, rs) => Scenario.ServiceTime(rs),
                 serverCapacity: Scenario.ServerCapacity,
                 seed: DefaultRS.Next());
-            
         }
 
         public override void WarmedUp(DateTime clockTime)

@@ -18,7 +18,7 @@ namespace Test
             get { return Generator.InterArrivalTime; }
             set { Generator.InterArrivalTime = value; }
         }
-        public Func<Random, TimeSpan> ServiceTime {
+        public Func<TLoad, Random, TimeSpan> ServiceTime {
             get { return Server2.ServiceTime; }
             set
             {
@@ -62,7 +62,7 @@ namespace Test
 
         private static int _count = 0;
         public int Id { get; protected set; }
-        public GGnQueue(Func<Random, TimeSpan> interArrivalTime, Func<TLoad> create, Func<Random, TimeSpan> serviceTime, int serverCapacity, int seed = -1)
+        public GGnQueue(Func<Random, TimeSpan> interArrivalTime, Func<TLoad> create, Func<TLoad, Random, TimeSpan> serviceTime, int serverCapacity, int seed = -1)
         {
             Id = _count++;     
             RS = seed < 0 ? null : new Random(seed);

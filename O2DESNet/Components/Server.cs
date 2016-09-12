@@ -19,7 +19,7 @@ namespace O2DESNet
         /// <summary>
         /// Random generator for service time
         /// </summary>
-        public Func<Random, TimeSpan> ServiceTime { get; set; }
+        public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
         public Func<bool> ToDepart { get; set; }
         #endregion
 
