@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.PMExample", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Optimizer", "O2DESNet.Optimizer\O2DESNet.Optimizer.csproj", "{B7406337-F0C7-4DAC-931A-8FB09134D12A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueDemo", "QueueDemo\QueueDemo.csproj", "{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|x64.ActiveCfg = Release|x64
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|x64.Build.0 = Release|x64
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Debug|x64.Build.0 = Debug|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Release|x64.ActiveCfg = Release|Any CPU
+		{651C6F2D-42B6-4BCC-AD4D-BC39C523B93E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
