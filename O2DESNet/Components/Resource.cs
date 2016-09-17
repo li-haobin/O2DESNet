@@ -30,38 +30,31 @@ namespace O2DESNet.Components
         public HashSet<TLoad> Occupying { get; private set; }
         public double Vancancy { get { return Statics.Capacity - Occupying.Sum(load => Statics.Demand(load)); } }
         public bool HasVecancy(TLoad load) { return Vancancy >= Statics.Demand(load); }
+        public HourCounter HourCounter { get; private set; }
         #endregion
 
         #region Events
-        //private class RestoreEvent : Event<TScenario, TStatus>
-        //{
-        //    public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
-        //    public TLoad Load { get; private set; }
-        //    internal RestoreEvent(RestoreServer<TScenario, TStatus, TLoad> restoreServer, TLoad load)
-        //    {
-        //        RestoreServer = restoreServer;
-        //        Load = load;
-        //    }
-        //    public override void Invoke()
-        //    {
-        //        Load.Log(this);
-        //        foreach (var evnt in RestoreServer.OnRestore) Execute(evnt());
-        //    }
-        //    public override string ToString() { return string.Format("{0}_Restore", RestoreServer); }
-        //}
+        private class OccupyEvent : Event<TScenario, TStatus>
+        {
+            public Resource<TScenario, TStatus, TLoad> Resource { get; private set; }
+            public TLoad Load { get; private set; }
+            internal OccupyEvent(Resource<TScenario, TStatus, TLoad> resource, TLoad load)
+            {
+                Resource = resource;
+                Load = load;
+            }
+            public override void Invoke()
+            {
+                Load.Log(this);
+                foreach (var evnt in RestoreServer.OnRestore) Execute(evnt());
+            }
+            public override string ToString() { return string.Format("{0}_Restore", RestoreServer); }
+        }
         #endregion
 
         #region Input Events - Getters
-        //public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
-        //public Event<TScenario, TStatus> Start(TLoad load)
-        //{
-        //    if (Vancancy < 1) throw new HasZeroVacancyException();
-        //    if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-        //    if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-        //    if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-        //    return H_Server.Start(load);
-        //}
-        //public Event<TScenario, TStatus> Depart() { return new DepartEvent(this); }
+        public Event<TScenario, TStatus> Occupy(TLoad load) { return H_Server.Depart(); }
+        public Event<TScenario, TStatus> Release(TLoad load) { return H_Server.Depart(); }
         #endregion
 
         #region Output Events - Reference to Getters

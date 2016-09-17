@@ -39,6 +39,23 @@ namespace O2DESNet
         #endregion
 
         #region Events
+        private class StartEvent : Event<TScenario, TStatus>
+        {
+            public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
+            public TLoad Load { get; private set; }
+            internal StartEvent(RestoreServer<TScenario, TStatus, TLoad> restoreServer, TLoad load)
+            {
+                RestoreServer = restoreServer;
+                Load = load;
+            }
+            public override void Invoke()
+            {
+                if (RestoreServer.Vancancy < 1) throw new HasZeroVacancyException();
+                Load.Log(this);
+                Execute(RestoreServer.H_Server.Start(Load));
+            }
+            public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
+        }
         private class RestoreEvent : Event<TScenario, TStatus>
         {
             public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
@@ -60,12 +77,11 @@ namespace O2DESNet
         #region Input Events - Getters
         public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
         public Event<TScenario, TStatus> Start(TLoad load)
-        {
-            if (Vancancy < 1) throw new HasZeroVacancyException();
+        {            
             if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
             if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
             if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-            return H_Server.Start(load);
+            return new StartEvent(this, load);
         }
         #endregion
                
