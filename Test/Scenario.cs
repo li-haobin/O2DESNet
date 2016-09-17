@@ -10,10 +10,5 @@ namespace Test
     /// <summary>
     /// The Scenario class that specifies what to simulate
     /// </summary>
-    public class Scenario : O2DESNet.Scenario
-    {
-        public Func<Random, TimeSpan> InterArrivalTime { get; set; }
-        public Func<Random, TimeSpan> ServiceTime { get; set; }
-        public int ServerCapacity { get; set; }        
-    }
+    public class Scenario : GGnQueue<Scenario, Status, Load>.StaticProperties { }
 }

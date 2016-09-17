@@ -17,7 +17,7 @@ namespace O2DESNet
             Display = false;
         }
 
-        public virtual void WarmedUp(DateTime clockTime) { throw new NotImplementedException(); }
+        public abstract void WarmedUp(DateTime clockTime);
 
         #region For Logging
         private string _logFile;

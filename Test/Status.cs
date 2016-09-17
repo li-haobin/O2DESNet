@@ -17,10 +17,7 @@ namespace Test
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
             GGnQueue = new GGnQueue<Scenario, Status, Load>(
-                interArrivalTime: Scenario.InterArrivalTime,
-                create: () => new Load(),
-                serviceTime: (l, rs) => Scenario.ServiceTime(rs),
-                serverCapacity: Scenario.ServerCapacity,
+                statics: Scenario,
                 seed: DefaultRS.Next());
         }
 

@@ -7,48 +7,31 @@ using O2DESNet;
 
 namespace Test
 {
-    public class GGnQueue<TScenario, TStatus, TLoad>
+    public class GGnQueue<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
         where TStatus : Status<TScenario>
         where TLoad : Load<TScenario, TStatus>
     {
-        #region Static Properties
-        public Func<Random, TimeSpan> InterArrivalTime
-        {
-            get { return Generator.InterArrivalTime; }
-            set { Generator.InterArrivalTime = value; }
-        }
-        public Func<TLoad, Random, TimeSpan> ServiceTime {
-            get { return Server2.ServiceTime; }
-            set
-            {
-                Server1.ServiceTime = value;
-                Server2.ServiceTime = value;
-            }
-        }
-        public int ServerCapacity {
-            get { return Server2.Capacity; }
-            set
-            {
-                Server1.Capacity = value;
-                Server2.Capacity = value;
-            }
-        }
-        public Func<TLoad> Create
-        {
-            get { return Generator.Create; }
-            set { Generator.Create = value; }
-        }
-        #endregion
-
-        #region Dynamic Properties
+        #region Sub-Components
         public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
         public Queue<TScenario, TStatus, TLoad> Queue { get; private set; }
         public Server<TScenario, TStatus, TLoad> Server1 { get; private set; }
         public Server<TScenario, TStatus, TLoad> Server2 { get; private set; }
-        public int NCompleted { get { return (int)Server2.HourCounter.TotalDecrementCount; } }
+        #endregion
 
-        internal Random RS { get; private set; }
+        #region Statics
+        public class StaticProperties : O2DESNet.Scenario
+        {
+            public Func<Random, TimeSpan> InterArrivalTime { get; set; }
+            public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
+            public int ServerCapacity { get; set; }
+            public Func<TLoad> Create { get; set; }
+        }
+        public StaticProperties Statics { get; private set; }        
+        #endregion
+
+        #region Dynamic Properties        
+        public int NCompleted { get { return (int)Server2.HourCounter.TotalDecrementCount; } }
         #endregion
 
         #region Input Events - Generators
@@ -59,53 +42,59 @@ namespace Test
         #region Output Events - Reference to Event Generators
         public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return Server2.OnDepart; } }
         #endregion
-
-        private static int _count = 0;
-        public int Id { get; protected set; }
-        public GGnQueue(Func<Random, TimeSpan> interArrivalTime, Func<TLoad> create, Func<TLoad, Random, TimeSpan> serviceTime, int serverCapacity, int seed = -1)
+        
+        public GGnQueue(StaticProperties statics, int seed, string tag = null): base(seed, tag)
         {
-            Id = _count++;     
-            RS = seed < 0 ? null : new Random(seed);
-
-            Server2 = new Server<TScenario, TStatus, TLoad>(seed: RS.Next())
-            {
-                Tag = "2nd Server",
-                ToDepart = () => true,
-            };
-            Server1 = new Server<TScenario, TStatus, TLoad>(seed: RS.Next())
-            {
-                Tag = "1st Server",
-                ToDepart = () => Server2.Vancancy > 0,
-            };
-            Queue = new Queue<TScenario, TStatus, TLoad>
-            {
-                ToDequeue = () => Server1.Vancancy > 0,
-            };
-            Generator = new Generator<TScenario, TStatus, TLoad>(seed: RS.Next())
-            {
-                SkipFirst = false,
-            };
-
-            InterArrivalTime = interArrivalTime;
-            Create = create;
-            ServiceTime = serviceTime;
-            ServerCapacity = serverCapacity;
-
+            Name = "GGnQueue";
+            Statics = statics;
+            
+            Generator = new Generator<TScenario, TStatus, TLoad>(
+                statics: new Generator<TScenario, TStatus, TLoad>.StaticProperties {
+                    Create = Statics.Create,
+                    InterArrivalTime = Statics.InterArrivalTime,
+                    SkipFirst = false,
+                },
+                seed: DefaultRS.Next());
             Generator.OnArrive.Add(Queue.Enqueue);
+
+            Queue = new Queue<TScenario, TStatus, TLoad>(
+                statics: new Queue<TScenario, TStatus, TLoad>.StaticProperties
+                {
+                    ToDequeue = () => Server1.Vancancy > 0,
+                },
+                tag: "Queue");
             Queue.OnDequeue.Add(Server1.Start);
+
+            Server1 = new Server<TScenario, TStatus, TLoad>(
+                statics: new Server<TScenario, TStatus, TLoad>.StaticProperties
+                {
+                    Capacity = Statics.ServerCapacity,
+                    ServiceTime = Statics.ServiceTime,
+                    ToDepart = () => Server2.Vancancy > 0,
+                },
+                seed: DefaultRS.Next(),
+                tag: "1nd Server");
             Server1.OnDepart.Add(load => Queue.Dequeue());
             Server1.OnDepart.Add(Server2.Start);
+
+            Server2 = new Server<TScenario, TStatus, TLoad>(
+               statics: new Server<TScenario, TStatus, TLoad>.StaticProperties
+               {
+                   Capacity = Statics.ServerCapacity,
+                   ServiceTime = Statics.ServiceTime,
+                   ToDepart = () => true,
+               },
+               seed: DefaultRS.Next(),
+               tag: "2nd Server");
             Server2.OnDepart.Add(load => Server1.Depart());
         }
-        public void WarmedUp(DateTime clockTime)
+        public override void WarmedUp(DateTime clockTime)
         {
             Generator.WarmedUp(clockTime);
             Queue.WarmedUp(clockTime);
             Server2.WarmedUp(clockTime);
         }
-        public override string ToString() { return string.Format("GGnQueue#{0}", Id); }
-
-        public virtual void WriteToConsole()
+        public override void WriteToConsole()
         {
             Console.WriteLine("===[{0}]===", this); Console.WriteLine();
             Queue.WriteToConsole(); Console.WriteLine();

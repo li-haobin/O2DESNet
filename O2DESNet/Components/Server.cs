@@ -6,35 +6,35 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Server<TScenario, TStatus, TLoad>
+    public class Server<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
         where TStatus : Status<TScenario>
         where TLoad : Load<TScenario, TStatus>
     {
-        #region Static Properties
-        /// <summary>
-        /// Maximum number of loads in the queue
-        /// </summary>
-        public int Capacity { get; set; }
-        /// <summary>
-        /// Random generator for service time
-        /// </summary>
-        public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
-        public Func<bool> ToDepart { get; set; }
+        #region Statics
+        public class StaticProperties : Scenario
+        {
+            /// <summary>
+            /// Maximum number of loads in the queue
+            /// </summary>
+            public int Capacity { get; set; } = int.MaxValue;
+            /// <summary>
+            /// Random generator for service time
+            /// </summary>
+            public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
+            public Func<bool> ToDepart { get; set; }
+        }
+        public StaticProperties Statics { get; private set; }
         #endregion
 
-        #region Dynamic Properties
+        #region Dynamics
         public HashSet<TLoad> Serving { get; private set; }
         public List<TLoad> Served { get; private set; }
-        public int Vancancy { get { return Capacity - Serving.Count - Served.Count; } }
-                
-        public HourCounter HourCounter { get; private set; } // statistics
-        internal Random RS { get; private set; } // random stream
+        public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count; } }
+        public HourCounter HourCounter { get; private set; } // statistics        
         #endregion
 
-        #region Input Events - Generators
-        public Event<TScenario, TStatus> Start(TLoad load) { return new StartEvent(this, load); }
-        public Event<TScenario, TStatus> Depart() { return new DepartEvent(this); }
+        #region Events
         private class StartEvent : Event<TScenario, TStatus>
         {
             public Server<TScenario, TStatus, TLoad> Server { get; private set; }
@@ -50,7 +50,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
-                Schedule(new FinishEvent(Server, Load), Server.ServiceTime(Load, Server.RS == null ? DefaultRS : Server.RS));
+                Schedule(new FinishEvent(Server, Load), Server.Statics.ServiceTime(Load, Server.DefaultRS));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
@@ -81,8 +81,8 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Server.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-                if (Server.ToDepart())
+                if (Server.Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+                if (Server.Statics.ToDepart())
                 {
                     var load = Server.Served.FirstOrDefault();
                     if (load == null) return;
@@ -91,13 +91,18 @@ namespace O2DESNet
                     Server.HourCounter.ObserveChange(-1, ClockTime);
                     foreach (var evnt in Server.OnDepart) Execute(evnt(load));
                     Execute(new DepartEvent(Server));
-                }                
+                }
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
         #endregion
 
-        #region Output Events - Reference to Event Generators
+        #region Input Events - Getters
+        public Event<TScenario, TStatus> Start(TLoad load) { return new StartEvent(this, load); }
+        public Event<TScenario, TStatus> Depart() { return new DepartEvent(this); }        
+        #endregion
+
+        #region Output Events - Reference to Getters
         public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get; private set; }
         #endregion
         
@@ -115,27 +120,25 @@ namespace O2DESNet
             public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
         }
         #endregion
-
-        private static int _count = 0;
-        public int Id { get; private set; }
-        public string Tag { get; set; }
-        public Server(int capacity = int.MaxValue, int seed = -1)
+        
+        public Server(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
         {
-            Id = _count++;
-            Capacity = capacity;
+            Name = "Server";
+            Statics = statics;
             Serving = new HashSet<TLoad>();
             Served = new List<TLoad>();
-            RS = seed < 0 ? null : new Random(seed);
             HourCounter = new HourCounter(DateTime.MinValue);
+
+            // initialize for output events    
             OnDepart = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-        public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
-        public override string ToString()
+
+        public override void WarmedUp(DateTime clockTime)
         {
-            if (Tag != null && Tag.Length > 0) return Tag;
-            return string.Format("Server#{0}", Id);
+            HourCounter.WarmedUp(clockTime);
         }
-        public virtual void WriteToConsole()
+
+        public override void WriteToConsole()
         {
             Console.WriteLine("[{0}]", this);
             Console.Write("Serving: ");

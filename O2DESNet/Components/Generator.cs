@@ -6,34 +6,35 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Generator<TScenario, TStatus, TLoad>
+    public class Generator<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
         where TStatus : Status<TScenario>
         where TLoad : Load<TScenario, TStatus>
     {
-        #region Static Properties
-        public Func<Random, TimeSpan> InterArrivalTime { get; set; }
-        public bool SkipFirst { get; set; } = true;
-        public Func<TLoad> Create { get; set; }
+        #region Statics
+        public class StaticProperties : Scenario
+        {
+            public Func<Random, TimeSpan> InterArrivalTime { get; set; }
+            public bool SkipFirst { get; set; } = true;
+            public Func<TLoad> Create { get; set; }
+        }
+        public StaticProperties Statics { get; private set; }
         #endregion
 
-        #region Dynamic Properties
+        #region Dynamics
         public DateTime? StartTime { get; private set; }
         public bool On { get; private set; }
-        public int Count { get; private set; } // number of loads generated
-        internal Random RS { get; private set; } // random stream
+        public int Count { get; private set; } // number of loads generated   
         #endregion
 
-        #region Input Events - Generators
-        public Event<TScenario, TStatus> Start() { return new StartEvent(this); }
-        public Event<TScenario, TStatus> End() { return new EndEvent(this); }
+        #region Events
         private class StartEvent : Event<TScenario, TStatus>
         {
             public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
             internal StartEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                if (Generator.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                if (Generator.Statics.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
                 Generator.On = true;
                 Generator.StartTime = ClockTime;
                 Generator.Count = 0;
@@ -54,18 +55,23 @@ namespace O2DESNet
             {
                 if (Generator.On)
                 {
-                    var load = Generator.Create();
+                    var load = Generator.Statics.Create();
                     load.Log(this);
-                    Generator.Count++;                    
-                    Schedule(new ArriveEvent(Generator), Generator.InterArrivalTime(Generator.RS == null ? DefaultRS : Generator.RS));
-                    if (Generator.Count > 1 || !Generator.SkipFirst) foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
+                    Generator.Count++;
+                    Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));
+                    if (Generator.Count > 1 || !Generator.Statics.SkipFirst) foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
                 }
             }
             public override string ToString() { return string.Format("{0}_Arrive", Generator); }
         }
         #endregion
 
-        #region Output Events - Reference to Event Generators
+        #region Input Events - Getters
+        public Event<TScenario, TStatus> Start() { return new StartEvent(this); }
+        public Event<TScenario, TStatus> End() { return new EndEvent(this); }
+        #endregion
+
+        #region Output Events - Reference to Getters
         public List<Func<TLoad, Event<TScenario, TStatus>>> OnArrive { get; private set; }
         #endregion
 
@@ -75,22 +81,22 @@ namespace O2DESNet
             public InterArrivalTimeNotSpecifiedException() : base("Set InterArrivalTime as a random generator.") { }
         }
         #endregion
-
-        private static int _count = 0;
-        public int Id { get; protected set; }
-        public string Tag { get; set; }
-        public Generator(int seed = -1) {
-            Id = _count++;
+        
+        public Generator(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
+        {
+            Name = "Generator";
+            Statics = statics;
             On = false;
-            RS = seed < 0 ? null : new Random(seed);
             Count = 0;
+
+            // initialize for output events
             OnArrive = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-        public void WarmedUp(DateTime clockTime) { StartTime = clockTime; Count = 0; }
-        public override string ToString()
+
+        public override void WarmedUp(DateTime clockTime)
         {
-            if (Tag != null && Tag.Length > 0) return Tag;
-            return string.Format("Generator#{0}", Id);
-        }
+            StartTime = clockTime;
+            Count = 0;
+        }        
     }   
 }

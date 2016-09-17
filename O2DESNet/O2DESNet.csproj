@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Component.cs" />
     <Compile Include="Components\Generator.cs" />
     <Compile Include="Components\Load.cs" />
     <Compile Include="Components\Server.cs" />

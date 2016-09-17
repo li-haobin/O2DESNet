@@ -6,32 +6,34 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Queue<TScenario, TStatus, TLoad>
+    public class Queue<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
         where TStatus : Status<TScenario>
         where TLoad : Load<TScenario, TStatus>
     {
         #region Static Properties
-        /// <summary>
-        /// Maximum number of loads in the queue
-        /// </summary>
-        public int Capacity { get; set; }
-        /// <summary>
-        /// Dequeuing condition for each load
-        /// </summary>
-        public Func<bool> ToDequeue { get; set; }
+        public class StaticProperties : Scenario
+        {
+            /// <summary>
+            /// Maximum number of loads in the queue
+            /// </summary>
+            public int Capacity { get; set; } = int.MaxValue;
+            /// <summary>
+            /// Dequeuing condition for each load
+            /// </summary>
+            public Func<bool> ToDequeue { get; set; }
+        }
+        public StaticProperties Statics { get; private set; }
         #endregion
 
         #region Dynamic Properties
-        public List<TLoad> Waiting { get; private set; }        
-        public int Vancancy { get { return Capacity - Waiting.Count; } }
-        
-        public HourCounter HourCounter { get; private set; } // statistics
+        public List<TLoad> Waiting { get; private set; }
+        public int Vancancy { get { return Statics.Capacity - Waiting.Count; } }
+
+        public HourCounter HourCounter { get; private set; } // statistics        
         #endregion
 
-        #region Input Events - Generators
-        public Event<TScenario, TStatus> Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
-        public Event<TScenario, TStatus> Dequeue() { return new DequeueEvent(this); }
+        #region Events
         /// <summary>
         /// Enqueue given load
         /// </summary>
@@ -68,8 +70,8 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Queue.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
-                if (Queue.ToDequeue())
+                if (Queue.Statics.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
+                if (Queue.Statics.ToDequeue())
                 {
                     var load = Queue.Waiting.FirstOrDefault();
                     if (load == null) return;
@@ -83,7 +85,12 @@ namespace O2DESNet
         }
         #endregion
 
-        #region Output Events - Reference to Event Generators
+        #region Input Events - Getters
+        public Event<TScenario, TStatus> Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
+        public Event<TScenario, TStatus> Dequeue() { return new DequeueEvent(this); }
+        #endregion
+
+        #region Output Events - Reference to Getters
         public List<Func<TLoad, Event<TScenario, TStatus>>> OnDequeue { get; private set; }
         #endregion
 
@@ -98,29 +105,26 @@ namespace O2DESNet
         }
         #endregion
 
-        private static int _count = 0;
-        public int Id { get; protected set; }
-        public string Tag { get; set; }
-        public Queue(int capacity = int.MaxValue, Func<bool> toDequeue = null)
+        public Queue(StaticProperties statics, string tag = null) : base(tag: tag)
         {
-            Id = _count++;
-            Capacity = capacity;
-            ToDequeue = toDequeue;
-            Waiting = new List<TLoad>();  
+            Name = "Queue";
+            Statics = statics;
+            Waiting = new List<TLoad>();
             HourCounter = new HourCounter(DateTime.MinValue);
+
+            // initialize for output events
             OnDequeue = new List<Func<TLoad, Event<TScenario, TStatus>>>();
         }
-        public void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
-        public override string ToString()
+
+        public override void WarmedUp(DateTime clockTime)
         {
-            if (Tag != null && Tag.Length > 0) return Tag;
-            return string.Format("Queue#{0}", Id);
+            HourCounter.WarmedUp(clockTime);
         }
-        public virtual void WriteToConsole()
+        public override void WriteToConsole()
         {
             Console.Write("[{0}]: ", this);
             foreach (var load in Waiting) Console.Write("{0} ", load);
             Console.WriteLine();
         }
-    }    
+    }
 }

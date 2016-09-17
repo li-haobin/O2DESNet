@@ -6,35 +6,45 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class RestoreServer<TScenario, TStatus, TLoad>
+    public class RestoreServer<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
         where TStatus : Status<TScenario>
         where TLoad : Load<TScenario, TStatus>
     {
-        #region Static Properties
-        public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; }  }
-        public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
-        public Func<bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
-        public int Capacity { get; set; }
+        #region Sub-Components
+        internal Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
+        internal Server<TScenario, TStatus, TLoad> R_Server { get; private set; }
         #endregion
 
-        #region Dynamic Properties   
-        public Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
-        public Server<TScenario, TStatus, TLoad> R_Server { get; private set; }
+        #region Statics
+        public class StaticProperties : Scenario
+        {
+            internal Server<TScenario, TStatus, TLoad>.StaticProperties H_Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
+            internal Server<TScenario, TStatus, TLoad>.StaticProperties R_Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
+
+            public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; } }
+            public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
+            public Func<bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
+            public int Capacity { get; set; }
+        }
+        public StaticProperties Statics { get; private set; }
+        #endregion
+
+        #region Dynamics
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public List<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get { return Capacity - Serving.Count - Served.Count - Restoring.Count; } }
-        public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
+        public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
+        public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }     
         #endregion
 
         #region Input Events - Generators
         public Event<TScenario, TStatus> Start(TLoad load)
         {
             if (Vancancy < 1) throw new HasZeroVacancyException();
-            if (HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-            if (RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            if (ToDepart == null) throw new DepartConditionNotSpecifiedException();
+            if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
+            if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
+            if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
             return H_Server.Start(load);
         }
         public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
@@ -83,41 +93,29 @@ namespace O2DESNet
         }
         #endregion
 
-        private static int _count = 0;
-        public int Id { get; private set; }
-        public string Tag { get; set; }
-        public RestoreServer(int capacity = int.MaxValue, int seed = -1)
+        public RestoreServer(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
         {
-            Id = _count++;
-            Capacity = capacity;
+            Name = "RestoreServer";
+            Statics = statics;
+            H_Server = new Server<TScenario, TStatus, TLoad>(statics.H_Server, DefaultRS.Next());
+            R_Server = new Server<TScenario, TStatus, TLoad>(statics.R_Server, DefaultRS.Next());
 
-            int hSeed = -1, rSeed = -1;
-            if (seed < -1)
-            {
-                var rs = seed < 0 ? null : new Random(seed);
-                hSeed = rs.Next();
-                rSeed = rs.Next();
-            }
-            H_Server = new Server<TScenario, TStatus, TLoad>(seed: hSeed);
-            R_Server = new Server<TScenario, TStatus, TLoad>(seed: rSeed);
-
+            // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            R_Server.ToDepart = () => true;
+            R_Server.Statics.ToDepart = () => true;
             R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
+            // initialize for output events
             OnRestore = new List<Func<Event<TScenario, TStatus>>>();
         }
-        public void WarmedUp(DateTime clockTime)
+
+        public override void WarmedUp(DateTime clockTime)
         {
             H_Server.WarmedUp(clockTime);
             R_Server.WarmedUp(clockTime);
         }
-        public override string ToString()
-        {
-            if (Tag != null && Tag.Length > 0) return Tag;
-            return string.Format("RestoreServer#{0}", Id);
-        }
-        public virtual void WriteToConsole()
+
+        public override void WriteToConsole()
         {
             Console.WriteLine("[{0}]", this);
             Console.Write("Serving: ");

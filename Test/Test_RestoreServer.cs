@@ -51,33 +51,48 @@ namespace Test_RestoreServer
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            Server2 = new RestoreServer<Scenario, Status, Load>(capacity: 1, seed: DefaultRS.Next())
-            {
-                HandlingTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 7)), // handling rate
-                RestoringTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 10)), // restoring rate
-                ToDepart = () => true,
-            };
-            Queue2 = new Queue<Scenario, Status, Load>(capacity: 4)
-            {
-                ToDequeue = () => Server2.Vancancy > 0,
-            };
-            Server1 = new RestoreServer<Scenario, Status, Load>(capacity: 1, seed: DefaultRS.Next())
-            {
-                HandlingTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 7)), // handling rate
-                RestoringTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 10)), // restoring rate
-                ToDepart = () => Queue2.Vancancy > 0,
-            };
-            Queue1 = new Queue<Scenario, Status, Load>
-            {
-                ToDequeue = () => Server1.Vancancy > 0,
-            };
-            Generator = new Generator<Scenario, Status, Load>(DefaultRS.Next())
-            {
-                InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, 4)), // arrival rate
-                Create = () => new Load(),
-                SkipFirst = false,                
-            };
-            
+            Generator = new Generator<Scenario, Status, Load>(
+                statics: new Generator<Scenario, Status, Load>.StaticProperties
+                {
+                    InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, 3)), // arrival rate
+                    Create = () => new Load(),
+                    SkipFirst = false,
+                },
+                seed: DefaultRS.Next());
+            Queue1 = new Queue<Scenario, Status, Load>(
+                 statics: new Queue<Scenario, Status, Load>.StaticProperties
+                 {
+                     ToDequeue = () => Server1.Vancancy > 0,
+                 },
+                tag: "Queue1");
+            Server1 = new RestoreServer<Scenario, Status, Load>(
+                statics: new RestoreServer<Scenario, Status, Load>.StaticProperties
+                {
+                    Capacity = 1,
+                    HandlingTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 7)), // handling rate
+                    RestoringTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 10)), // restoring rate
+                    ToDepart = () => Queue2.Vancancy > 0,
+                },
+                seed: DefaultRS.Next(),
+                tag: "Server1");
+            Queue2 = new Queue<Scenario, Status, Load>(
+                statics: new Queue<Scenario, Status, Load>.StaticProperties
+                {
+                    Capacity = 4,
+                    ToDequeue = () => Server2.Vancancy > 0,
+                },
+                tag: "Queue2");
+            Server2 = new RestoreServer<Scenario, Status, Load>(
+                statics: new RestoreServer<Scenario, Status, Load>.StaticProperties
+                {
+                    Capacity = 1,
+                    HandlingTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 7)), // handling rate
+                    RestoringTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 10)), // restoring rate
+                    ToDepart = () => true,
+                },
+                seed: DefaultRS.Next(),
+                tag: "Server2");
+
             Generator.OnArrive.Add(Queue1.Enqueue);
             Queue1.OnDequeue.Add(Server1.Start);
             Server1.OnDepart.Add(Queue2.Enqueue);

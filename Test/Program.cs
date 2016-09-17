@@ -15,8 +15,9 @@ namespace Test
             var hourlyServiceRate = 5;
             var scenario = new Scenario
             {
+                Create = () => new Load(),
                 InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)),
-                ServiceTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)),
+                ServiceTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)),
                 ServerCapacity = 2
             };
 
