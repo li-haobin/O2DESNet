@@ -30,10 +30,21 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Dynamics
+        public List<TLoad> Processed { get; private set; }
         public int NCompleted { get { return (int)Server.HourCounter.TotalDecrementCount; } }
         #endregion
 
         #region Events
+        public class ArichiveEvent : Event<TScenario, TStatus>
+        {
+            public GGnQueueSystem<TScenario, TStatus, TLoad> GGnQueueSystem { get; private set; }
+            public TLoad Load { get; private set; }
+            public ArichiveEvent(GGnQueueSystem<TScenario, TStatus, TLoad> ggnQueueSystem, TLoad load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            public override void Invoke()
+            {
+                GGnQueueSystem.Processed.Add(Load);
+            }
+        }
         #endregion
 
         #region Input Events - Getters
@@ -52,6 +63,7 @@ namespace O2DESNet.Demos.GGnQueue
         {
             Name = "GGnQueueSystem";
             Statics = statics;
+            Processed = new List<TLoad>();
 
             Generator = new Generator<TScenario, TStatus, TLoad>(
                 statics: new Generator<TScenario, TStatus, TLoad>.StaticProperties
@@ -79,6 +91,7 @@ namespace O2DESNet.Demos.GGnQueue
             Generator.OnArrive.Add(Queue.Enqueue);
             Queue.OnDequeue.Add(Server.Start);
             Server.OnDepart.Add(load => Queue.Dequeue());
+            Server.OnDepart.Add(load => new ArichiveEvent(this, load));
         }
 
         public override void WarmedUp(DateTime clockTime)

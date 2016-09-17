@@ -21,7 +21,7 @@ namespace O2DESNet.Demos.GGnQueue
             };
 
             var sim = new Simulator(new Status(scenario));
-            
+
             while (true)
             {
                 sim.Run(speed: 1000);
@@ -29,7 +29,17 @@ namespace O2DESNet.Demos.GGnQueue
                 Console.WriteLine(sim.ClockTime);
                 sim.Status.WriteToConsole();
                 System.Threading.Thread.Sleep(100);
-            }               
+            }
+
+            // Validate by Little's Law
+            //while (sim.Run(300000))
+            //{
+            //    Console.WriteLine("{0}\t{1}",
+            //        sim.Status.GGnQueueSystem.Queue.HourCounter.AverageCount,
+            //        sim.Status.GGnQueueSystem.Processed.Average(l => l.TotalTimeSpan.TotalHours)
+            //        );
+            //    Console.ReadKey();
+            //}
         }
     }
 
@@ -40,10 +50,10 @@ namespace O2DESNet.Demos.GGnQueue
     }
     public class Status : Status<Scenario>
     {
-        public GGnQueueSystem<Scenario, Status, Load> GGnQueueSystem { get; private set; }
+        public GGnQueueSystem<Scenario, Status, Load> GGnQueueSystem { get; private set; }        
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
-            GGnQueueSystem = new GGnQueueSystem<Scenario, Status, Load>(scenario, seed);
+            GGnQueueSystem = new GGnQueueSystem<Scenario, Status, Load>(scenario, seed);            
         }
         public override void WarmedUp(DateTime clockTime) { GGnQueueSystem.WarmedUp(clockTime); }
         public override void WriteToConsole() { GGnQueueSystem.WriteToConsole(); }
