@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using O2DESNet;
 
-namespace O2DESNet.Components
+namespace O2DESNet
 {
     public class Resource<TScenario, TStatus, TLoad> : Component
         where TScenario : Scenario
@@ -27,9 +27,10 @@ namespace O2DESNet.Components
         #endregion
 
         #region Dynamics
-        public HashSet<TLoad> Occupying { get; private set; }
-        public double Vancancy { get { return Statics.Capacity - Occupying.Sum(load => Statics.Demand(load)); } }
-        public bool HasVecancy(TLoad load) { return Vancancy >= Statics.Demand(load); }
+        public HashSet<TLoad> Occupying { get; private set; }        
+        public double Occupation { get { return Occupying.Sum(load => Statics.Demand(load)); } }
+        public double Vacancy { get { return Statics.Capacity - Occupation; } }
+        public bool HasVacancy(TLoad load) { return Vacancy >= Statics.Demand(load); }
         public HourCounter HourCounter { get; private set; }
         #endregion
 
@@ -45,76 +46,70 @@ namespace O2DESNet.Components
             }
             public override void Invoke()
             {
+                if (!Resource.HasVacancy(Load)) throw new InsufficientVacancyException();
                 Load.Log(this);
-                foreach (var evnt in RestoreServer.OnRestore) Execute(evnt());
+                Resource.Occupying.Add(Load);
+                Resource.HourCounter.ObserveCount(Resource.Occupation, ClockTime);
             }
-            public override string ToString() { return string.Format("{0}_Restore", RestoreServer); }
+            public override string ToString() { return string.Format("{0}_Occupy", Resource); }
+        }
+        private class ReleaseEvent : Event<TScenario, TStatus>
+        {
+            public Resource<TScenario, TStatus, TLoad> Resource { get; private set; }
+            public TLoad Load { get; private set; }
+            internal ReleaseEvent(Resource<TScenario, TStatus, TLoad> resource, TLoad load)
+            {
+                Resource = resource;
+                Load = load;
+            }
+            public override void Invoke()
+            {
+                if (!Resource.Occupying.Contains(Load)) throw new NotOccupyingException();
+                Load.Log(this);
+                Resource.Occupying.Remove(Load);
+                Resource.HourCounter.ObserveCount(Resource.Occupation, ClockTime);
+            }
+            public override string ToString() { return string.Format("{0}_Release", Resource); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Occupy(TLoad load) { return H_Server.Depart(); }
-        public Event<TScenario, TStatus> Release(TLoad load) { return H_Server.Depart(); }
+        public Event<TScenario, TStatus> Occupy(TLoad load) { return new OccupyEvent(this, load); }
+        public Event<TScenario, TStatus> Release(TLoad load) { return new ReleaseEvent(this, load); }
         #endregion
 
         #region Output Events - Reference to Getters
-        //public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return H_Server.OnDepart; } }
-        //public List<Func<Event<TScenario, TStatus>>> OnRestore { get; private set; }
         #endregion
 
         #region Exeptions
-        //public class HasZeroVacancyException : Exception
-        //{
-        //    public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
-        //}
-        //public class HandlingTimeNotSpecifiedException : Exception
-        //{
-        //    public HandlingTimeNotSpecifiedException() : base("Set HandlingTime as a random generator.") { }
-        //}
-        //public class RestoringTimeNotSpecifiedException : Exception
-        //{
-        //    public RestoringTimeNotSpecifiedException() : base("Set RestoringTime as a random generator.") { }
-        //}
-        //public class DepartConditionNotSpecifiedException : Exception
-        //{
-        //    public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
-        //}
+        public class InsufficientVacancyException : Exception
+        {
+            public InsufficientVacancyException() : base("Check vacancy of the Resource before execute Occupy event.") { }
+        }
+        public class NotOccupyingException : Exception
+        {
+            public NotOccupyingException() : base("The specified Load is not ocuppying the Resource.") { }
+        }
         #endregion
 
         public Resource(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
         {
             Name = "Resource";
             Statics = statics;
-            //H_Server = new Server<TScenario, TStatus, TLoad>(statics.H_Server, DefaultRS.Next());
-            //R_Server = new Server<TScenario, TStatus, TLoad>(statics.R_Server, DefaultRS.Next());
 
-            // connect sub-components
-            //H_Server.OnDepart.Add(R_Server.Start);
-            //R_Server.Statics.ToDepart = () => true;
-            //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
-
-            // initialize for output events
-            //OnRestore = new List<Func<Event<TScenario, TStatus>>>();
+            Occupying = new HashSet<TLoad>();
+            HourCounter = new HourCounter();
         }
 
-        public override void WarmedUp(DateTime clockTime)
-        {
-            //H_Server.WarmedUp(clockTime);
-            //R_Server.WarmedUp(clockTime);
-        }
+        public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
 
         public override void WriteToConsole()
         {
-            //Console.WriteLine("[{0}]", this);
-            //Console.Write("Serving: ");
-            //foreach (var load in Serving) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Served: ");
-            //foreach (var load in Served) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Restoring: ");
-            //foreach (var load in Restoring) Console.Write("{0} ", load);
-            //Console.WriteLine();
+            Console.WriteLine("[{0}]", this);
+            Console.Write("Occupation: {0}/{1}", Occupation, Statics.Capacity);
+            Console.Write("Occupying: ");
+            foreach (var load in Occupying) Console.Write("{0} ", load);
+            Console.WriteLine();
         }
     }
 }

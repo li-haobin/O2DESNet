@@ -127,7 +127,7 @@ namespace O2DESNet
             Statics = statics;
             Serving = new HashSet<TLoad>();
             Served = new List<TLoad>();
-            HourCounter = new HourCounter(DateTime.MinValue);
+            HourCounter = new HourCounter();
 
             // initialize for output events    
             OnDepart = new List<Func<TLoad, Event<TScenario, TStatus>>>();

@@ -110,7 +110,7 @@ namespace O2DESNet
             Name = "Queue";
             Statics = statics;
             Waiting = new List<TLoad>();
-            HourCounter = new HourCounter(DateTime.MinValue);
+            HourCounter = new HourCounter();
 
             // initialize for output events
             OnDequeue = new List<Func<TLoad, Event<TScenario, TStatus>>>();
