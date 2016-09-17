@@ -79,14 +79,14 @@ namespace O2DESNet.Demos.GGnQueue
             Queue = new Queue<TScenario, TStatus, TLoad>(
                 statics: Statics.Queue,
                 tag: "Queue");
-            Queue.Statics.ToDequeue = () => Server.Vancancy > 0;
+            Queue.Statics.ToDequeue = load => Server.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server.Start(load));
 
             Server = new Server<TScenario, TStatus, TLoad>(
                statics: Statics.Server,
                seed: DefaultRS.Next(),
                tag: "Server");
-            Server.Statics.ToDepart = () => true;
+            Server.Statics.ToDepart = load => true;
             Server.OnDepart.Add(load => Queue.Dequeue());
             Server.OnDepart.Add(load => new ArchiveEvent(this, load));
         }

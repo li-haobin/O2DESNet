@@ -24,7 +24,7 @@ namespace O2DESNet
 
             public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; } }
             public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
-            public Func<bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
+            public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
             public int Capacity { get; set; }
         }
         public StaticProperties Statics { get; private set; }
@@ -102,7 +102,7 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            R_Server.Statics.ToDepart = () => true;
+            R_Server.Statics.ToDepart = (load) => true;
             R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events

@@ -22,7 +22,7 @@ namespace O2DESNet
             /// Random generator for service time
             /// </summary>
             public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
-            public Func<bool> ToDepart { get; set; }
+            public Func<TLoad, bool> ToDepart { get; set; }
         }
         public StaticProperties Statics { get; private set; }
         #endregion
@@ -82,10 +82,10 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (Server.Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-                if (Server.Statics.ToDepart())
-                {
-                    var load = Server.Served.FirstOrDefault();
-                    if (load == null) return;
+                var load = Server.Served.FirstOrDefault();
+                if (load == null) return;
+                if (Server.Statics.ToDepart(load))
+                {                    
                     load.Log(this);
                     Server.Served.RemoveAt(0);
                     Server.HourCounter.ObserveChange(-1, ClockTime);

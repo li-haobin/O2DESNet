@@ -43,7 +43,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
             public int ServerCapacity2 { get { return Server2.Capacity; } set { Server2.Capacity = value; } }
             public Func<TLoad, Random, TimeSpan> HandlingTime2 { get { return Server2.HandlingTime; } set { Server2.HandlingTime = value; } }
             public Func<TLoad, Random, TimeSpan> RestoringTime2 { get { return Server2.RestoringTime; } set { Server2.RestoringTime = value; } }
-            public Func<bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
+            public Func<TLoad, bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
         }
         public StaticProperties Statics { get; private set; }
         #endregion
@@ -102,21 +102,21 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Queue = new Queue<TScenario, TStatus, TLoad>(
                  statics: Statics.Queue,
                  tag: "Queue");
-            Queue.Statics.ToDequeue = () => Server1.Vancancy > 0;
+            Queue.Statics.ToDequeue = load => Server1.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server1.Start(load));
 
             Server1 = new RestoreServer<TScenario, TStatus, TLoad>(
                statics: Statics.Server1,
                seed: DefaultRS.Next(),
                tag: "1st Server");
-            Server1.Statics.ToDepart = () => Buffer.Vancancy > 0;
+            Server1.Statics.ToDepart = load => Buffer.Vancancy > 0;
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
             Server1.OnRestore.Add(() => Queue.Dequeue());
 
             Buffer = new Queue<TScenario, TStatus, TLoad>(
                  statics: Statics.Buffer,
                  tag: "Buffer");
-            Buffer.Statics.ToDequeue = () => Server2.Vancancy > 0;
+            Buffer.Statics.ToDequeue = load => Server2.Vancancy > 0;
             Buffer.OnDequeue.Add(load => Server2.Start(load));
             Buffer.OnDequeue.Add(load => Server1.Depart());
 
@@ -124,7 +124,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
                statics: Statics.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
-            Server2.Statics.ToDepart = () => true;
+            Server2.Statics.ToDepart = load => true;
             Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
             Server2.OnRestore.Add(() => Buffer.Dequeue());
         }

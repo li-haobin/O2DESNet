@@ -21,7 +21,7 @@ namespace O2DESNet
             /// <summary>
             /// Dequeuing condition for each load
             /// </summary>
-            public Func<bool> ToDequeue { get; set; }
+            public Func<TLoad, bool> ToDequeue { get; set; }
         }
         public StaticProperties Statics { get; private set; }
         #endregion
@@ -71,10 +71,10 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (Queue.Statics.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
-                if (Queue.Statics.ToDequeue())
+                var load = Queue.Waiting.FirstOrDefault();
+                if (load == null) return;
+                if (Queue.Statics.ToDequeue(load))
                 {
-                    var load = Queue.Waiting.FirstOrDefault();
-                    if (load == null) return;
                     load.Log(this);
                     Queue.Waiting.RemoveAt(0);
                     Queue.HourCounter.ObserveChange(-1, ClockTime);
