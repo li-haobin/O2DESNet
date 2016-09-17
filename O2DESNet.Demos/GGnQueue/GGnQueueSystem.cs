@@ -21,10 +21,14 @@ namespace O2DESNet.Demos.GGnQueue
         #region Statics
         public class StaticProperties : O2DESNet.Scenario
         {
-            public Func<Random, TimeSpan> InterArrivalTime { get; set; }
-            public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
-            public int ServerCapacity { get; set; }
-            public Func<TLoad> Create { get; set; }
+            internal Generator<TScenario, TStatus, TLoad>.StaticProperties Generator { get; private set; } = new Generator<TScenario, TStatus, TLoad>.StaticProperties();
+            internal Queue<TScenario, TStatus, TLoad>.StaticProperties Queue { get; private set; } = new Queue<TScenario, TStatus, TLoad>.StaticProperties();
+            internal Server<TScenario, TStatus, TLoad>.StaticProperties Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
+
+            public Func<TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
+            public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
+            public Func<TLoad, Random, TimeSpan> ServiceTime { get { return Server.ServiceTime; } set { Server.ServiceTime = value; } }
+            public int ServerCapacity { get { return Server.Capacity; } set { Server.Capacity = value; } }            
         }
         public StaticProperties Statics { get; private set; }
         #endregion
@@ -35,11 +39,13 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Events
-        public class ArichiveEvent : Event<TScenario, TStatus>
+        private class ArchiveEvent : Event<TScenario, TStatus>
         {
+
+
             public GGnQueueSystem<TScenario, TStatus, TLoad> GGnQueueSystem { get; private set; }
             public TLoad Load { get; private set; }
-            public ArichiveEvent(GGnQueueSystem<TScenario, TStatus, TLoad> ggnQueueSystem, TLoad load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            public ArchiveEvent(GGnQueueSystem<TScenario, TStatus, TLoad> ggnQueueSystem, TLoad load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
             public override void Invoke()
             {
                 GGnQueueSystem.Processed.Add(Load);
@@ -66,32 +72,23 @@ namespace O2DESNet.Demos.GGnQueue
             Processed = new List<TLoad>();
 
             Generator = new Generator<TScenario, TStatus, TLoad>(
-                statics: new Generator<TScenario, TStatus, TLoad>.StaticProperties
-                {
-                    Create = Statics.Create,
-                    InterArrivalTime = Statics.InterArrivalTime,
-                    SkipFirst = false,
-                },
-                seed: DefaultRS.Next());Queue = new Queue<TScenario, TStatus, TLoad>(
-                statics: new Queue<TScenario, TStatus, TLoad>.StaticProperties
-                {
-                    ToDequeue = () => Server.Vancancy > 0,
-                },
-                tag: "Queue");
-            Server = new Server<TScenario, TStatus, TLoad>(
-               statics: new Server<TScenario, TStatus, TLoad>.StaticProperties
-               {
-                   Capacity = Statics.ServerCapacity,
-                   ServiceTime = Statics.ServiceTime,
-                   ToDepart = () => true,
-               },
-               seed: DefaultRS.Next(),
-               tag: "2nd Server");
+                statics: Statics.Generator,
+                seed: DefaultRS.Next());
+            Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
-            Generator.OnArrive.Add(Queue.Enqueue);
-            Queue.OnDequeue.Add(Server.Start);
+            Queue = new Queue<TScenario, TStatus, TLoad>(
+                statics: Statics.Queue,
+                tag: "Queue");
+            Queue.Statics.ToDequeue = () => Server.Vancancy > 0;
+            Queue.OnDequeue.Add(load => Server.Start(load));
+
+            Server = new Server<TScenario, TStatus, TLoad>(
+               statics: Statics.Server,
+               seed: DefaultRS.Next(),
+               tag: "Server");
+            Server.Statics.ToDepart = () => true;
             Server.OnDepart.Add(load => Queue.Dequeue());
-            Server.OnDepart.Add(load => new ArichiveEvent(this, load));
+            Server.OnDepart.Add(load => new ArchiveEvent(this, load));
         }
 
         public override void WarmedUp(DateTime clockTime)

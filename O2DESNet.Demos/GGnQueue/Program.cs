@@ -31,7 +31,7 @@ namespace O2DESNet.Demos.GGnQueue
                 System.Threading.Thread.Sleep(100);
             }
 
-            // Validate by Little's Law
+            /// Validate by Little's Law
             //while (sim.Run(300000))
             //{
             //    Console.WriteLine("{0}\t{1}",
