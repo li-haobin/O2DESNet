@@ -35,22 +35,10 @@ namespace O2DESNet
         public List<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
         public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
-        public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }     
+        public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
         #endregion
 
-        #region Input Events - Generators
-        public Event<TScenario, TStatus> Start(TLoad load)
-        {
-            if (Vancancy < 1) throw new HasZeroVacancyException();
-            if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-            if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-            return H_Server.Start(load);
-        }
-        public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
-        #endregion
-
-        #region Internal Events
+        #region Events
         private class RestoreEvent : Event<TScenario, TStatus>
         {
             public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
@@ -69,7 +57,19 @@ namespace O2DESNet
         }
         #endregion
 
-        #region Output Events - Reference to Event Generators
+        #region Input Events - Getters
+        public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
+        public Event<TScenario, TStatus> Start(TLoad load)
+        {
+            if (Vancancy < 1) throw new HasZeroVacancyException();
+            if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
+            if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
+            if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+            return H_Server.Start(load);
+        }
+        #endregion
+               
+        #region Output Events - Reference to Getters
         public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return H_Server.OnDepart; } }
         public List<Func<Event<TScenario, TStatus>>> OnRestore { get; private set; }
         #endregion
