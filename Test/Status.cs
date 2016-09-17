@@ -26,7 +26,7 @@ namespace Test
             GGnQueue.WarmedUp(clockTime);
         }
 
-        public virtual void WriteToConsole()
+        public override void WriteToConsole()
         {
             GGnQueue.WriteToConsole();
         }

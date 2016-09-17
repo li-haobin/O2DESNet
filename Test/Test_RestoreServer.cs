@@ -111,7 +111,7 @@ namespace Test_RestoreServer
             Server2.WarmedUp(clockTime);
         }
 
-        public virtual void WriteToConsole()
+        public override void WriteToConsole()
         {
             Queue1.WriteToConsole(); Console.WriteLine();
             Server1.WriteToConsole(); Console.WriteLine();

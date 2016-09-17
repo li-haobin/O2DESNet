@@ -18,6 +18,7 @@ namespace O2DESNet
         }
 
         public abstract void WarmedUp(DateTime clockTime);
+        public abstract void WriteToConsole();
 
         #region For Logging
         private string _logFile;
@@ -51,5 +52,7 @@ namespace O2DESNet
                 }
         }
         #endregion
+
+        
     }
 }
