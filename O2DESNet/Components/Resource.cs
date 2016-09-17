@@ -68,6 +68,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Resource.Occupying.Remove(Load);
                 Resource.HourCounter.ObserveCount(Resource.Occupation, ClockTime);
+                foreach (var evnt in Resource.OnRelease) Execute(evnt());
             }
             public override string ToString() { return string.Format("{0}_Release", Resource); }
         }
@@ -79,6 +80,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
+        public List<Func<Event<TScenario, TStatus>>> OnRelease { get; private set; }
         #endregion
 
         #region Exeptions
@@ -96,9 +98,10 @@ namespace O2DESNet
         {
             Name = "Resource";
             Statics = statics;
-
             Occupying = new HashSet<TLoad>();
             HourCounter = new HourCounter();
+
+            OnRelease = new List<Func<Event<TScenario, TStatus>>>();
         }
 
         public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
