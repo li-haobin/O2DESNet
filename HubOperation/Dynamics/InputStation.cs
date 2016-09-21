@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QueueDemo.Dynamics
+namespace HubOperation.Dynamics
 {
-    public class Server
+    public class InputStation
     {
-        public bool IsIdle { get; set; }
+        public bool isIdle { get; set; }
         public TimeSpan SvcTime { get; set; }
 
-        public Server(TimeSpan rate)
+        public InputStation(TimeSpan rate)
         {
-            IsIdle = true;
+            isIdle = true;
             SvcTime = rate;
         }
     }

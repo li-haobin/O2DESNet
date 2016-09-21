@@ -1,4 +1,4 @@
-﻿using QueueDemo.Dynamics;
+﻿using HubOperation.Dynamics;
 using O2DESNet;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QueueDemo
+namespace HubOperation
 {
     /// <summary>
     /// The Status class that provides a snapshot of simulated system in run-time
@@ -15,22 +15,27 @@ namespace QueueDemo
     {
         // encapsulate all dynamic properties here
         // ...
-        public TimeSpan WaitingTime { get; set; }
-        public int ServeCount { get; set; }
+        public DateTime StartTime;
+        public DateTime EndTime;
+        public int ContainersSorted;
+
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
             // initialize all the dynamic elements
             // ...            
-            WaitingTime = TimeSpan.Zero;
-            ServeCount = 0;
+            StartTime = new DateTime();
+            EndTime = new DateTime();
+            ContainersSorted = 0;
 
         }
 
-        public TimeSpan getAverageWait()
-        {
-           return TimeSpan.FromTicks(WaitingTime.Ticks / ServeCount);
-        }
         // implement methods that help to update the Status
         // ...
+
+        public TimeSpan getSystemTime()
+        {
+            return EndTime - StartTime;
+
+        }
     }
 }

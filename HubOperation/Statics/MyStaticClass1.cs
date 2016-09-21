@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QueueDemo.Statics
+namespace HubOperation.Statics
 {
     public class MyStaticClass1
     {
