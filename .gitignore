@@ -20,3 +20,4 @@
 /Test/bin
 /Test/obj
 /O2DESNet.Demos/bin/Debug
+*.nupkg
