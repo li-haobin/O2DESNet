@@ -57,6 +57,8 @@
     <Compile Include="Dynamics\InputStation.cs" />
     <Compile Include="Dynamics\Package.cs" />
     <Compile Include="Events\EndUnloadPackages.cs" />
+    <Compile Include="Events\PackageEnterSortBelt.cs" />
+    <Compile Include="Events\PackageReachDeliveryVan.cs" />
     <Compile Include="Events\StartSortOperation.cs" />
     <Compile Include="Events\StartUnloadPackages.cs" />
     <Compile Include="Extensions.cs" />

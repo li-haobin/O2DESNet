@@ -20,7 +20,8 @@ namespace HubOperation
             var simulator = new Simulator(status);
             simulator.Run(TimeSpan.FromHours(2));
 
-            Console.WriteLine("System Time of Sorting Operation is {0}", status.getSystemTime());
+            Console.WriteLine("System Time of Packages Unloading Operation is {0}", status.getPackagesUnloadTime());
+            Console.WriteLine("System Time of Last Ready Delivery Van is {0}", status.getLastReadyVanTime());
             Console.ReadKey();
         }
     }

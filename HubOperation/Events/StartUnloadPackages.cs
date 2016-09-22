@@ -25,11 +25,18 @@ namespace HubOperation.Events
         public override void Invoke()
         {
             Station.isIdle = false;
-            Container.isUnloading = true;
+            
 
-            TimeSpan UnloadingTime = Station.SvcTime.Multiply(Container.PackagesCount);
+            int i = 0;
+            while (Container.PackagesList.Any())
+            {
+             Schedule(new PackageEnterSortBelt(Container.PackagesList[0]), Station.SvcTime.Multiply(i+1));
+                Container.PackagesList.RemoveAt(0);
+                i++;
+            }
+            TimeSpan LastUnloadingTime = Station.SvcTime.Multiply(i);
 
-            Schedule(new EndUnloadPackages(Container,Station), UnloadingTime);
+            Schedule(new EndUnloadPackages(Container,Station), LastUnloadingTime);
 
         }
     }

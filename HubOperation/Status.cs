@@ -16,7 +16,8 @@ namespace HubOperation
         // encapsulate all dynamic properties here
         // ...
         public DateTime StartTime;
-        public DateTime EndTime;
+        public DateTime LastVanReadyTime;
+        public DateTime UnloadPackagesEndTime;
         public int ContainersSorted;
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
@@ -24,7 +25,8 @@ namespace HubOperation
             // initialize all the dynamic elements
             // ...            
             StartTime = new DateTime();
-            EndTime = new DateTime();
+            LastVanReadyTime = new DateTime();
+            UnloadPackagesEndTime = new DateTime();
             ContainersSorted = 0;
 
         }
@@ -32,10 +34,15 @@ namespace HubOperation
         // implement methods that help to update the Status
         // ...
 
-        public TimeSpan getSystemTime()
+        public TimeSpan getPackagesUnloadTime()
         {
-            return EndTime - StartTime;
+            return UnloadPackagesEndTime - StartTime;
 
+        }
+
+        public TimeSpan getLastReadyVanTime()
+        {
+            return LastVanReadyTime - StartTime;
         }
     }
 }

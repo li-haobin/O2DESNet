@@ -14,5 +14,10 @@ namespace HubOperation.Dynamics
         {
             RouteID = route;
         }
+
+        public Package(Package package)
+        {
+            RouteID = package.RouteID;
+        }
     }
 }

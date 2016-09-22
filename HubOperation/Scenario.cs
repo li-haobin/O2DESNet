@@ -22,10 +22,7 @@ namespace HubOperation
         {
 
 
-            for (int i = 1; i <= 2; i++)
-            {
-                StationsList.Add(new Dynamics.InputStation(TimeSpan.FromSeconds(8)));
-            }
+
 
         }
 

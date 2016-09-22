@@ -16,12 +16,12 @@ namespace HubOperation.Dynamics
         public DateTime ReadyTime { get; set; }
         public List<Package> PackagesList { get; set; }
         public int PackagesCount { get; set; }
-        public bool isEmpty { get; set;}
+        public bool isEmpty { get; set; }
         public bool isUnloading { get; set; }
         public Container(DateTime ready, List<Package> list)
         {
             ReadyTime = ready;
-            PackagesList = list;
+            PackagesList = new List<Package>(list);
             isEmpty = false;
             isUnloading = false;
             PackagesCount = PackagesList.Count();
