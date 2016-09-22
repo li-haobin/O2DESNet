@@ -8,9 +8,7 @@
     <owners>$author$</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
-    <projectUrl>http://www.o2des.net</projectUrl>
-    <copyright>Copyright 2015 - 2016</copyright>
-    <tags>O2DES Discrete-Event Simulation</tags>
+    <copyright>Copyright 2016</copyright>
+    <tags>O2DES Discrete-Event Simulation PathMover</tags>
   </metadata>
 </package>

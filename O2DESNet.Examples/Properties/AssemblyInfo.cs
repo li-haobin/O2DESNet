@@ -1,15 +1,16 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("O2DESNet")]
-[assembly: AssemblyDescription("A framework for Object-Oriented Discrete Event Simulation")]
+[assembly: AssemblyTitle("O2DESNet.Examples")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Haobin Li, Giulia Pedrielli, Loo Hay Lee")]
-[assembly: AssemblyProduct("O2DESNet")]
-[assembly: AssemblyCopyright("Copyright © 2015 - 2016")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("O2DESNet.Examples")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ee3730e8-ab6f-4978-9c3b-c40e7886adff")]
+[assembly: Guid("61c31ed7-7b3e-4d95-829b-afe883853588")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -31,4 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.1")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
