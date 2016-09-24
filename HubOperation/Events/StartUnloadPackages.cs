@@ -26,7 +26,7 @@ namespace HubOperation.Events
         {
             Station.isIdle = false;
             
-
+            // unload packages to enter sort belt at constant interval (currently), according to rate of input station
             int i = 0;
             while (Container.PackagesList.Any())
             {

@@ -27,7 +27,9 @@ namespace HubOperation.Events
         {
             Dynamics.DeliveryVan loadDeliveryVan = Scenario.DeliveryVansList.Find(matchRoute);
             loadDeliveryVan.PackagesLoaded.Add(Package);
-            if(loadDeliveryVan.CheckIfFullyLoaded())
+
+            // currently checks packageLoad counts against packageLists counts
+            if (loadDeliveryVan.CheckIfFullyLoaded())
             {
                 loadDeliveryVan.DeliveryReadyTime = ClockTime;
                 Status.LastVanReadyTime = ClockTime;

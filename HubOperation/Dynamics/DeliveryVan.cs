@@ -25,13 +25,13 @@ namespace HubOperation.Dynamics
             DeliveryReadyTime = new DateTime();
         }
 
-        public DeliveryVan(DeliveryVan van)
+        public DeliveryVan(string route)
         {
-            PackagesDeliveryList = van.PackagesDeliveryList;
-            PackagesLoaded = van.PackagesLoaded;
-            Route = van.Route;
-            isFullyLoaded = van.isFullyLoaded;
-            DeliveryReadyTime = van.DeliveryReadyTime;
+            PackagesDeliveryList = new List<Package>();
+            PackagesLoaded = new List<Package>();
+            Route = route;
+            isFullyLoaded = false;
+            DeliveryReadyTime = new DateTime();
         }
 
         public bool CheckIfFullyLoaded()

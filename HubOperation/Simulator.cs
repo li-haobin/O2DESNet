@@ -16,10 +16,11 @@ namespace HubOperation
         {
             // specify initial events here
             //throw new NotImplementedException();
-           
+
 
             // example of scheduling a new event
             //Schedule(new Event(), TimeSpan.FromMinutes(DefaultRS.NextDouble() * 1));
+            Schedule(new AircraftArrival(), TimeSpan.FromHours(1));
 
             // example of executing a new event
             Execute(new StartSortOperation());

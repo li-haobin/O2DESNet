@@ -41,21 +41,26 @@ namespace HubOperation.Events
         {
             Container.isEmpty = true;
             Container.isUnloading = false;
+            Container.FinishUnloadingTime = ClockTime;
+            Scenario.EmptiedContainersList.Add(Container);
             Status.ContainersSorted++;
 
-            if (Scenario.ContainersList.Exists(notUnloaded))
+            // checks if there are still full containers and schedule their unloading
+            if (Scenario.ReadyContainersList.Exists(notUnloaded))
             {
-                Dynamics.Container nextContainer = Scenario.ContainersList.Find(notUnloaded);
+                Dynamics.Container nextContainer = Scenario.ReadyContainersList.Find(notUnloaded);
                 Schedule(new StartUnloadPackages(nextContainer, Station), TimeSpan.Zero);
                 nextContainer.isUnloading = true;
             }
             else
             {
                 Station.isIdle = true;
-                if (!Scenario.ContainersList.Exists(notEmpty))
+
+                if (!Scenario.ReadyContainersList.Exists(notEmpty) && Scenario.InboundContainersList.Count == 0)
                 {
                     Status.UnloadPackagesEndTime = ClockTime;
                 }
+
             }
             
 

@@ -14,8 +14,8 @@ namespace HubOperation.Dynamics
     public class Container
     {
         public DateTime ReadyTime { get; set; }
+        public DateTime FinishUnloadingTime { get; set; }
         public List<Package> PackagesList { get; set; }
-        public int PackagesCount { get; set; }
         public bool isEmpty { get; set; }
         public bool isUnloading { get; set; }
         public Container(DateTime ready, List<Package> list)
@@ -24,7 +24,26 @@ namespace HubOperation.Dynamics
             PackagesList = new List<Package>(list);
             isEmpty = false;
             isUnloading = false;
-            PackagesCount = PackagesList.Count();
+            FinishUnloadingTime = new DateTime();
         }
+
+        public Container(Dynamics.Container container)
+        {
+            ReadyTime = container.ReadyTime;
+            PackagesList = new List<Package>(container.PackagesList);
+            isEmpty = container.isEmpty;
+            isUnloading = container.isUnloading;
+            FinishUnloadingTime = container.FinishUnloadingTime;
+        }
+
+        public Container()
+        {
+            ReadyTime = new DateTime();
+            PackagesList = new List<Package>();
+            isEmpty = false;
+            isUnloading = false;
+            FinishUnloadingTime = new DateTime();
+        }
+
     }
 }

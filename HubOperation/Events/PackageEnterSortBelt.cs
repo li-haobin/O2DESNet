@@ -20,6 +20,7 @@ namespace HubOperation.Events
 
         public override void Invoke()
         {
+            // schedule only inbound packages to reach their delivery van
             if (Package.RouteID != "Transhipment")
             {
                 Schedule(new PackageReachDeliveryVan(Package), TimeSpan.FromSeconds(30));
