@@ -41,25 +41,43 @@ namespace HubOperation
 
         public Dynamics.Container initPackagesToContainer(Dynamics.Container container, int packagesCount, string route)
         {
-            if (!RoutesList.Contains(route) && route != "Transhipment")
-            {
-                RoutesList.Add(route);
-                DeliveryVansList.Add(new Dynamics.DeliveryVan(route));
-            }
 
             for (int i = 1; i <= packagesCount; i++)
             {
                 Dynamics.Package newPackage = new Dynamics.Package(route);
                 container.PackagesList.Add(newPackage);
 
-                if (route != "Transhipment")
-                {
-                    addPackageToVanRoute(newPackage, route);
-                }
             }
 
 
             return container;
+        }
+
+        public void initDeliveryVansList()
+        {
+            List<Dynamics.Container> AllContainersList = new List<Dynamics.Container>();
+            ReadyContainersList.ForEach(c => AllContainersList.Add(c));
+            InboundContainersList.ForEach(c => AllContainersList.Add(c));
+
+            for (int i = 0; i < AllContainersList.Count; i++)
+                for (int j = 0; j < AllContainersList[i].PackagesList.Count; j++)
+                {
+                    Dynamics.Package newPackage = AllContainersList[i].PackagesList[j];
+                    string route = newPackage.RouteID;
+
+                if (route != "Transhipment")
+                    {
+
+                        if (!RoutesList.Contains(route))
+                        {
+                            RoutesList.Add(route);
+                            DeliveryVansList.Add(new Dynamics.DeliveryVan(route));
+                        }
+
+                        addPackageToVanRoute(newPackage, route);
+
+                    }
+                }
         }
 
         public Scenario()
@@ -84,6 +102,8 @@ namespace HubOperation
             initPackagesToContainer(container3, 45, "Route3");
             InboundContainersList.Add(new Dynamics.Container(container3));
             InboundContainersList.Add(new Dynamics.Container(container3));
+
+            initDeliveryVansList();
 
             // initialize input stations and their rates
             for (int i = 1; i <= 4; i++)
