@@ -83,6 +83,9 @@
     <Compile Include="HourCounter.cs" />
     <Compile Include="Scenario.cs" />
     <Compile Include="Status.cs" />
+    <Compile Include="Utilities\MultiKeyDictionary.cs" />
+    <Compile Include="Utilities\TimeSpanDivide.cs" />
+    <Compile Include="Utilities\TimeSpanMultiply.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
