@@ -19,6 +19,7 @@ namespace HubOperation
         public DateTime LastVanReadyTime;
         public DateTime UnloadPackagesEndTime;
         public int ContainersSorted;
+        public int PackagesOnSortBelt;
 
         public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
         {
@@ -28,6 +29,7 @@ namespace HubOperation
             LastVanReadyTime = new DateTime();
             UnloadPackagesEndTime = new DateTime();
             ContainersSorted = 0;
+            PackagesOnSortBelt = 0;
 
         }
 

@@ -18,6 +18,7 @@ namespace HubOperation.Dynamics
         public List<Package> PackagesList { get; set; }
         public bool isEmpty { get; set; }
         public bool isUnloading { get; set; }
+        public string Type { get; set; }
         public Container(DateTime ready, List<Package> list)
         {
             ReadyTime = ready;

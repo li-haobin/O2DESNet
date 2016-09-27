@@ -10,11 +10,15 @@ namespace HubOperation.Dynamics
     {
         public bool isIdle { get; set; }
         public TimeSpan SvcTime { get; set; }
+        public int PackagesUnloaded { get; set; }
+        public int StationID { get; set; }
 
-        public InputStation(TimeSpan rate)
+        public InputStation(int id, TimeSpan rate)
         {
             isIdle = true;
+            StationID = id;
             SvcTime = rate;
+            PackagesUnloaded = 0;
         }
     }
 }

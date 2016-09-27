@@ -12,7 +12,7 @@ namespace HubOperation.Events
     public class EndUnloadPackages : O2DESNet.Event<Scenario, Status>
     {
         public Dynamics.Container Container;
-        public Dynamics.InputStation Station;   
+        public Dynamics.InputStation Station;
 
         public EndUnloadPackages(Dynamics.Container container, Dynamics.InputStation station)
         {
@@ -32,25 +32,116 @@ namespace HubOperation.Events
             return container.PackagesList.Any() && !container.isUnloading;
         }
 
+        private static bool notUnloadedSmall(Dynamics.Container container)
+        {
+            return container.PackagesList.Any() && !container.isUnloading && (container.Type == "S");
+        }
+        private static bool notUnloadedLarge(Dynamics.Container container)
+        {
+            return container.PackagesList.Any() && !container.isUnloading && (container.Type == "L");
+        }
         private static bool notEmpty(Dynamics.Container container)
         {
             return container.PackagesList.Any();
         }
 
+        private bool partnerStationIdle()
+        {
+            if (Station.StationID % 2 == 0)
+            {
+                return Scenario.StationsList[Station.StationID - 2].isIdle;
+            }
+            else
+            {
+                return Scenario.StationsList[Station.StationID].isIdle;
+            }
+
+        }
+
+        private Dynamics.InputStation partnerStation()
+        {
+            if (Station.StationID % 2 == 0)
+            {
+                return Scenario.StationsList[Station.StationID - 2];
+            }
+            else
+            {
+                return Scenario.StationsList[Station.StationID];
+            }
+
+        }
+        private void ScheduleUnloadNextSmall()
+        {
+            Dynamics.Container nextContainer = Scenario.ReadyContainersList.Find(notUnloadedSmall);
+            Schedule(new StartUnloadPackages(nextContainer, Station), TimeSpan.Zero);
+            nextContainer.isUnloading = true;
+        }
+
+        private void ScheduleUnloadNextLarge()
+        {
+            Dynamics.Container nextContainer = Scenario.ReadyContainersList.Find(notUnloadedLarge);
+            Schedule(new StartUnloadPackages(nextContainer, Station, partnerStation()), TimeSpan.Zero);
+            nextContainer.isUnloading = true;
+
+        }
         public override void Invoke()
         {
-            Container.isEmpty = true;
-            Container.isUnloading = false;
-            Container.FinishUnloadingTime = ClockTime;
-            Scenario.EmptiedContainersList.Add(Container);
-            Status.ContainersSorted++;
 
+            if (Container.isEmpty == false)
+            {
+                Container.FinishUnloadingTime = ClockTime;
+                Scenario.EmptiedContainersList.Add(Container);
+
+                Status.ContainersSorted++;
+
+                Container.isUnloading = false;
+                Container.isEmpty = true;
+            }
             // checks if there are still full containers and schedule their unloading
             if (Scenario.ReadyContainersList.Exists(notUnloaded))
             {
-                Dynamics.Container nextContainer = Scenario.ReadyContainersList.Find(notUnloaded);
-                Schedule(new StartUnloadPackages(nextContainer, Station), TimeSpan.Zero);
-                nextContainer.isUnloading = true;
+
+                //if current containers was Small
+                if (Container.Type == "S")
+                {
+                    //if there are still small containers
+                    if (Scenario.ReadyContainersList.Exists(notUnloadedSmall))
+                    {
+                        ScheduleUnloadNextSmall();
+                    }
+                    else
+                    {
+                        //unload large containers
+                        if (partnerStationIdle())
+                        {
+                            ScheduleUnloadNextLarge();
+                        }
+                        else
+                        {
+                            Station.isIdle = true;
+                        }
+                    }
+
+                }
+                else
+                {
+
+                    if (Scenario.ReadyContainersList.Exists(notUnloadedLarge))
+                    {
+                        if (partnerStationIdle())
+                        {
+                            ScheduleUnloadNextLarge();
+                        }
+                        else
+                        {
+                            Station.isIdle = true;
+                        }
+                    }
+                    else
+                    {
+                        ScheduleUnloadNextSmall();
+                    }
+                }
             }
             else
             {
@@ -60,10 +151,7 @@ namespace HubOperation.Events
                 {
                     Status.UnloadPackagesEndTime = ClockTime;
                 }
-
             }
-            
-
         }
     }
 }

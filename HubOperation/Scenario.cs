@@ -86,29 +86,37 @@ namespace HubOperation
             // initialize packages 
             //first wave containers -> ReadyContainersList
             //second wave containers -> InboundContainersList
-            Dynamics.Container container1 = initPackagesToContainer(new Dynamics.Container(), 30, "Route1");
-            initPackagesToContainer(container1, 10, "Route2");
-            ReadyContainersList.Add(new Dynamics.Container(container1));
-            ReadyContainersList.Add(new Dynamics.Container(container1));
-            ReadyContainersList.Add(new Dynamics.Container(container1));
+            Dynamics.Container container1 = initPackagesToContainer(new Dynamics.LargeContainer(), 50, "Route1");
+            initPackagesToContainer(container1, 40, "Route2");
+            ReadyContainersList.Add(new Dynamics.LargeContainer(container1));
+            ReadyContainersList.Add(new Dynamics.LargeContainer(container1));
+            ReadyContainersList.Add(new Dynamics.LargeContainer(container1));
 
-            Dynamics.Container container2 = initPackagesToContainer(new Dynamics.Container(), 15, "Transhipment");
+            Dynamics.Container container2 = initPackagesToContainer(new Dynamics.SmallContainer(), 15, "Transhipment");
             initPackagesToContainer(container2, 30, "Route2");
-            ReadyContainersList.Add(new Dynamics.Container(container2));
-            ReadyContainersList.Add(new Dynamics.Container(container2));
-            InboundContainersList.Add(new Dynamics.Container(container2));
+            ReadyContainersList.Add(new Dynamics.SmallContainer(container2));
+            ReadyContainersList.Add(new Dynamics.SmallContainer(container2));
+            InboundContainersList.Add(new Dynamics.SmallContainer(container2));
 
-            Dynamics.Container container3 = initPackagesToContainer(new Dynamics.Container(), 15, "Route1");
-            initPackagesToContainer(container3, 45, "Route3");
-            InboundContainersList.Add(new Dynamics.Container(container3));
-            InboundContainersList.Add(new Dynamics.Container(container3));
+            Dynamics.Container container3 = initPackagesToContainer(new Dynamics.LargeContainer(), 15, "Route1");
+            initPackagesToContainer(container3, 80, "Route3");
+            ReadyContainersList.Add(new Dynamics.LargeContainer(container3));
+            ReadyContainersList.Add(new Dynamics.LargeContainer(container3));
+            InboundContainersList.Add(new Dynamics.LargeContainer(container3));
+            InboundContainersList.Add(new Dynamics.LargeContainer(container3));
+
+            Dynamics.Container container4 = initPackagesToContainer(new Dynamics.SmallContainer(), 15, "Transhipment");
+            initPackagesToContainer(container2, 30, "Route3");
+            ReadyContainersList.Add(new Dynamics.SmallContainer(container4));
+            ReadyContainersList.Add(new Dynamics.SmallContainer(container4));
+            InboundContainersList.Add(new Dynamics.SmallContainer(container4));
 
             initDeliveryVansList();
 
             // initialize input stations and their rates
-            for (int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 8; i++)
             {
-                StationsList.Add(new Dynamics.InputStation(TimeSpan.FromSeconds(8)));
+                StationsList.Add(new Dynamics.InputStation(i,TimeSpan.FromSeconds(8)));
             }
 
         }

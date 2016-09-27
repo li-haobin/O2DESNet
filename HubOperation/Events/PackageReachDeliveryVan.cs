@@ -25,14 +25,18 @@ namespace HubOperation.Events
         }
         public override void Invoke()
         {
-            Dynamics.DeliveryVan loadDeliveryVan = Scenario.DeliveryVansList.Find(matchRoute);
-            loadDeliveryVan.PackagesLoaded.Add(Package);
-
-            // currently checks packageLoad counts against packageLists counts
-            if (loadDeliveryVan.CheckIfFullyLoaded())
+            Status.PackagesOnSortBelt--;
+            if (Package.RouteID != "Transhipment")
             {
-                loadDeliveryVan.DeliveryReadyTime = ClockTime;
-                Status.LastVanReadyTime = ClockTime;
+                Dynamics.DeliveryVan loadDeliveryVan = Scenario.DeliveryVansList.Find(matchRoute);
+                loadDeliveryVan.PackagesLoaded.Add(Package);
+
+                // currently checks packageLoad counts against packageLists counts
+                if (loadDeliveryVan.CheckIfFullyLoaded())
+                {
+                    loadDeliveryVan.DeliveryReadyTime = ClockTime;
+                    Status.LastVanReadyTime = ClockTime;
+                }
             }
         }
     }

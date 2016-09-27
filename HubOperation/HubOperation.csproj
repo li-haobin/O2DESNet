@@ -55,12 +55,15 @@
     <Compile Include="Dynamics\Container.cs" />
     <Compile Include="Dynamics\DeliveryVan.cs" />
     <Compile Include="Dynamics\InputStation.cs" />
+    <Compile Include="Dynamics\LargeContainer.cs" />
     <Compile Include="Dynamics\Package.cs" />
+    <Compile Include="Dynamics\SmallContainer.cs" />
     <Compile Include="Events\AircraftArrival.cs" />
     <Compile Include="Events\AircraftContainersUnload.cs" />
     <Compile Include="Events\EndUnloadPackages.cs" />
     <Compile Include="Events\PackageEnterSortBelt.cs" />
     <Compile Include="Events\PackageReachDeliveryVan.cs" />
+    <Compile Include="Events\PackageUnload.cs" />
     <Compile Include="Events\StartSortOperation.cs" />
     <Compile Include="Events\StartUnloadPackages.cs" />
     <Compile Include="Extensions.cs" />
