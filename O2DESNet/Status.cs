@@ -39,15 +39,15 @@ namespace O2DESNet
         public void Log(params object[] args)
         {
             if (Display)
-                foreach (var arg in args)
-                {
-                    Console.Write("{0}\t", args);
-                    Console.WriteLine();
-                }
+            {
+                foreach (var arg in args) Console.Write("{0}\t", arg);
+                Console.WriteLine();
+            }
+                
             if (LogFile != null)
                 using (var sw = new StreamWriter(LogFile, true))
                 {
-                    foreach (var arg in args) sw.Write("{0},", args);
+                    foreach (var arg in args) sw.Write("{0},", arg);
                     sw.WriteLine();
                 }
         }

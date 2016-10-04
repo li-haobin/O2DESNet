@@ -38,7 +38,8 @@ namespace O2DESNet
                 Generator.On = true;
                 Generator.StartTime = ClockTime;
                 Generator.Count = 0;
-                Execute(new ArriveEvent(Generator));
+                if (Generator.Statics.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));
+                else Execute(new ArriveEvent(Generator));
             }
         }
         private class EndEvent : Event<TScenario, TStatus>
@@ -59,7 +60,7 @@ namespace O2DESNet
                     load.Log(this);
                     Generator.Count++;
                     Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));
-                    if (Generator.Count > 1 || !Generator.Statics.SkipFirst) foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
+                    foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
                 }
             }
             public override string ToString() { return string.Format("{0}_Arrive", Generator); }
