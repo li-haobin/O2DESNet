@@ -16,7 +16,7 @@ namespace O2DESNet
         {
             public Func<Random, TimeSpan> InterArrivalTime { get; set; }
             public bool SkipFirst { get; set; } = true;
-            public Func<TLoad> Create { get; set; }
+            public Func<Random, TLoad> Create { get; set; }
         }
         public StaticProperties Statics { get; private set; }
         #endregion
@@ -56,7 +56,7 @@ namespace O2DESNet
             {
                 if (Generator.On)
                 {
-                    var load = Generator.Statics.Create();
+                    var load = Generator.Statics.Create(Generator.DefaultRS);
                     load.Log(this);
                     Generator.Count++;
                     Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));

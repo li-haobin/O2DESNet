@@ -11,7 +11,6 @@ namespace O2DESNet
         where TStatus : Status<TScenario>
     {
         #region Statics
-        public class StaticPart : Scenario { }
         #endregion
 
         #region Dynamics
