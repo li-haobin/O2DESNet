@@ -46,7 +46,7 @@ namespace O2DESNet.Demos.GGnQueue
     public class Load : Load<Scenario, Status> { }
     public class Scenario : GGnQueueSystem<Scenario, Status, Load>.StaticProperties
     {
-        public Scenario() { Create = () => new Load(); }
+        public Scenario() { Create = rs => new Load(); }
     }
     public class Status : Status<Scenario>
     {

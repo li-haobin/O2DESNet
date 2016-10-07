@@ -34,7 +34,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
             internal RestoreServer<TScenario, TStatus, TLoad>.StaticProperties Server2 { get; private set; } 
                 = new RestoreServer<TScenario, TStatus, TLoad>.StaticProperties();
 
-            public Func<TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
+            public Func<Random, TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
             public int ServerCapacity1 { get { return Server1.Capacity; } set { Server1.Capacity = value; } }
             public Func<TLoad, Random, TimeSpan> HandlingTime1 { get { return Server1.HandlingTime; } set { Server1.HandlingTime = value; } }

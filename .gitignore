@@ -21,3 +21,7 @@
 /Test/obj
 /O2DESNet.Demos/bin/Debug
 *.nupkg
+/O2DESNet.Demos/bin/Release
+/O2DESNet.Demos/obj/Release
+/OCBA_Testing/bin/Debug
+/OCBA_Testing/obj/Debug

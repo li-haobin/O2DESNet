@@ -25,7 +25,7 @@ namespace O2DESNet.Demos.GGnQueue
             internal Queue<TScenario, TStatus, TLoad>.StaticProperties Queue { get; private set; } = new Queue<TScenario, TStatus, TLoad>.StaticProperties();
             internal Server<TScenario, TStatus, TLoad>.StaticProperties Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
 
-            public Func<TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
+            public Func<Random, TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
             public Func<TLoad, Random, TimeSpan> ServiceTime { get { return Server.ServiceTime; } set { Server.ServiceTime = value; } }
             public int ServerCapacity { get { return Server.Capacity; } set { Server.Capacity = value; } }            
