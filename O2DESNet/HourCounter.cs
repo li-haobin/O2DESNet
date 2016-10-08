@@ -53,6 +53,8 @@ namespace O2DESNet
             LastCount = count;
         }
         public void ObserveChange(double change, DateTime clockTime) { ObserveCount(LastCount + change, clockTime); }
+        public double IncrementRate { get { return TotalIncrementCount / TotalHours; } }
+        public double DecrementRate { get { return TotalDecrementCount / TotalHours; } }
         public void WarmedUp(DateTime clockTime)
         {
             // all reset except the last count

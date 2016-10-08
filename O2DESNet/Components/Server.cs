@@ -31,7 +31,8 @@ namespace O2DESNet
         public HashSet<TLoad> Serving { get; private set; }
         public List<TLoad> Served { get; private set; }
         public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count; } }
-        public HourCounter HourCounter { get; private set; } // statistics        
+        public HourCounter HourCounter { get; private set; } // statistics    
+        public double Utilization { get { return HourCounter.AverageCount / Statics.Capacity; } }
         #endregion
 
         #region Events

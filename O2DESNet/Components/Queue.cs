@@ -30,7 +30,8 @@ namespace O2DESNet
         public List<TLoad> Waiting { get; private set; }
         public int Vancancy { get { return Statics.Capacity - Waiting.Count; } }
 
-        public HourCounter HourCounter { get; private set; } // statistics        
+        public HourCounter HourCounter { get; private set; } // statistics    
+        public double Utilization { get { return HourCounter.AverageCount / Statics.Capacity; } }    
         #endregion
 
         #region Events
