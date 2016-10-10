@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class RestoreServer<TLoad> : Component
+    public class RestoreServer<TLoad> : Component<RestoreServer<TLoad>.Statics>
         where TLoad : Load
     {
         #region Sub-Components
@@ -25,7 +25,6 @@ namespace O2DESNet
             public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
             public int Capacity { get; set; }
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

@@ -34,7 +34,7 @@ namespace O2DESNet
         }
         #endregion
 
-        public Load(int seed = 0, string tag = null) : base(new Scenario(), seed: seed, tag: tag)
+        public Load(int seed = 0, string tag = null) : base(seed: seed, tag: tag)
         {
             Name = "Load";
             TimeStamps = new List<Tuple<DateTime, Event>>();

@@ -1,5 +1,8 @@
 ﻿[History]
 
+- Version 2.1.1
+Simplifies structure of Component definition, by encapsulate StaticProperty based on root class, i.e., Component<TStatics> : Component.
+
 - Version 2.1.0
 1. Remove TScenario and TStatus in Component paradigm
 2. Construct Simulator by Assembly (Component)

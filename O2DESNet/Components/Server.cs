@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Server<TLoad> : Component
+    public class Server<TLoad> : Component<Server<TLoad>.Statics>
         where TLoad : Load
     {
         #region Statics
@@ -22,7 +22,6 @@ namespace O2DESNet
             public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
             public Func<TLoad, bool> ToDepart { get; set; }
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

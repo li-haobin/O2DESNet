@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Generator<TLoad> : Component
+    public class Generator<TLoad> : Component<Generator<TLoad>.Statics>
         where TLoad : Load
     {
         #region Statics
@@ -16,7 +16,6 @@ namespace O2DESNet
             public bool SkipFirst { get; set; } = true;
             public Func<Random, TLoad> Create { get; set; }
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

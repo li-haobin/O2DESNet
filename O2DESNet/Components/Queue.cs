@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Queue<TLoad> : Component
+    public class Queue<TLoad> : Component<Queue<TLoad>.Statics>
         where TLoad : Load
     {
         #region Static Properties
@@ -21,7 +21,6 @@ namespace O2DESNet
             /// </summary>
             public Func<TLoad, bool> ToDequeue { get; set; }
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamic Properties

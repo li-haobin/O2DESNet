@@ -7,7 +7,7 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.TwoRestoreServer
 {
-    public class TwoRestoreServerSystem : Component
+    public class TwoRestoreServerSystem : Component<TwoRestoreServerSystem.Statics>
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
@@ -41,7 +41,6 @@ namespace O2DESNet.Demos.TwoRestoreServer
             public Func<Load, Random, TimeSpan> RestoringTime2 { get { return Server2.RestoringTime; } set { Server2.RestoringTime = value; } }
             public Func<Load, bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

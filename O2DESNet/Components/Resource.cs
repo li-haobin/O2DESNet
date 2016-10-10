@@ -7,7 +7,7 @@ using O2DESNet;
 
 namespace O2DESNet
 {
-    public class Resource<TLoad> : Component
+    public class Resource<TLoad> : Component<Resource<TLoad>.Statics>
         where TLoad : Load
     {
         #region Sub-Components
@@ -21,7 +21,6 @@ namespace O2DESNet
             public Func<TLoad, double> Demand { get; set; }
             public double Capacity { get; set; }
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

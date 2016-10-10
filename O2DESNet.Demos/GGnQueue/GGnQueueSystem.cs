@@ -7,7 +7,7 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.GGnQueue
 {
-    public class GGnQueueSystem : Component
+    public class GGnQueueSystem : Component<GGnQueueSystem.Statics>
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
@@ -26,7 +26,6 @@ namespace O2DESNet.Demos.GGnQueue
             public Func<Load, Random, TimeSpan> ServiceTime { get { return Server.ServiceTime; } set { Server.ServiceTime = value; } }
             public int ServerCapacity { get { return Server.Capacity; } set { Server.Capacity = value; } }            
         }
-        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics

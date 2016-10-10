@@ -148,7 +148,7 @@ namespace O2DESNet
         }
     }
 
-    public class Simulator : Simulator<Scenario, Status<Scenario>>
+    public class Simulator : Simulator<Scenario, Status<Scenario>> 
 {
         public Component Assembly { get { return (Component)Status; } }
         public Simulator(Component assembly) : base(assembly)
