@@ -7,10 +7,8 @@ using O2DESNet;
 
 namespace O2DESNet
 {
-    public class Resource<TScenario, TStatus, TLoad> : Component
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-        where TLoad : Load<TScenario, TStatus>
+    public class Resource<TLoad> : Component
+        where TLoad : Load
     {
         #region Sub-Components
         //internal Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
@@ -18,28 +16,28 @@ namespace O2DESNet
         #endregion
 
         #region Statics
-        public class StaticProperties : Scenario
+        public class Statics : Scenario
         {
             public Func<TLoad, double> Demand { get; set; }
             public double Capacity { get; set; }
         }
-        public StaticProperties Statics { get; private set; }
+        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics
         public HashSet<TLoad> Occupying { get; private set; }        
-        public double Occupation { get { return Occupying.Sum(load => Statics.Demand(load)); } }
-        public double Vacancy { get { return Statics.Capacity - Occupation; } }
-        public bool HasVacancy(TLoad load) { return Vacancy >= Statics.Demand(load); }
+        public double Occupation { get { return Occupying.Sum(load => StaticProperty.Demand(load)); } }
+        public double Vacancy { get { return StaticProperty.Capacity - Occupation; } }
+        public bool HasVacancy(TLoad load) { return Vacancy >= StaticProperty.Demand(load); }
         public HourCounter HourCounter { get; private set; }
         #endregion
 
         #region Events
-        private class OccupyEvent : Event<TScenario, TStatus>
+        private class OccupyEvent : Event
         {
-            public Resource<TScenario, TStatus, TLoad> Resource { get; private set; }
+            public Resource<TLoad> Resource { get; private set; }
             public TLoad Load { get; private set; }
-            internal OccupyEvent(Resource<TScenario, TStatus, TLoad> resource, TLoad load)
+            internal OccupyEvent(Resource<TLoad> resource, TLoad load)
             {
                 Resource = resource;
                 Load = load;
@@ -53,11 +51,11 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Occupy", Resource); }
         }
-        private class ReleaseEvent : Event<TScenario, TStatus>
+        private class ReleaseEvent : Event
         {
-            public Resource<TScenario, TStatus, TLoad> Resource { get; private set; }
+            public Resource<TLoad> Resource { get; private set; }
             public TLoad Load { get; private set; }
-            internal ReleaseEvent(Resource<TScenario, TStatus, TLoad> resource, TLoad load)
+            internal ReleaseEvent(Resource<TLoad> resource, TLoad load)
             {
                 Resource = resource;
                 Load = load;
@@ -75,12 +73,12 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Occupy(TLoad load) { return new OccupyEvent(this, load); }
-        public Event<TScenario, TStatus> Release(TLoad load) { return new ReleaseEvent(this, load); }
+        public Event Occupy(TLoad load) { return new OccupyEvent(this, load); }
+        public Event Release(TLoad load) { return new ReleaseEvent(this, load); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Event<TScenario, TStatus>>> OnRelease { get; private set; }
+        public List<Func<Event>> OnRelease { get; private set; }
         #endregion
 
         #region Exeptions
@@ -94,14 +92,13 @@ namespace O2DESNet
         }
         #endregion
 
-        public Resource(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
+        public Resource(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
         {
             Name = "Resource";
-            Statics = statics;
             Occupying = new HashSet<TLoad>();
             HourCounter = new HourCounter();
 
-            OnRelease = new List<Func<Event<TScenario, TStatus>>>();
+            OnRelease = new List<Func<Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
@@ -109,7 +106,7 @@ namespace O2DESNet
         public override void WriteToConsole()
         {
             Console.WriteLine("[{0}]", this);
-            Console.Write("Occupation: {0}/{1}", Occupation, Statics.Capacity);
+            Console.Write("Occupation: {0}/{1}", Occupation, StaticProperty.Capacity);
             Console.Write("Occupying: ");
             foreach (var load in Occupying) Console.Write("{0} ", load);
             Console.WriteLine();

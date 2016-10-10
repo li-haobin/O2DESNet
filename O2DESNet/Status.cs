@@ -52,7 +52,5 @@ namespace O2DESNet
                 }
         }
         #endregion
-
-        
-    }
+    }    
 }

@@ -13,14 +13,16 @@ namespace O2DESNet.Demos.GGnQueue
         {
             var hourlyArrivalRate = 4;
             var hourlyServiceRate = 5;
-            var scenario = new Scenario
-            {
-                InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)), // G: Inter-Arrival-Time Distribution
-                ServiceTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)), // G: Service Time Distribution
-                ServerCapacity = 1, // n: number of concurrent servers
-            };
 
-            var sim = new Simulator(new Status(scenario));
+            var scenario = 
+                new GGnQueueSystem.Statics
+                {
+                    InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)), // G: Inter-Arrival-Time Distribution
+                    ServiceTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)), // G: Service Time Distribution
+                    ServerCapacity = 1, // n: number of concurrent servers
+                };
+
+            var sim = new Simulator(assembly: new GGnQueueSystem(scenario, seed: 0));
 
             while (true)
             {
@@ -35,31 +37,12 @@ namespace O2DESNet.Demos.GGnQueue
             //while (sim.Run(300000))
             //{
             //    Console.WriteLine("{0}\t{1}",
-            //        sim.Status.GGnQueueSystem.Queue.HourCounter.AverageCount,
-            //        sim.Status.GGnQueueSystem.Processed.Average(l => l.TotalTimeSpan.TotalHours)
+            //        ((GGnQueueSystem)sim.Status).Queue.HourCounter.AverageCount,
+            //        ((GGnQueueSystem)sim.Status).Processed.Average(l => l.TotalTimeSpan.TotalHours)
             //        );
             //    Console.ReadKey();
             //}
         }
     }
-
-    public class Load : Load<Scenario, Status> { }
-    public class Scenario : GGnQueueSystem<Scenario, Status, Load>.StaticProperties
-    {
-        public Scenario() { Create = rs => new Load(); }
-    }
-    public class Status : Status<Scenario>
-    {
-        public GGnQueueSystem<Scenario, Status, Load> GGnQueueSystem { get; private set; }        
-        public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
-        {
-            GGnQueueSystem = new GGnQueueSystem<Scenario, Status, Load>(scenario, seed);            
-        }
-        public override void WarmedUp(DateTime clockTime) { GGnQueueSystem.WarmedUp(clockTime); }
-        public override void WriteToConsole() { GGnQueueSystem.WriteToConsole(); }
-    }
-    public class Simulator : Simulator<Scenario, Status>
-    {
-        public Simulator(Status status) : base(status) { Execute(Status.GGnQueueSystem.Start()); }
-    }
+    
 }

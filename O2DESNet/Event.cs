@@ -23,4 +23,9 @@ namespace O2DESNet
         internal protected void Log(params object[] args) { Status.Log(new object[] { ClockTime }.Concat(args).ToArray()); }
         public DateTime ScheduledTime { get; set; }
     }
+
+    /// <summary>
+    /// A generic event using default Scenario and Status class
+    /// </summary>
+    public abstract class Event : Event<Scenario, Status<Scenario>> { }
 }

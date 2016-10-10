@@ -11,7 +11,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
     {
         static void Main(string[] args)
         {
-            var scenario = new Scenario
+            var scenario = new TwoRestoreServerSystem.Statics
             {
                 InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, 3)),
 
@@ -30,7 +30,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
                 ToDepart = load => true,
             };
 
-            var sim = new Simulator(new Status(scenario));
+            var sim = new Simulator(new TwoRestoreServerSystem(scenario));
 
             while (true)
             {
@@ -42,27 +42,5 @@ namespace O2DESNet.Demos.TwoRestoreServer
             }
         }
     }
-
-    public class Load : Load<Scenario, Status> { }
-    public class Scenario : TwoRestoreServerSystem<Scenario, Status, Load>.StaticProperties
-    {
-        public Scenario() { Create = rs => new Load(); }
-    }
-    public class Status : Status<Scenario>
-    {
-        public TwoRestoreServerSystem<Scenario, Status, Load> System { get; private set; }
-        public Status(Scenario scenario, int seed = 0) : base(scenario, seed)
-        {
-            System = new TwoRestoreServerSystem<Scenario, Status, Load>(scenario, seed);
-        }
-        public override void WarmedUp(DateTime clockTime) { System.WarmedUp(clockTime); }
-        public override void WriteToConsole() { System.WriteToConsole(); }
-    }
-    public class Simulator : Simulator<Scenario, Status>
-    {
-        public Simulator(Status status) : base(status)
-        {
-            Execute(Status.System.Start());
-        }
-    }
+    
 }

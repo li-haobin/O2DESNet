@@ -6,46 +6,44 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class RestoreServer<TScenario, TStatus, TLoad> : Component
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-        where TLoad : Load<TScenario, TStatus>
+    public class RestoreServer<TLoad> : Component
+        where TLoad : Load
     {
         #region Sub-Components
-        internal Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
-        internal Server<TScenario, TStatus, TLoad> R_Server { get; private set; }
+        internal Server<TLoad> H_Server { get; private set; }
+        internal Server<TLoad> R_Server { get; private set; }
         #endregion
 
         #region Statics
-        public class StaticProperties : Scenario
+        public class Statics : Scenario
         {
-            internal Server<TScenario, TStatus, TLoad>.StaticProperties H_Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
-            internal Server<TScenario, TStatus, TLoad>.StaticProperties R_Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
+            internal Server<TLoad>.Statics H_Server { get; private set; } = new Server<TLoad>.Statics();
+            internal Server<TLoad>.Statics R_Server { get; private set; } = new Server<TLoad>.Statics();
 
             public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; } }
             public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
             public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
             public int Capacity { get; set; }
         }
-        public StaticProperties Statics { get; private set; }
+        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public List<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
+        public int Vancancy { get { return StaticProperty.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
-        public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / Statics.Capacity; } }
+        public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / StaticProperty.Capacity; } }
         public double EffectiveHourlyRate { get { return H_Server.HourCounter.DecrementRate; } }
         #endregion
 
         #region Events
-        private class StartEvent : Event<TScenario, TStatus>
+        private class StartEvent : Event
         {
-            public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
+            public RestoreServer<TLoad> RestoreServer { get; private set; }
             public TLoad Load { get; private set; }
-            internal StartEvent(RestoreServer<TScenario, TStatus, TLoad> restoreServer, TLoad load)
+            internal StartEvent(RestoreServer<TLoad> restoreServer, TLoad load)
             {
                 RestoreServer = restoreServer;
                 Load = load;
@@ -58,11 +56,11 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
         }
-        private class RestoreEvent : Event<TScenario, TStatus>
+        private class RestoreEvent : Event
         {
-            public RestoreServer<TScenario, TStatus, TLoad> RestoreServer { get; private set; }
+            public RestoreServer<TLoad> RestoreServer { get; private set; }
             public TLoad Load { get; private set; }
-            internal RestoreEvent(RestoreServer<TScenario, TStatus, TLoad> restoreServer, TLoad load)
+            internal RestoreEvent(RestoreServer<TLoad> restoreServer, TLoad load)
             {
                 RestoreServer = restoreServer;
                 Load = load;
@@ -77,19 +75,19 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Depart() { return H_Server.Depart(); }
-        public Event<TScenario, TStatus> Start(TLoad load)
+        public Event Depart() { return H_Server.Depart(); }
+        public Event Start(TLoad load)
         {            
-            if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-            if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+            if (StaticProperty.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
+            if (StaticProperty.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
+            if (StaticProperty.ToDepart == null) throw new DepartConditionNotSpecifiedException();
             return new StartEvent(this, load);
         }
         #endregion
                
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return H_Server.OnDepart; } }
-        public List<Func<Event<TScenario, TStatus>>> OnRestore { get; private set; }
+        public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
+        public List<Func<Event>> OnRestore { get; private set; }
         #endregion
 
         #region Exeptions
@@ -111,20 +109,19 @@ namespace O2DESNet
         }
         #endregion
 
-        public RestoreServer(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
+        public RestoreServer(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
         {
             Name = "RestoreServer";
-            Statics = statics;
-            H_Server = new Server<TScenario, TStatus, TLoad>(statics.H_Server, DefaultRS.Next());
-            R_Server = new Server<TScenario, TStatus, TLoad>(statics.R_Server, DefaultRS.Next());
+            H_Server = new Server<TLoad>(statics.H_Server, DefaultRS.Next());
+            R_Server = new Server<TLoad>(statics.R_Server, DefaultRS.Next());
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            R_Server.Statics.ToDepart = (load) => true;
+            R_Server.StaticProperty.ToDepart = (load) => true;
             R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events
-            OnRestore = new List<Func<Event<TScenario, TStatus>>>();
+            OnRestore = new List<Func<Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime)

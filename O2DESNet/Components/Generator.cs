@@ -6,19 +6,17 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Generator<TScenario, TStatus, TLoad> : Component
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-        where TLoad : Load<TScenario, TStatus>
+    public class Generator<TLoad> : Component
+        where TLoad : Load
     {
         #region Statics
-        public class StaticProperties : Scenario
+        public class Statics : Scenario
         {
             public Func<Random, TimeSpan> InterArrivalTime { get; set; }
             public bool SkipFirst { get; set; } = true;
             public Func<Random, TLoad> Create { get; set; }
         }
-        public StaticProperties Statics { get; private set; }
+        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics
@@ -28,38 +26,38 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        private class StartEvent : Event<TScenario, TStatus>
+        private class StartEvent : Event
         {
-            public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
-            internal StartEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
+            public Generator<TLoad> Generator { get; private set; }
+            internal StartEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                if (Generator.Statics.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                if (Generator.StaticProperty.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
                 Generator.On = true;
                 Generator.StartTime = ClockTime;
                 Generator.Count = 0;
-                if (Generator.Statics.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));
+                if (Generator.StaticProperty.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.StaticProperty.InterArrivalTime(Generator.DefaultRS));
                 else Execute(new ArriveEvent(Generator));
             }
         }
-        private class EndEvent : Event<TScenario, TStatus>
+        private class EndEvent : Event
         {
-            public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
-            internal EndEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
+            public Generator<TLoad> Generator { get; private set; }
+            internal EndEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke() { Generator.On = false; }
         }
-        private class ArriveEvent : Event<TScenario, TStatus>
+        private class ArriveEvent : Event
         {
-            public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
-            internal ArriveEvent(Generator<TScenario, TStatus, TLoad> generator) { Generator = generator; }
+            public Generator<TLoad> Generator { get; private set; }
+            internal ArriveEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
                 if (Generator.On)
                 {
-                    var load = Generator.Statics.Create(Generator.DefaultRS);
+                    var load = Generator.StaticProperty.Create(Generator.DefaultRS);
                     load.Log(this);
                     Generator.Count++;
-                    Schedule(new ArriveEvent(Generator), Generator.Statics.InterArrivalTime(Generator.DefaultRS));
+                    Schedule(new ArriveEvent(Generator), Generator.StaticProperty.InterArrivalTime(Generator.DefaultRS));
                     foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
                 }
             }
@@ -68,12 +66,12 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Start() { return new StartEvent(this); }
-        public Event<TScenario, TStatus> End() { return new EndEvent(this); }
+        public Event Start() { return new StartEvent(this); }
+        public Event End() { return new EndEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnArrive { get; private set; }
+        public List<Func<TLoad, Event>> OnArrive { get; private set; }
         #endregion
 
         #region Exeptions
@@ -83,21 +81,25 @@ namespace O2DESNet
         }
         #endregion
         
-        public Generator(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
+        public Generator(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
         {
             Name = "Generator";
-            Statics = statics;
             On = false;
             Count = 0;
 
             // initialize for output events
-            OnArrive = new List<Func<TLoad, Event<TScenario, TStatus>>>();
+            OnArrive = new List<Func<TLoad, Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime)
         {
             StartTime = clockTime;
             Count = 0;
-        }        
+        }
+
+        public override void WriteToConsole()
+        {
+            throw new NotImplementedException();
+        }
     }   
 }

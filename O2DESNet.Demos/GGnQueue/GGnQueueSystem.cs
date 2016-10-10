@@ -7,45 +7,39 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.GGnQueue
 {
-    public class GGnQueueSystem<TScenario, TStatus, TLoad> : Component
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-        where TLoad : Load<TScenario, TStatus>
+    public class GGnQueueSystem : Component
     {
         #region Sub-Components
-        public Generator<TScenario, TStatus, TLoad> Generator { get; private set; }
-        public Queue<TScenario, TStatus, TLoad> Queue { get; private set; }
-        public Server<TScenario, TStatus, TLoad> Server { get; private set; }
+        public Generator<Load> Generator { get; private set; }
+        public Queue<Load> Queue { get; private set; }
+        public Server<Load> Server { get; private set; }
         #endregion
 
         #region Statics
-        public class StaticProperties : O2DESNet.Scenario
+        public class Statics : Scenario
         {
-            internal Generator<TScenario, TStatus, TLoad>.StaticProperties Generator { get; private set; } = new Generator<TScenario, TStatus, TLoad>.StaticProperties();
-            internal Queue<TScenario, TStatus, TLoad>.StaticProperties Queue { get; private set; } = new Queue<TScenario, TStatus, TLoad>.StaticProperties();
-            internal Server<TScenario, TStatus, TLoad>.StaticProperties Server { get; private set; } = new Server<TScenario, TStatus, TLoad>.StaticProperties();
-
-            public Func<Random, TLoad> Create { get { return Generator.Create; } set { Generator.Create = value; } }
+            internal Generator<Load>.Statics Generator { get; private set; } = new Generator<Load>.Statics();
+            internal Queue<Load>.Statics Queue { get; private set; } = new Queue<Load>.Statics();
+            internal Server<Load>.Statics Server { get; private set; } = new Server<Load>.Statics();
+            
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
-            public Func<TLoad, Random, TimeSpan> ServiceTime { get { return Server.ServiceTime; } set { Server.ServiceTime = value; } }
+            public Func<Load, Random, TimeSpan> ServiceTime { get { return Server.ServiceTime; } set { Server.ServiceTime = value; } }
             public int ServerCapacity { get { return Server.Capacity; } set { Server.Capacity = value; } }            
         }
-        public StaticProperties Statics { get; private set; }
+        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamics
-        public List<TLoad> Processed { get; private set; }
+        public List<Load> Processed { get; private set; }
         public int NCompleted { get { return (int)Server.HourCounter.TotalDecrementCount; } }
         #endregion
 
         #region Events
-        private class ArchiveEvent : Event<TScenario, TStatus>
+        private class ArchiveEvent : Event
         {
-
-
-            public GGnQueueSystem<TScenario, TStatus, TLoad> GGnQueueSystem { get; private set; }
-            public TLoad Load { get; private set; }
-            public ArchiveEvent(GGnQueueSystem<TScenario, TStatus, TLoad> ggnQueueSystem, TLoad load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            public GGnQueueSystem GGnQueueSystem { get; private set; }
+            public Load Load { get; private set; }
+            public ArchiveEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
             public override void Invoke()
             {
                 GGnQueueSystem.Processed.Add(Load);
@@ -54,41 +48,43 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Start() { return Generator.Start(); }
-        public Event<TScenario, TStatus> End() { return Generator.End(); }
+        public Event Start() { return Generator.Start(); }
+        public Event End() { return Generator.End(); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDepart { get { return Server.OnDepart; } }
+        public List<Func<Load, Event>> OnDepart { get { return Server.OnDepart; } }
         #endregion
 
         #region Exeptions
         #endregion
 
-        public GGnQueueSystem(StaticProperties statics, int seed, string tag = null) : base(seed, tag)
+        public GGnQueueSystem(Statics statics, int seed = 0, string tag = null) : base(statics, seed, tag)
         {
             Name = "GGnQueueSystem";
-            Statics = statics;
-            Processed = new List<TLoad>();
+            Processed = new List<Load>();
 
-            Generator = new Generator<TScenario, TStatus, TLoad>(
-                statics: Statics.Generator,
+            StaticProperty.Generator.Create = rs => new Load();
+            Generator = new Generator<Load>(
+                statics: StaticProperty.Generator,
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
-            Queue = new Queue<TScenario, TStatus, TLoad>(
-                statics: Statics.Queue,
+            Queue = new Queue<Load>(
+                statics: StaticProperty.Queue,
                 tag: "Queue");
-            Queue.Statics.ToDequeue = load => Server.Vancancy > 0;
+            Queue.StaticProperty.ToDequeue = load => Server.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server.Start(load));
 
-            Server = new Server<TScenario, TStatus, TLoad>(
-               statics: Statics.Server,
+            Server = new Server<Load>(
+               statics: StaticProperty.Server,
                seed: DefaultRS.Next(),
                tag: "Server");
-            Server.Statics.ToDepart = load => true;
+            Server.StaticProperty.ToDepart = load => true;
             Server.OnDepart.Add(load => Queue.Dequeue());
             Server.OnDepart.Add(load => new ArchiveEvent(this, load));
+
+            InitEvents.Add(Generator.Start());
         }
 
         public override void WarmedUp(DateTime clockTime)

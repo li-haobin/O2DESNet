@@ -148,5 +148,18 @@ namespace O2DESNet
         }
     }
 
+    public class Simulator : Simulator<Scenario, Status<Scenario>>
+{
+        public Component Assembly { get { return (Component)Status; } }
+        public Simulator(Component assembly) : base(assembly)
+        {
+            if (Assembly.InitEvents.Count == 0) throw new InitEventsNotFound();
+            foreach (var evnt in Assembly.InitEvents) Execute(evnt);
+        }
 
+        public class InitEventsNotFound : Exception
+        {
+            public InitEventsNotFound() : base("The Assembly Component must have at least one initial events.") { }
+        }
+    }
 }

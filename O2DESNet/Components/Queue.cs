@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Queue<TScenario, TStatus, TLoad> : Component
-        where TScenario : Scenario
-        where TStatus : Status<TScenario>
-        where TLoad : Load<TScenario, TStatus>
+    public class Queue<TLoad> : Component
+        where TLoad : Load
     {
         #region Static Properties
-        public class StaticProperties : Scenario
+        public class Statics : Scenario
         {
             /// <summary>
             /// Maximum number of loads in the queue
@@ -23,27 +21,27 @@ namespace O2DESNet
             /// </summary>
             public Func<TLoad, bool> ToDequeue { get; set; }
         }
-        public StaticProperties Statics { get; private set; }
+        public Statics StaticProperty { get { return (Statics)Scenario; } }
         #endregion
 
         #region Dynamic Properties
         public List<TLoad> Waiting { get; private set; }
-        public int Vancancy { get { return Statics.Capacity - Waiting.Count; } }
+        public int Vancancy { get { return StaticProperty.Capacity - Waiting.Count; } }
 
         public HourCounter HourCounter { get; private set; } // statistics    
-        public double Utilization { get { return HourCounter.AverageCount / Statics.Capacity; } }    
+        public double Utilization { get { return HourCounter.AverageCount / StaticProperty.Capacity; } }    
         #endregion
 
         #region Events
         /// <summary>
         /// Enqueue given load
         /// </summary>
-        private class EnqueueEvent : Event<TScenario, TStatus>
+        private class EnqueueEvent : Event
         {
-            public Queue<TScenario, TStatus, TLoad> Queue { get; private set; }
+            public Queue<TLoad> Queue { get; private set; }
             public TLoad Load { get; private set; }
 
-            internal EnqueueEvent(Queue<TScenario, TStatus, TLoad> queue, TLoad load)
+            internal EnqueueEvent(Queue<TLoad> queue, TLoad load)
             {
                 Queue = queue;
                 Load = load;
@@ -61,20 +59,20 @@ namespace O2DESNet
         /// <summary>
         /// Attempt to dequeue the first load
         /// </summary>
-        private class DequeueEvent : Event<TScenario, TStatus>
+        private class DequeueEvent : Event
         {
-            public Queue<TScenario, TStatus, TLoad> Queue { get; private set; }
+            public Queue<TLoad> Queue { get; private set; }
 
-            internal DequeueEvent(Queue<TScenario, TStatus, TLoad> queue)
+            internal DequeueEvent(Queue<TLoad> queue)
             {
                 Queue = queue;
             }
             public override void Invoke()
             {
-                if (Queue.Statics.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
+                if (Queue.StaticProperty.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
                 var load = Queue.Waiting.FirstOrDefault();
                 if (load == null) return;
-                if (Queue.Statics.ToDequeue(load))
+                if (Queue.StaticProperty.ToDequeue(load))
                 {
                     load.Log(this);
                     Queue.Waiting.RemoveAt(0);
@@ -87,12 +85,12 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        public Event<TScenario, TStatus> Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
-        public Event<TScenario, TStatus> Dequeue() { return new DequeueEvent(this); }
+        public Event Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
+        public Event Dequeue() { return new DequeueEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event<TScenario, TStatus>>> OnDequeue { get; private set; }
+        public List<Func<TLoad, Event>> OnDequeue { get; private set; }
         #endregion
 
         #region Exeptions
@@ -106,15 +104,14 @@ namespace O2DESNet
         }
         #endregion
 
-        public Queue(StaticProperties statics, string tag = null) : base(tag: tag)
+        public Queue(Statics statics, string tag = null) : base(statics, tag: tag)
         {
             Name = "Queue";
-            Statics = statics;
             Waiting = new List<TLoad>();
             HourCounter = new HourCounter();
 
             // initialize for output events
-            OnDequeue = new List<Func<TLoad, Event<TScenario, TStatus>>>();
+            OnDequeue = new List<Func<TLoad, Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime)

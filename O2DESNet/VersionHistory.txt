@@ -1,0 +1,6 @@
+﻿[History]
+
+- Version 2.1.0
+1. Remove TScenario and TStatus in Component paradigm
+2. Construct Simulator by Assembly (Component)
+3. Demo for the two revision above
