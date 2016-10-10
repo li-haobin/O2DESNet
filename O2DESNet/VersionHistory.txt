@@ -1,5 +1,10 @@
 ﻿[History]
 
+- Version 2.1.2
+Allows Load to have Static properties as "Category", considering it's a special type of Component that have life cycles in simulation.
+Rename Static property of a normal Component as "Config".
+Therefore, they coincide with Statics of a Simulation as "Scenario".
+
 - Version 2.1.1
 Simplifies structure of Component definition, by encapsulate StaticProperty based on root class, i.e., Component<TStatics> : Component.
 

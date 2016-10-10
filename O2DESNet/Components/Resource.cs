@@ -25,9 +25,9 @@ namespace O2DESNet
 
         #region Dynamics
         public HashSet<TLoad> Occupying { get; private set; }        
-        public double Occupation { get { return Occupying.Sum(load => StaticProperty.Demand(load)); } }
-        public double Vacancy { get { return StaticProperty.Capacity - Occupation; } }
-        public bool HasVacancy(TLoad load) { return Vacancy >= StaticProperty.Demand(load); }
+        public double Occupation { get { return Occupying.Sum(load => Config.Demand(load)); } }
+        public double Vacancy { get { return Config.Capacity - Occupation; } }
+        public bool HasVacancy(TLoad load) { return Vacancy >= Config.Demand(load); }
         public HourCounter HourCounter { get; private set; }
         #endregion
 
@@ -105,7 +105,7 @@ namespace O2DESNet
         public override void WriteToConsole()
         {
             Console.WriteLine("[{0}]", this);
-            Console.Write("Occupation: {0}/{1}", Occupation, StaticProperty.Capacity);
+            Console.Write("Occupation: {0}/{1}", Occupation, Config.Capacity);
             Console.Write("Occupying: ");
             foreach (var load in Occupying) Console.Write("{0} ", load);
             Console.WriteLine();

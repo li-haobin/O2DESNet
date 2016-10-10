@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public abstract class Component : Status<Scenario>
-        
+    public abstract class Component : Status<Scenario>        
     {
         protected static int _count = 0;
         public int Id { get; protected set; }
@@ -29,10 +28,10 @@ namespace O2DESNet
     public abstract class Component<TStatics> : Component
         where TStatics : Scenario
     {
-        public TStatics StaticProperty { get; private set; }
-        public Component(TStatics statics, int seed = 0, string tag = null) : base(seed, tag)
+        public TStatics Config { get; private set; }
+        public Component(TStatics config, int seed = 0, string tag = null) : base(seed, tag)
         {
-            StaticProperty = statics;
+            Config = config;
         }
     }
 }

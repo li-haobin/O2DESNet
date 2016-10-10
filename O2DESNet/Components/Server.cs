@@ -27,9 +27,9 @@ namespace O2DESNet
         #region Dynamics
         public HashSet<TLoad> Serving { get; private set; }
         public List<TLoad> Served { get; private set; }
-        public int Vancancy { get { return StaticProperty.Capacity - Serving.Count - Served.Count; } }
+        public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count; } }
         public HourCounter HourCounter { get; private set; } // statistics    
-        public double Utilization { get { return HourCounter.AverageCount / StaticProperty.Capacity; } }
+        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
         #endregion
 
         #region Events
@@ -48,7 +48,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
-                Schedule(new FinishEvent(Server, Load), Server.StaticProperty.ServiceTime(Load, Server.DefaultRS));
+                Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
@@ -79,10 +79,10 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Server.StaticProperty.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+                if (Server.Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
                 var load = Server.Served.FirstOrDefault();
                 if (load == null) return;
-                if (Server.StaticProperty.ToDepart(load))
+                if (Server.Config.ToDepart(load))
                 {                    
                     load.Log(this);
                     Server.Served.RemoveAt(0);

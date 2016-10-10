@@ -8,9 +8,6 @@ namespace O2DESNet
 {
     public class Load : Component
     {
-        #region Statics
-        #endregion
-
         #region Dynamics
         public List<Tuple<DateTime, Event>> TimeStamps { get; private set; }
         public TimeSpan TotalTimeSpan { get { return TimeStamps.Max(t => t.Item1) - TimeStamps.Min(t => t.Item1); } }
@@ -44,5 +41,12 @@ namespace O2DESNet
 
         public override void WriteToConsole() { Console.WriteLine(this); }
     }
-    
+
+    public abstract class Load<TStatics> : Load
+       where TStatics : Scenario
+    {
+        public TStatics Category { get; private set; }
+        public Load(TStatics category, int seed = 0, string tag = null) : base(seed, tag) { Category = category; }
+    }
+
 }

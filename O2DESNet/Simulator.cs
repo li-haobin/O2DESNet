@@ -84,6 +84,7 @@ namespace O2DESNet
             Status.WarmedUp(ClockTime);
             return r; // to be continued
         }
+        public void WriteToConsole() { Status.WriteToConsole(); }
 
         #region For Time Dilation
         private DateTime _realTimeAtDilationReset;

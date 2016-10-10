@@ -31,9 +31,9 @@ namespace O2DESNet
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public List<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get { return StaticProperty.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
+        public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
-        public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / StaticProperty.Capacity; } }
+        public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / Config.Capacity; } }
         public double EffectiveHourlyRate { get { return H_Server.HourCounter.DecrementRate; } }
         #endregion
 
@@ -77,9 +77,9 @@ namespace O2DESNet
         public Event Depart() { return H_Server.Depart(); }
         public Event Start(TLoad load)
         {            
-            if (StaticProperty.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-            if (StaticProperty.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            if (StaticProperty.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+            if (Config.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
+            if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
+            if (Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
             return new StartEvent(this, load);
         }
         #endregion
@@ -116,7 +116,7 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            R_Server.StaticProperty.ToDepart = (load) => true;
+            R_Server.Config.ToDepart = (load) => true;
             R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events

@@ -31,11 +31,11 @@ namespace O2DESNet
             internal StartEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                if (Generator.StaticProperty.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                if (Generator.Config.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
                 Generator.On = true;
                 Generator.StartTime = ClockTime;
                 Generator.Count = 0;
-                if (Generator.StaticProperty.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.StaticProperty.InterArrivalTime(Generator.DefaultRS));
+                if (Generator.Config.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.Config.InterArrivalTime(Generator.DefaultRS));
                 else Execute(new ArriveEvent(Generator));
             }
         }
@@ -53,10 +53,10 @@ namespace O2DESNet
             {
                 if (Generator.On)
                 {
-                    var load = Generator.StaticProperty.Create(Generator.DefaultRS);
+                    var load = Generator.Config.Create(Generator.DefaultRS);
                     load.Log(this);
                     Generator.Count++;
-                    Schedule(new ArriveEvent(Generator), Generator.StaticProperty.InterArrivalTime(Generator.DefaultRS));
+                    Schedule(new ArriveEvent(Generator), Generator.Config.InterArrivalTime(Generator.DefaultRS));
                     foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
                 }
             }

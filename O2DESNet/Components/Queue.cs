@@ -25,10 +25,10 @@ namespace O2DESNet
 
         #region Dynamic Properties
         public List<TLoad> Waiting { get; private set; }
-        public int Vancancy { get { return StaticProperty.Capacity - Waiting.Count; } }
+        public int Vancancy { get { return Config.Capacity - Waiting.Count; } }
 
         public HourCounter HourCounter { get; private set; } // statistics    
-        public double Utilization { get { return HourCounter.AverageCount / StaticProperty.Capacity; } }    
+        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }    
         #endregion
 
         #region Events
@@ -68,10 +68,10 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Queue.StaticProperty.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
+                if (Queue.Config.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
                 var load = Queue.Waiting.FirstOrDefault();
                 if (load == null) return;
-                if (Queue.StaticProperty.ToDequeue(load))
+                if (Queue.Config.ToDequeue(load))
                 {
                     load.Log(this);
                     Queue.Waiting.RemoveAt(0);

@@ -83,43 +83,43 @@ namespace O2DESNet.Demos.TwoRestoreServer
         #region Exeptions
         #endregion
 
-        public TwoRestoreServerSystem(Statics statics, int seed = 0, string tag = null) : base(statics, seed, tag)
+        public TwoRestoreServerSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
             Name = "TwoRestoreServerSystem";
             Processed = new List<Load>();
 
-            StaticProperty.Generator.Create = rs => new Load();
+            Config.Generator.Create = rs => new Load();
             Generator = new Generator<Load>(
-                statics: StaticProperty.Generator,
+                statics: Config.Generator,
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
             Queue = new Queue<Load>(
-                 statics: StaticProperty.Queue,
+                 statics: Config.Queue,
                  tag: "Queue");
-            Queue.StaticProperty.ToDequeue = load => Server1.Vancancy > 0;
+            Queue.Config.ToDequeue = load => Server1.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server1.Start(load));
 
             Server1 = new RestoreServer<Load>(
-               statics: StaticProperty.Server1,
+               statics: Config.Server1,
                seed: DefaultRS.Next(),
                tag: "1st Server");
-            Server1.StaticProperty.ToDepart = load => Buffer.Vancancy > 0;
+            Server1.Config.ToDepart = load => Buffer.Vancancy > 0;
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
             Server1.OnRestore.Add(() => Queue.Dequeue());
 
             Buffer = new Queue<Load>(
-                 statics: StaticProperty.Buffer,
+                 statics: Config.Buffer,
                  tag: "Buffer");
-            Buffer.StaticProperty.ToDequeue = load => Server2.Vancancy > 0;
+            Buffer.Config.ToDequeue = load => Server2.Vancancy > 0;
             Buffer.OnDequeue.Add(load => Server2.Start(load));
             Buffer.OnDequeue.Add(load => Server1.Depart());
 
             Server2 = new RestoreServer<Load>(
-               statics: StaticProperty.Server2,
+               statics: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
-            Server2.StaticProperty.ToDepart = load => true;
+            Server2.Config.ToDepart = load => true;
             Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
             Server2.OnRestore.Add(() => Buffer.Dequeue());
 

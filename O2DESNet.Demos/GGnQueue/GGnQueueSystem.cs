@@ -58,28 +58,28 @@ namespace O2DESNet.Demos.GGnQueue
         #region Exeptions
         #endregion
 
-        public GGnQueueSystem(Statics statics, int seed = 0, string tag = null) : base(statics, seed, tag)
+        public GGnQueueSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
             Name = "GGnQueueSystem";
             Processed = new List<Load>();
 
-            StaticProperty.Generator.Create = rs => new Load();
+            Config.Generator.Create = rs => new Load();
             Generator = new Generator<Load>(
-                statics: StaticProperty.Generator,
+                statics: Config.Generator,
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
             Queue = new Queue<Load>(
-                statics: StaticProperty.Queue,
+                statics: Config.Queue,
                 tag: "Queue");
-            Queue.StaticProperty.ToDequeue = load => Server.Vancancy > 0;
+            Queue.Config.ToDequeue = load => Server.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server.Start(load));
 
             Server = new Server<Load>(
-               statics: StaticProperty.Server,
+               statics: Config.Server,
                seed: DefaultRS.Next(),
                tag: "Server");
-            Server.StaticProperty.ToDepart = load => true;
+            Server.Config.ToDepart = load => true;
             Server.OnDepart.Add(load => Queue.Dequeue());
             Server.OnDepart.Add(load => new ArchiveEvent(this, load));
 
