@@ -54,10 +54,16 @@ namespace O2DESNet
                 var path = PathingTable[next];
                 return Math.Abs(next.Positions[path] - Positions[path]);
             }
+
+            /// <summary>
+            /// Get the next path for reaching the target
+            /// </summary>
+            public Path.Statics GetPathFor(Statics target) { return PathingTable[RoutingTable[target]]; }
         }
         #endregion
 
         #region Dynamics
+        public PathMover PathMover { get; internal set; }
         public HashSet<Vehicle> Outgoing { get; private set; }
         public HashSet<Vehicle> Incoming { get; private set; }
         public HashSet<Vehicle> At { get; private set; }

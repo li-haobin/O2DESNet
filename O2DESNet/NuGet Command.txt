@@ -1,0 +1,2 @@
+nuget pack O2DESNet.csproj -Prop Configuration=Release
+nuget push O2DESNet.2.1.2.0.nupkg

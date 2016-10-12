@@ -103,7 +103,7 @@ namespace O2DESNet
         }
         #endregion
 
-        public Queue(Statics statics, string tag = null) : base(statics, tag: tag)
+        public Queue(Statics config, string tag = null) : base(config, tag: tag)
         {
             Name = "Queue";
             Waiting = new List<TLoad>();

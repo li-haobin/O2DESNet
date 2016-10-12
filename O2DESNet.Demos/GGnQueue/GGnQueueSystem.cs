@@ -65,12 +65,12 @@ namespace O2DESNet.Demos.GGnQueue
 
             Config.Generator.Create = rs => new Load();
             Generator = new Generator<Load>(
-                statics: Config.Generator,
+                config: Config.Generator,
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
             Queue = new Queue<Load>(
-                statics: Config.Queue,
+                config: Config.Queue,
                 tag: "Queue");
             Queue.Config.ToDequeue = load => Server.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server.Start(load));

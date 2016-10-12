@@ -26,9 +26,10 @@ namespace O2DESNet
 
         #region Dynamics
         public HashSet<TLoad> Serving { get; private set; }
-        public List<TLoad> Served { get; private set; }
+        public HashSet<TLoad> Served { get; private set; }
         public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count; } }
         public HourCounter HourCounter { get; private set; } // statistics    
+        public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
         #endregion
 
@@ -80,16 +81,17 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (Server.Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-                var load = Server.Served.FirstOrDefault();
-                if (load == null) return;
-                if (Server.Config.ToDepart(load))
-                {                    
-                    load.Log(this);
-                    Server.Served.RemoveAt(0);
-                    Server.HourCounter.ObserveChange(-1, ClockTime);
-                    foreach (var evnt in Server.OnDepart) Execute(evnt(load));
-                    Execute(new DepartEvent(Server));
-                }
+                bool updated = false;
+                foreach (var load in Server.Served.ToList())
+                    if (Server.Config.ToDepart(load))
+                    {
+                        load.Log(this);
+                        Server.Served.Remove(load);
+                        Server.HourCounter.ObserveChange(-1, ClockTime);
+                        foreach (var evnt in Server.OnDepart) Execute(evnt(load));
+                        updated = true;
+                    }
+                if (updated) Execute(new DepartEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
@@ -123,7 +125,7 @@ namespace O2DESNet
         {
             Name = "Server";
             Serving = new HashSet<TLoad>();
-            Served = new List<TLoad>();
+            Served = new HashSet<TLoad>();
             HourCounter = new HourCounter();
 
             // initialize for output events    

@@ -80,7 +80,7 @@ namespace O2DESNet
         }
         #endregion
         
-        public Generator(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
+        public Generator(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Generator";
             On = false;

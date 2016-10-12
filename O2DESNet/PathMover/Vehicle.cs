@@ -25,8 +25,26 @@ namespace O2DESNet
         #endregion
 
         #region Dynamics
-        public ControlPoint Current { get; private set; } = null;
         public ControlPoint Target { get; private set; } = null;
+        public ControlPoint Current { get; private set; } = null;        
+        public ControlPoint Next
+        {
+            get
+            {
+                if (Target != null)
+                    return Current.PathMover.ControlPoints[Current.Config.RoutingTable[Target.Config]];
+                else return null;
+            }
+        }
+        public Path PathToNext
+        {
+            get
+            {
+                if (Target != null)
+                    return Current.PathMover.Paths[Current.Config.GetPathFor(Target.Config)];
+                else return null;
+            }
+        }
         #endregion
 
         #region Events

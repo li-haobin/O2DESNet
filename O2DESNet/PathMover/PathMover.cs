@@ -32,6 +32,7 @@ namespace O2DESNet
             /// </summary>
             public Path.Statics CreatePath(double length, double fullSpeed, Path.Direction direction = Path.Direction.TwoWay)
             {
+                CheckInitialized();
                 var path = new Path.Statics(this, length, fullSpeed, direction);
                 Paths.Add(path);
                 return path;
@@ -42,6 +43,7 @@ namespace O2DESNet
             /// </summary>
             public ControlPoint.Statics CreateControlPoint(Path.Statics path, double position)
             {
+                CheckInitialized();
                 var controlPoint = new ControlPoint.Statics(this);
                 path.Add(controlPoint, position);
                 ControlPoints.Add(controlPoint);
@@ -53,6 +55,7 @@ namespace O2DESNet
             /// </summary>
             public void Connect(Path.Statics path_0, Path.Statics path_1, double position_0, double position_1)
             {
+                CheckInitialized();
                 path_1.Add(CreateControlPoint(path_0, position_0), position_1);
             }
 
@@ -61,7 +64,8 @@ namespace O2DESNet
             /// </summary>
             public void Connect(Path.Statics path, double position, ControlPoint.Statics controlPoint)
             {
-                if (controlPoint.Positions.ContainsKey(path)) throw new Exception("The Control Point exists on the Path.");
+                CheckInitialized();
+                if (controlPoint.Positions.ContainsKey(path)) throw new StaticsBuildException("The Control Point exists on the Path.");
                 path.Add(controlPoint, position);
             }
 
@@ -69,13 +73,22 @@ namespace O2DESNet
             /// Connect the end of path_0 to the start of path_1
             /// </summary>
             public void Connect(Path.Statics path_0, Path.Statics path_1) { Connect(path_0, path_1, path_0.Length, 0); }
+
+            private void CheckInitialized() {
+                if (_initialized) throw new StaticsBuildException("PathMover cannot be modified after initialization.");
+            }
             #endregion
 
             #region For Static Routing (Distance-Based)
-            public void Initialize()
+            private bool _initialized = false;
+            internal void Initialize()
             {
-                ConstructRoutingTables();
-                ConstructPathingTables();
+                if (!_initialized)
+                {
+                    ConstructRoutingTables();
+                    ConstructPathingTables();
+                    _initialized = true;
+                }
             }
             private void ConstructRoutingTables()
             {
@@ -225,11 +238,8 @@ namespace O2DESNet
         #endregion
 
         #region Dynamics
-        //public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
-        //public List<TLoad> Served { get { return H_Server.Served; } }
-        //public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        //public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
-        //public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }     
+        public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }  
+        public Dictionary<Path.Statics, Path> Paths { get; private set; }
         #endregion
 
         #region Events
@@ -270,30 +280,19 @@ namespace O2DESNet
         #endregion
 
         #region Exeptions
-        //public class HasZeroVacancyException : Exception
-        //{
-        //    public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
-        //}
-        //public class HandlingTimeNotSpecifiedException : Exception
-        //{
-        //    public HandlingTimeNotSpecifiedException() : base("Set HandlingTime as a random generator.") { }
-        //}
-        //public class RestoringTimeNotSpecifiedException : Exception
-        //{
-        //    public RestoringTimeNotSpecifiedException() : base("Set RestoringTime as a random generator.") { }
-        //}
-        //public class DepartConditionNotSpecifiedException : Exception
-        //{
-        //    public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
-        //}
+        public class StaticsBuildException : Exception
+        {
+            public StaticsBuildException(string msg) : base(string.Format("PathMover Build Exception: {0}", msg)) { }
+        }
         #endregion
 
         public PathMover(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "PathMover";
 
-            //H_Server = new Server<TLoad>(statics.H_Server, DefaultRS.Next());
-            //R_Server = new Server<TLoad>(statics.R_Server, DefaultRS.Next());
+            Config.Initialize();
+            ControlPoints = Config.ControlPoints.ToDictionary(cfg => cfg, cfg => new ControlPoint(cfg, DefaultRS.Next()) { PathMover = this });
+            Paths = Config.Paths.ToDictionary(cfg => cfg, cfg => new Path(cfg, DefaultRS.Next()) { PathMover = this });
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());

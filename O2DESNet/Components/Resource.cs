@@ -91,7 +91,7 @@ namespace O2DESNet
         }
         #endregion
 
-        public Resource(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
+        public Resource(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Resource";
             Occupying = new HashSet<TLoad>();

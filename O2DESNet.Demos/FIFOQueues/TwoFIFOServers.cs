@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using O2DESNet;
 
-namespace O2DESNet.Demos.TwoRestoreServer
+namespace O2DESNet.Demos.FIFOQueues
 {
-    public class TwoRestoreServerSystem : Component<TwoRestoreServerSystem.Statics>
+    public class TwoFIFOServers : Component<TwoFIFOServers.Statics>
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
         public Queue<Load> Queue { get; private set; }
-        public RestoreServer<Load> Server1 { get; private set; }
+        public FIFOServer<Load> Server1 { get; private set; }
         public Queue<Load> Buffer { get; private set; }
-        public RestoreServer<Load> Server2 { get; private set; }
+        public FIFOServer<Load> Server2 { get; private set; }
         #endregion
 
         #region Statics
@@ -24,21 +24,19 @@ namespace O2DESNet.Demos.TwoRestoreServer
                 = new Generator<Load>.Statics();
             internal Queue<Load>.Statics Queue { get; private set; } 
                 = new Queue<Load>.Statics();
-            internal RestoreServer<Load>.Statics Server1 { get; private set; } 
-                = new RestoreServer<Load>.Statics();
+            internal FIFOServer<Load>.Statics Server1 { get; private set; } 
+                = new FIFOServer<Load>.Statics();
             internal Queue<Load>.Statics Buffer { get; private set; }
                 = new Queue<Load>.Statics();
-            internal RestoreServer<Load>.Statics Server2 { get; private set; } 
-                = new RestoreServer<Load>.Statics();
+            internal FIFOServer<Load>.Statics Server2 { get; private set; } 
+                = new FIFOServer<Load>.Statics();
             
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
             public int ServerCapacity1 { get { return Server1.Capacity; } set { Server1.Capacity = value; } }
-            public Func<Load, Random, TimeSpan> HandlingTime1 { get { return Server1.HandlingTime; } set { Server1.HandlingTime = value; } }
-            public Func<Load, Random, TimeSpan> RestoringTime1 { get { return Server1.RestoringTime; } set { Server1.RestoringTime = value; } }
+            public Func<Load, Random, TimeSpan> ServiceTime1 { get { return Server1.ServiceTime; } set { Server1.ServiceTime = value; } }
             public int BufferSize { get { return Buffer.Capacity; } set { Buffer.Capacity = value; } }
             public int ServerCapacity2 { get { return Server2.Capacity; } set { Server2.Capacity = value; } }
-            public Func<Load, Random, TimeSpan> HandlingTime2 { get { return Server2.HandlingTime; } set { Server2.HandlingTime = value; } }
-            public Func<Load, Random, TimeSpan> RestoringTime2 { get { return Server2.RestoringTime; } set { Server2.RestoringTime = value; } }
+            public Func<Load, Random, TimeSpan> ServiceTime2 { get { return Server2.ServiceTime; } set { Server2.ServiceTime = value; } }
             public Func<Load, bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
         }
         #endregion
@@ -57,9 +55,9 @@ namespace O2DESNet.Demos.TwoRestoreServer
         #region Events
         private class ArchiveEvent : Event
         {
-            public TwoRestoreServerSystem System { get; private set; }
+            public TwoFIFOServers System { get; private set; }
             public Load Load { get; private set; }
-            public ArchiveEvent(TwoRestoreServerSystem system, Load load)
+            public ArchiveEvent(TwoFIFOServers system, Load load)
             {
                 System = system;
                 Load = load;
@@ -83,9 +81,9 @@ namespace O2DESNet.Demos.TwoRestoreServer
         #region Exeptions
         #endregion
 
-        public TwoRestoreServerSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
+        public TwoFIFOServers(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
-            Name = "TwoRestoreServerSystem";
+            Name = "TwoFIFOServerSystem";
             Processed = new List<Load>();
 
             Config.Generator.Create = rs => new Load();
@@ -100,13 +98,13 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Queue.Config.ToDequeue = load => Server1.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server1.Start(load));
 
-            Server1 = new RestoreServer<Load>(
+            Server1 = new FIFOServer<Load>(
                config: Config.Server1,
                seed: DefaultRS.Next(),
                tag: "1st Server");
             Server1.Config.ToDepart = load => Buffer.Vancancy > 0;
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
-            Server1.OnRestore.Add(() => Queue.Dequeue());
+            Server1.OnDepart.Add(load => Queue.Dequeue());
 
             Buffer = new Queue<Load>(
                  config: Config.Buffer,
@@ -115,13 +113,13 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Buffer.OnDequeue.Add(load => Server2.Start(load));
             Buffer.OnDequeue.Add(load => Server1.Depart());
 
-            Server2 = new RestoreServer<Load>(
+            Server2 = new FIFOServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
             Server2.Config.ToDepart = load => true;
             Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
-            Server2.OnRestore.Add(() => Buffer.Dequeue());
+            Server2.OnDepart.Add(load => Buffer.Dequeue());
 
             InitEvents.Add(Generator.Start());
         }

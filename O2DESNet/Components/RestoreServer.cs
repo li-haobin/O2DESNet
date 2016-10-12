@@ -29,7 +29,7 @@ namespace O2DESNet
 
         #region Dynamics
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
-        public List<TLoad> Served { get { return H_Server.Served; } }
+        public HashSet<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
         public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
@@ -108,11 +108,11 @@ namespace O2DESNet
         }
         #endregion
 
-        public RestoreServer(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
+        public RestoreServer(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "RestoreServer";
-            H_Server = new Server<TLoad>(statics.H_Server, DefaultRS.Next());
-            R_Server = new Server<TLoad>(statics.R_Server, DefaultRS.Next());
+            H_Server = new Server<TLoad>(config.H_Server, DefaultRS.Next());
+            R_Server = new Server<TLoad>(config.R_Server, DefaultRS.Next());
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
