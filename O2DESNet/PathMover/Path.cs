@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using O2DESNet;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Drawing;
+using O2DESNet.Optimizer;
 
 namespace O2DESNet
 {
@@ -59,12 +61,12 @@ namespace O2DESNet
                     if (distance >= 0) return distance;
                 }
                 return double.PositiveInfinity;
-            }            
+            }
 
-            //public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
-            //{
-            //    g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
-            //}
+            public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
+            {
+                g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
+            }
         }
         public enum Direction { Forward, Backward, TwoWay }
         #endregion
