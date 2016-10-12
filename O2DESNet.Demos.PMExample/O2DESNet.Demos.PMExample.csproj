@@ -37,6 +37,14 @@
       <HintPath>..\packages\MathNet.Numerics.3.13.1\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="O2DESNet, Version=1.0.1.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\O2DESNet.1.0.1.2\lib\net45\O2DESNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="O2DESNet.PathMover, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\O2DESNet.PathMover.1.0.0.1\lib\net452\O2DESNet.PathMover.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -78,16 +86,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\O2DESNet.PathMover\O2DESNet.PathMover.csproj">
-      <Project>{58765116-a73e-414c-badf-c8a8ac307f4b}</Project>
-      <Name>O2DESNet.PathMover</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
-      <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
-      <Name>O2DESNet</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="PMAnimation.resx">

@@ -1,0 +1,327 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using O2DESNet;
+using O2DESNet.Optimizer;
+
+namespace O2DESNet
+{
+    public class PathMover : Component<PathMover.Statics>
+    {
+        #region Statics
+        public class Statics : Scenario
+        {
+            public List<Path.Statics> Paths { get; private set; }
+            public List<ControlPoint.Statics> ControlPoints { get; private set; }
+
+            public Statics()
+            {
+                Paths = new List<Path.Statics>();
+                ControlPoints = new List<ControlPoint.Statics>();
+            }
+
+            #region Path Mover Builder
+
+            /// <summary>
+            /// Create and return a new path
+            /// </summary>
+            public Path.Statics CreatePath(double length, double fullSpeed, Path.Direction direction = Path.Direction.TwoWay)
+            {
+                var path = new Path.Statics(this, length, fullSpeed, direction);
+                Paths.Add(path);
+                return path;
+            }
+
+            /// <summary>
+            /// Create and return a new control point
+            /// </summary>
+            public ControlPoint.Statics CreateControlPoint(Path.Statics path, double position)
+            {
+                var controlPoint = new ControlPoint.Statics(this);
+                path.Add(controlPoint, position);
+                ControlPoints.Add(controlPoint);
+                return controlPoint;
+            }
+
+            /// <summary>
+            /// Connect two paths at specified positions
+            /// </summary>
+            public void Connect(Path.Statics path_0, Path.Statics path_1, double position_0, double position_1)
+            {
+                path_1.Add(CreateControlPoint(path_0, position_0), position_1);
+            }
+
+            /// <summary>
+            /// Connect the Path to the Control Point at specific positions
+            /// </summary>
+            public void Connect(Path.Statics path, double position, ControlPoint.Statics controlPoint)
+            {
+                if (controlPoint.Positions.ContainsKey(path)) throw new Exception("The Control Point exists on the Path.");
+                path.Add(controlPoint, position);
+            }
+
+            /// <summary>
+            /// Connect the end of path_0 to the start of path_1
+            /// </summary>
+            public void Connect(Path.Statics path_0, Path.Statics path_1) { Connect(path_0, path_1, path_0.Length, 0); }
+            #endregion
+
+            #region For Static Routing (Distance-Based)
+            public void Initialize()
+            {
+                ConstructRoutingTables();
+                ConstructPathingTables();
+            }
+            private void ConstructRoutingTables()
+            {
+                foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
+                var incompleteSet = ControlPoints.ToList();
+                var edges = Paths.SelectMany(path => GetEdges(path)).ToList();
+                while (incompleteSet.Count > 0)
+                {
+                    ConstructRoutingTables(incompleteSet.First().Index, edges);
+                    incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
+                }
+            }
+            private void ConstructRoutingTables(int sourceIndex, List<Tuple<int, int, double>> edges)
+            {
+                var edgeList = edges.ToList();
+                var dijkstra = new Dijkstra(edges);
+
+                var sinkIndices = new HashSet<int>(ControlPoints.Select(cp => cp.Index));
+                sinkIndices.Remove(sourceIndex);
+                foreach (var target in ControlPoints[sourceIndex].RoutingTable.Keys) sinkIndices.Remove(target.Index);
+
+                while (sinkIndices.Count > 0)
+                {
+                    var sinkIndex = sinkIndices.First();
+                    var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
+                    if (path.Count > 0)
+                    {
+                        path.Add(sourceIndex);
+                        path.Reverse();
+                        for (int i = 0; i < path.Count - 1; i++)
+                        {
+                            for (int j = i + 1; j < path.Count; j++)
+                                ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
+                            sinkIndices.Remove(path[i + 1]);
+                        }
+                    }
+                    else {
+                        ControlPoints[sourceIndex].RoutingTable[ControlPoints[sinkIndex]] = null;
+                        sinkIndices.Remove(sinkIndex);
+                    }
+                }
+            }
+            private void ConstructPathingTables()
+            {
+                foreach (var cp in ControlPoints) cp.PathingTable = new Dictionary<ControlPoint.Statics, Path.Statics>();
+                foreach (var path in Paths)
+                {
+                    // assume same pair of control points are connected only by one path
+                    if (path.Direction != Path.Direction.Backward)
+                        for (int i = 0; i < path.ControlPoints.Count - 1; i++)
+                            path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i + 1], path);
+                    if (path.Direction != Path.Direction.Forward)
+                        for (int i = path.ControlPoints.Count - 1; i > 0; i--)
+                            path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i - 1], path);
+                }
+            }
+            private List<Tuple<int, int, double>> GetEdges(Path.Statics path)
+            {
+                var edges = new List<Tuple<int, int, double>>();
+                for (int i = 0; i < path.ControlPoints.Count - 1; i++)
+                {
+                    var length = path.ControlPoints[i + 1].Positions[path] - path.ControlPoints[i].Positions[path];
+                    var from = path.ControlPoints[i].Index;
+                    var to = path.ControlPoints[i + 1].Index;
+                    if (path.Direction != Path.Direction.Backward) edges.Add(new Tuple<int, int, double>(from, to, length));
+                    if (path.Direction != Path.Direction.Forward) edges.Add(new Tuple<int, int, double>(to, from, length));
+                }
+                return edges;
+            }
+            #endregion
+
+            #region For Display
+
+            //public DenseVector GetCoord(ControlPoint cp, ref DenseVector towards)
+            //{
+            //    var pos = cp.Positions.First();
+            //    return LinearTool.SlipOnCurve(pos.Key.Coordinates, ref towards, pos.Value / pos.Key.Length);
+            //}
+
+            //internal protected virtual void InitDrawingParams(DrawingParams dParams)
+            //{
+            //    dParams.Resize(Paths.SelectMany(p => p.Coordinates));
+            //}
+
+            //public Bitmap DrawToImage(DrawingParams dParams, bool init = true)
+            //{
+            //    if (init) InitDrawingParams(dParams);
+            //    Bitmap bitmap = new Bitmap(Convert.ToInt32(dParams.Width), Convert.ToInt32(dParams.Height), PixelFormat.Format32bppArgb);
+            //    Draw(Graphics.FromImage(bitmap), dParams, init: false);
+            //    return bitmap;
+            //}
+
+            //public void DrawToFile(string file, DrawingParams dParams)
+            //{
+            //    InitDrawingParams(dParams);
+            //    DrawToImage(dParams, init: false).Save(file, ImageFormat.Png);
+            //}
+
+            //public virtual void Draw(Graphics g, DrawingParams dParams, bool init = true)
+            //{
+            //    if (init) InitDrawingParams(dParams);
+            //    foreach (var path in Paths) DrawPath(g, path, dParams);
+            //    foreach (var cp in ControlPoints) DrawControlPoint(g, cp, dParams);
+            //}
+
+            //private void DrawControlPoint(Graphics g, ControlPoint cp, DrawingParams dParams)
+            //{
+            //    DenseVector towards = null;
+            //    DenseVector coord = GetCoord(cp, ref towards);
+            //    var tail = LinearTool.SlipByDistance(coord, coord + (towards - coord), dParams.ControlPointSize / 2);
+
+            //    var pen = new Pen(dParams.ControlPointColor, dParams.ControlPointThickness);
+            //    g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, -3 * Math.PI / 4)));
+            //    g.DrawLine(pen, dParams.GetPoint(LinearTool.Rotate(tail, coord, -Math.PI / 4)), dParams.GetPoint(LinearTool.Rotate(tail, coord, 3 * Math.PI / 4)));
+            //}
+
+            //private void DrawPath(Graphics g, Path path, DrawingParams dParams)
+            //{
+            //    if (path.Coordinates.Count == 0) return;
+            //    var pen = dParams.PathStyle;
+            //    path.Draw(g, dParams, pen, 0, 1);
+            //    // draw arrows on path
+            //    DenseVector vetex, tail, towards = null;
+            //    if (path.Direction == Direction.TwoWay || path.Direction == Direction.Forward)
+            //    {
+            //        vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.4);
+            //        tail = LinearTool.SlipByDistance(vetex, towards, -dParams.ArrowSize);
+            //        g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+            //        g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+            //    }
+            //    if (path.Direction == Direction.TwoWay || path.Direction == Direction.Backward)
+            //    {
+            //        vetex = LinearTool.SlipOnCurve(path.Coordinates, ref towards, 0.6);
+            //        tail = LinearTool.SlipByDistance(vetex, towards, dParams.ArrowSize);
+            //        g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, dParams.ArrowAngle / 2)));
+            //        g.DrawLine(pen, dParams.GetPoint(vetex), dParams.GetPoint(LinearTool.Rotate(tail, vetex, -dParams.ArrowAngle / 2)));
+            //    }
+            //}
+
+            #endregion
+        }
+        #endregion
+
+        #region Sub-Components
+        //internal Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
+        //internal Server<TScenario, TStatus, TLoad> R_Server { get; private set; }
+        #endregion
+
+        #region Dynamics
+        //public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
+        //public List<TLoad> Served { get { return H_Server.Served; } }
+        //public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
+        //public int Vancancy { get { return Statics.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
+        //public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }     
+        #endregion
+
+        #region Events
+        //private class RestoreEvent : Event
+        //{
+        //    public RestoreServer<TLoad> RestoreServer { get; private set; }
+        //    public TLoad Load { get; private set; }
+        //    internal RestoreEvent(RestoreServer<TLoad> restoreServer, TLoad load)
+        //    {
+        //        RestoreServer = restoreServer;
+        //        Load = load;
+        //    }
+        //    public override void Invoke()
+        //    {
+        //        Load.Log(this);
+        //        foreach (var evnt in RestoreServer.OnRestore) Execute(evnt());
+        //    }
+        //    public override string ToString() { return string.Format("{0}_Restore", RestoreServer); }
+        //}
+        #endregion
+
+        #region Input Events - Getters
+        //public Event Depart() { return H_Server.Depart(); }
+        //public Event Start(TLoad load)
+        //{
+        //    if (Vancancy < 1) throw new HasZeroVacancyException();
+        //    if (Statics.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
+        //    if (Statics.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
+        //    if (Statics.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+        //    return H_Server.Start(load);
+        //}
+        //public Event Depart() { return new DepartEvent(this); }
+        #endregion
+
+        #region Output Events - Reference to Getters
+        //public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
+        //public List<Func<Event>> OnRestore { get; private set; }
+        #endregion
+
+        #region Exeptions
+        //public class HasZeroVacancyException : Exception
+        //{
+        //    public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
+        //}
+        //public class HandlingTimeNotSpecifiedException : Exception
+        //{
+        //    public HandlingTimeNotSpecifiedException() : base("Set HandlingTime as a random generator.") { }
+        //}
+        //public class RestoringTimeNotSpecifiedException : Exception
+        //{
+        //    public RestoringTimeNotSpecifiedException() : base("Set RestoringTime as a random generator.") { }
+        //}
+        //public class DepartConditionNotSpecifiedException : Exception
+        //{
+        //    public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
+        //}
+        #endregion
+
+        public PathMover(Statics config, int seed, string tag = null) : base(config, seed, tag)
+        {
+            Name = "PathMover";
+
+            //H_Server = new Server<TLoad>(statics.H_Server, DefaultRS.Next());
+            //R_Server = new Server<TLoad>(statics.R_Server, DefaultRS.Next());
+
+            // connect sub-components
+            //H_Server.OnDepart.Add(R_Server.Start());
+            //R_Server.Statics.ToDepart = load => true;
+            //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
+
+            // initialize for output events
+            //OnRestore = new List<Func<Event>>(); 
+
+            // initialize event, compulsory if it's assembly
+            //InitEvents.Add(R_Server.Start());
+        }
+
+        public override void WarmedUp(DateTime clockTime)
+        {
+            //H_Server.WarmedUp(clockTime);
+            //R_Server.WarmedUp(clockTime);
+        }
+
+        public override void WriteToConsole()
+        {
+            //Console.WriteLine("[{0}]", this);
+            //Console.Write("Serving: ");
+            //foreach (var load in Serving) Console.Write("{0} ", load);
+            //Console.WriteLine();
+            //Console.Write("Served: ");
+            //foreach (var load in Served) Console.Write("{0} ", load);
+            //Console.WriteLine();
+            //Console.Write("Restoring: ");
+            //foreach (var load in Restoring) Console.Write("{0} ", load);
+            //Console.WriteLine();
+        }
+    }
+}

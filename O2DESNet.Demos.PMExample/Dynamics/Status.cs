@@ -41,7 +41,5 @@ namespace PMExample
             };
 
         }
-
-        public override void WriteToConsole() { }
     }
 }

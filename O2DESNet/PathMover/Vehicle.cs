@@ -3,95 +3,122 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using O2DESNet;
 
-namespace O2DESNet.PathMover
+namespace O2DESNet
 {
-    public class Vehicle
+    public class Vehicle : Load<Vehicle.Statics>
     {
-        public Dynamics Status { get; private set; }
-        public int Id { get; private set; }
-        public ControlPoint Current { get; private set; } = null;
-        public ControlPoint Next { get; private set; } = null;
-        public double RemainingRatio { get; private set; } = 0;
-        public DateTime LastActionTime { get; private set; }
-        public double Speed { get; private set; } = 0; // m/s
-        public DateTime? TimeToReach { get; private set; }
+        #region Sub-Components
+        #endregion
 
-        public List<ControlPoint> Targets { get; set; }
-        public Action OnCompletion { get; set; }
-
-        internal Vehicle(Dynamics status, ControlPoint start, DateTime clockTime)
+        #region Statics
+        public class Statics : Scenario
         {
-            Status = status;
-            Id = Status.VehicleId++;
-            Current = start;
-            LastActionTime = clockTime;
-            TimeToReach = null;
-        }
+            public double Speed { get; set; }
 
-        /// <summary>
-        /// Change status of vehicle as moving to the next control point
-        /// </summary>
-        /// <param name="next">A control point next to the current one</param>
-        public void Move(ControlPoint next, DateTime clockTime)
-        {
-            Status.VehiclesOnPath[Current.PathingTable[next]].Add(this);
-            Status.UpdateSpeeds(Current.PathingTable[next], clockTime);
-            Next = next;
-            RemainingRatio = 1;
-            LastActionTime = clockTime;            
-            CalTimeToReach();
-        }
-
-        /// <summary>
-        /// /// <summary>
-        /// Update the speed of the vehicle
-        /// </summary>
-        internal void SetSpeed(double speed, DateTime clockTime)
-        {
-            if (Next != null && speed != Speed)
-            {
-                RemainingRatio -= Speed * (clockTime - LastActionTime).TotalSeconds / Current.GetDistanceTo(Next);
-                if (RemainingRatio < 0) throw new Exception("Vehicle has already reached next control point.");
-                Speed = speed;
-                LastActionTime = clockTime;
-                CalTimeToReach();
-            }
-            else Speed = speed;
-        }
-
-        /// <summary>
-        /// Change the status of vehicle as reached the next control point
-        /// </summary>
-        public void Reach(DateTime clockTime)
-        {
-            Status.VehiclesOnPath[Current.PathingTable[Next]].Remove(this);
-            Current = Next;
-            Next = null;
-            RemainingRatio = 0;
-            LastActionTime = clockTime;
-            TimeToReach = null;
-        }
-
-        private void CalTimeToReach()
-        {
-            TimeToReach = LastActionTime + TimeSpan.FromSeconds(Current.GetDistanceTo(Next) * RemainingRatio / Speed);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("V{0}", Id);
-        }
-
-        #region For Display
-        public string GetStr_Status()
-        {
-            string str = ToString();
-            str += string.Format(" {0}->{1} ", Current, Next);
-            foreach (var cp in Targets) str += ":" + cp;
-            return str;
+            /// <summary>
+            /// Timestamps are recorded for tracking the movement of the vehicle
+            /// </summary>
+            public bool KeepTrack { get; set; }
         }
         #endregion
 
+        #region Dynamics
+        public ControlPoint Current { get; private set; } = null;
+        public ControlPoint Target { get; private set; } = null;
+        #endregion
+
+        #region Events
+        private class PutOnEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            public ControlPoint ControlPoint { get; private set; }
+            internal PutOnEvent(Vehicle vehicle, ControlPoint controlPoint)
+            {
+                Vehicle = vehicle;
+                ControlPoint = controlPoint;
+            }
+            public override void Invoke()
+            {
+                if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");
+                Vehicle.Log(this);
+                Vehicle.Current = ControlPoint;
+            }
+            public override string ToString() { return string.Format("{0}_PutOn", Vehicle); }
+        }
+        private class PutOffEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            public ControlPoint ControlPoint { get; private set; }
+            internal PutOffEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            public override void Invoke()
+            {
+                if (Vehicle.Target != null) throw new VehicleStatusException("'Target' must be null on PutOff event.");
+                if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on PutOff event.");
+                if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
+                Vehicle.Current = null;
+            }
+            public override string ToString() { return string.Format("{0}_PutOff", Vehicle); }
+        }
+        private class DepartEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            public ControlPoint Target { get; private set; }
+            internal DepartEvent(Vehicle vehicle, ControlPoint target)
+            {
+                Vehicle = vehicle;
+                Target = target;
+            }
+            public override void Invoke()
+            {
+                if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on Depart event.");
+                Vehicle.Log(this);
+                Vehicle.Target = Target;
+            }
+            public override string ToString() { return string.Format("{0}_Depart", Vehicle); }
+        }
+        private class ArriveEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            internal ArriveEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            public override void Invoke()
+            {
+                if (Vehicle.Target == null) throw new VehicleStatusException("'Target' ControlPoint cannot be null on Arrive event");
+                Vehicle.Log(this);
+                Vehicle.Current = Vehicle.Target;
+                Vehicle.Target = null;
+            }
+            public override string ToString() { return string.Format("{0}_Arrive", Vehicle); }
+        }
+        #endregion
+
+        #region Input Events - Getters
+        public Event PutOn(ControlPoint current) { return new PutOnEvent(this, current); }
+        public Event PutOff() { return new PutOffEvent(this); }
+        public Event Depart(ControlPoint target) { return new DepartEvent(this, target); }
+        public Event Arrive() { return new ArriveEvent(this); }
+        #endregion
+
+        #region Output Events - Reference to Getters
+        #endregion
+
+        #region Exeptions
+        public class VehicleStatusException : Exception
+        {
+            public VehicleStatusException(string message) : base(string.Format("Vechile Status Exception: {0}", message)) { }
+        }
+        #endregion
+
+        public Vehicle(Statics category, int seed, string tag = null) : base(category, seed, tag)
+        {
+            Name = "Veh";
+
+            // initialize for output events
+        }
+
+        public override void Log(Event evnt) { if (Category.KeepTrack) base.Log(evnt); }
+
+        public override void WarmedUp(DateTime clockTime) { }
     }
 }

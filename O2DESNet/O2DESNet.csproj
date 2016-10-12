@@ -78,6 +78,11 @@
     <Compile Include="Components\Resource.cs" />
     <Compile Include="Components\RestoreServer.cs" />
     <Compile Include="Components\Server.cs" />
+    <Compile Include="PathMover\ControlPoint.cs" />
+    <Compile Include="PathMover\Dijkstra.cs" />
+    <Compile Include="PathMover\Path.cs" />
+    <Compile Include="PathMover\PathMover.cs" />
+    <Compile Include="PathMover\Vehicle.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HourCounter.cs" />
