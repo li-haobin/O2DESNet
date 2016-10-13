@@ -34,7 +34,7 @@ namespace O2DESNet
             public List<DenseVector> Coordinates { get; private set; }
             public bool Crab { get; set; } = false;
 
-            public Statics(PathMover.Statics pathMover, double length, double fullSpeed, Direction direction, int capacity = 1)
+            public Statics(PathMover.Statics pathMover, double length, double fullSpeed, Direction direction, int capacity = int.MaxValue)
             {
                 PathMover = pathMover;
                 Index = PathMover.Paths.Count;
@@ -164,7 +164,7 @@ namespace O2DESNet
             {
                 Vehicle.Log(this);
                 foreach (var evnt in Path.OnExit) Execute(evnt(Vehicle));
-                throw new NotImplementedException();
+                //throw new NotImplementedException();
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
         }
@@ -269,7 +269,7 @@ namespace O2DESNet
             //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events
-            //OnRestore = new List<Func<Event>>(); 
+            OnExit = new List<Func<Vehicle, Event>>();
 
             // initialize event, compulsory if it's assembly
             //InitEvents.Add(R_Server.Start());

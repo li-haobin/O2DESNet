@@ -26,7 +26,7 @@ namespace O2DESNet.Demos.PathMoverSystem
         static PathMover.Statics GetPM1()
         {
             var pm = new PathMover.Statics();
-            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 1, direction: Path.Direction.Forward)).ToArray();
+            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100, direction: Path.Direction.Forward)).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);
             pm.Connect(paths[2], paths[3]);

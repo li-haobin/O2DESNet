@@ -96,8 +96,13 @@ namespace O2DESNet.Demos.PathMoverSystem
 
             // initialize event, compulsory if it's assembly
             InitEvents.Add(new TestEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 4.32, KeepTrack = true }, DefaultRS.Next()),
+                new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true }, DefaultRS.Next()),
                 PathMover.ControlPoints.ElementAt(3).Value,
+                PathMover.ControlPoints.ElementAt(6).Value
+                ));
+            InitEvents.Add(new TestEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next()),
+                PathMover.ControlPoints.ElementAt(9).Value,
                 PathMover.ControlPoints.ElementAt(7).Value
                 ));
         }
