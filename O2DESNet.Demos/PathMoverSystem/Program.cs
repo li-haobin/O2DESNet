@@ -11,6 +11,11 @@ namespace O2DESNet.Demos.PathMoverSystem
     {
         static void Main(string[] args)
         {
+            var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
+            var sim = new Simulator(pmSys);
+            sim.Run(1000);
+
+
             var config = GetPM1();
             var pm = new PathMover(config, 0);
             var pm1 = new PathMover(config, 0);

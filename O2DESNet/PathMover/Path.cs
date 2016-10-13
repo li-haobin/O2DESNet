@@ -13,7 +13,7 @@ namespace O2DESNet
     public class Path : Component<Path.Statics>
     {
         #region Statics
-        
+
         public class Statics : Scenario
         {
             /// <summary>
@@ -76,14 +76,38 @@ namespace O2DESNet
         #endregion
 
         #region Sub-Components
-        //internal Server<TScenario, TStatus, TLoad> H_Server { get; private set; }
-        //internal Server<TScenario, TStatus, TLoad> R_Server { get; private set; }
+        internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }
+        internal FIFOServer<Vehicle>[] BackwardSegments { get; private set; }
+        /// <summary>
+        /// The routes on the path to be followed by the vehicle
+        /// </summary>
+        private Dictionary<Vehicle, List<ControlPoint>> Routes { get; set; }
+        /// <summary>
+        /// The next path after the vehicle exit from the current path
+        /// </summary>
+        private Dictionary<Vehicle, Path> NextPaths { get; set; }
+        /// <summary>
+        /// Get index of given control point
+        /// </summary>
+        private Dictionary<ControlPoint, int> Indices
+        {
+            get
+            {
+                if (_indices == null) _indices = Enumerable.Range(0, Config.ControlPoints.Count)
+                        .ToDictionary(i => PathMover.ControlPoints[Config.ControlPoints[i]], i => i);
+                return _indices;
+            }
+        }
+        private Dictionary<ControlPoint, int> _indices = null;
+        /// <summary>
+        /// Distances between adjacent control point
+        /// </summary>
+        private double[] AbsDistances { get; set; }
         #endregion
 
         #region Dynamics
         public PathMover PathMover { get; internal set; }
-        public Dictionary<Vehicle, Tuple<ControlPoint, ControlPoint>> ActiveSegments { get; private set; }  
-        public int Vacancy { get { return Config.Capacity - ActiveSegments.Count; } }
+        public int Vacancy { get { return Config.Capacity - ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.Served.Count + seg.Serving.Count); } }
         public List<Vehicle> WaitingToExit { get; private set; }
         #endregion
 
@@ -100,8 +124,28 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                if (Path.ActiveSegments.ContainsKey(Vehicle)) throw new StatusException("Vehicle already exists on the path.");
-                Path.ActiveSegments.Add(Vehicle, new Tuple<ControlPoint, ControlPoint>(Vehicle.Current, null));
+                if (!Path.Indices.ContainsKey(Vehicle.Current)) throw new StatusException("Vehicle has to be moved to any Control Point on the path before enter it.");
+                if (Path.Routes.ContainsKey(Vehicle)) throw new StatusException("Vehicle already exists on the path.");
+                
+                Path.Routes.Add(Vehicle, new List<ControlPoint>());
+                Path.NextPaths.Add(Vehicle, null);
+                var cp = Vehicle.Current.Config;
+                while (true)
+                {
+                    if (cp.Equals(Vehicle.Target.Config)) break;
+                    var next = cp.RoutingTable[Vehicle.Target.Config];
+                    var path = cp.PathingTable[next];
+                    if (!path.Equals(Path.Config))
+                    {
+                        Path.NextPaths[Vehicle] = Path.PathMover.Paths[path];
+                        break;
+                    }
+                    else
+                    {
+                        Path.Routes[Vehicle].Add(Path.PathMover.ControlPoints[next]);
+                        cp = next;
+                    }
+                } // going to test for enter event
                 Execute(new MoveEvent(Path, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Enter", Path); }
@@ -184,8 +228,31 @@ namespace O2DESNet
         public Path(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Path";
-            ActiveSegments = new Dictionary<Vehicle, Tuple<ControlPoint, ControlPoint>>();
-            WaitingToExit = new List<Vehicle>();
+
+            // initialize dynamic properties
+            int n = config.ControlPoints.Count;
+            
+            AbsDistances = Enumerable.Range(0, n - 1).Select(i => Math.Abs(Config.GetDistance(Config.ControlPoints[i], Config.ControlPoints[i + 1]))).ToArray();
+            Func<int, FIFOServer<Vehicle>> getSegment = i =>
+            {
+                var segment = new FIFOServer<Vehicle>(
+                    new FIFOServer<Vehicle>.Statics
+                    {
+                        Capacity = Config.Capacity,
+                        ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
+                        ToDepart = veh => Routes[veh].Count > 1 || (NextPaths[veh] != null && NextPaths[veh].Vacancy > 0),
+                        /// vehicle will be stucked in following case:
+                        /// 1. current segment is the last in the route, and
+                        /// 2. there is no next path towards the target (i.e., the last in the route is the target), or the next path is full
+                    },
+                    DefaultRS.Next());
+                segment.OnDepart.Add(veh => new ReachEvent(this, veh));
+                return segment;
+            };
+            ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
+            BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
+            Routes = new Dictionary<Vehicle, List<ControlPoint>>();
+            NextPaths = new Dictionary<Vehicle, Path>();
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());

@@ -25,6 +25,7 @@ namespace O2DESNet
         #endregion
 
         #region Dynamics
+        public virtual double Speed { get { return Category.Speed; } }
         public ControlPoint Target { get; private set; } = null;
         public ControlPoint Current { get; private set; } = null;        
         public ControlPoint Next

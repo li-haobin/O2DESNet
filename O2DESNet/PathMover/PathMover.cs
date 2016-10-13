@@ -291,8 +291,8 @@ namespace O2DESNet
             Name = "PathMover";
 
             Config.Initialize();
-            ControlPoints = Config.ControlPoints.ToDictionary(cfg => cfg, cfg => new ControlPoint(cfg, DefaultRS.Next()) { PathMover = this });
-            Paths = Config.Paths.ToDictionary(cfg => cfg, cfg => new Path(cfg, DefaultRS.Next()) { PathMover = this });
+            ControlPoints = Config.ControlPoints.ToDictionary(cfg => cfg, cfg => new ControlPoint(cfg, DefaultRS.Next(), string.Format("CP${0}", cfg.Index)) { PathMover = this });
+            Paths = Config.Paths.ToDictionary(cfg => cfg, cfg => new Path(cfg, DefaultRS.Next(), string.Format("PATH${0}", cfg.Index)) { PathMover = this });
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());
