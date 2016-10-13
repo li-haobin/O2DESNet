@@ -31,8 +31,9 @@ namespace O2DESNet
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public HashSet<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count - Restoring.Count; } }
+        public int Vancancy { get { return Config.Capacity - NOccupied; } }
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
+        public int NOccupied { get { return Serving.Count + Served.Count + Restoring.Count; } }
         public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / Config.Capacity; } }
         public double EffectiveHourlyRate { get { return H_Server.HourCounter.DecrementRate; } }
         #endregion

@@ -27,9 +27,10 @@ namespace O2DESNet
         #region Dynamics
         public HashSet<TLoad> Serving { get; private set; }
         public HashSet<TLoad> Served { get; private set; }
-        public int Vancancy { get { return Config.Capacity - Serving.Count - Served.Count; } }
+        public int Vancancy { get { return Config.Capacity - NOccupied; } }
         public HourCounter HourCounter { get; private set; } // statistics    
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
+        public int NOccupied { get { return Serving.Count + Served.Count; } }
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
         #endregion
 

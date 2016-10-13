@@ -76,7 +76,8 @@ namespace O2DESNet
         #endregion
 
         #region Sub-Components
-        internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }
+        // ***REMARKS: Vehicle should always occupy some Segment, otherwise it becomes invisible (no collision can be identified)
+        internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }         
         internal FIFOServer<Vehicle>[] BackwardSegments { get; private set; }
         /// <summary>
         /// The routes on the path to be followed by the vehicle
@@ -145,7 +146,7 @@ namespace O2DESNet
                         Path.Routes[Vehicle].Add(Path.PathMover.ControlPoints[next]);
                         cp = next;
                     }
-                } // going to test for enter event
+                } 
                 Execute(new MoveEvent(Path, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Enter", Path); }
@@ -153,18 +154,17 @@ namespace O2DESNet
         private class ExitEvent : Event
         {
             public Path Path { get; private set; }
-            internal ExitEvent(Path path)
+            public Vehicle Vehicle { get; private set; }
+            internal ExitEvent(Path path, Vehicle vehicle)
             {
                 Path = path;
+                Vehicle = vehicle;
             }
             public override void Invoke()
             {
-                //if (Vehicle.PathToNext.Vacancy > 0)
-                //{
-                //    Vehicle.Log(this);
-                //    Path.ActiveSegments.Remove(Vehicle);
-                //    foreach (var evnt in Path.OnExit) Execute(evnt(Vehicle));
-                //}
+                Vehicle.Log(this);
+                foreach (var evnt in Path.OnExit) Execute(evnt(Vehicle));
+                throw new NotImplementedException();
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
         }
@@ -180,14 +180,20 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                if (!Vehicle.PathToNext.Equals(Path))
+                var startIndex = Path.Indices[Vehicle.Current];
+                var endIndex = Path.Indices[Path.Routes[Vehicle].First()];
+                if (startIndex < endIndex)
                 {
-                    Path.WaitingToExit.Add(Vehicle);
-                    Execute(new ExitEvent(Path));
+                    if (Path.BackwardSegments[startIndex].NOccupied > 0)
+                        throw new StatusException(string.Format("Collision occurs between {0} & {1} on {2}.", Vehicle.Current, Path.Routes[Vehicle].First(), Path));
+                    Execute(Vehicle.Move(Path.Routes[Vehicle].First()));
+                    Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
                 }
                 else
                 {
-                    Schedule(new ReachEvent(Path, Vehicle), TimeSpan.FromSeconds(Vehicle.Current.Config.GetDistanceTo(Vehicle.Next.Config) / Vehicle.Category.Speed));
+                    if (Path.ForwardSegments[endIndex].NOccupied > 0)
+                        throw new StatusException(string.Format("Collision occurs between {0} & {1} on {2}.", Vehicle.Current, Path.Routes[Vehicle].First(), Path));
+                    Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                 }
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
@@ -204,7 +210,10 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                foreach (var evnt in Path.OnExit) Execute(evnt(Vehicle));
+                Execute(Vehicle.Reach(Path.Routes[Vehicle].First()));
+                Path.Routes[Vehicle].RemoveAt(0);
+                if (Path.Routes[Vehicle].Count > 0) Execute(new MoveEvent(Path, Vehicle));
+                else if (Path.NextPaths[Vehicle] != null) Execute(new ExitEvent(Path, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }

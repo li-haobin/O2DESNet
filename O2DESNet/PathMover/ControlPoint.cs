@@ -100,24 +100,6 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Reach", ControlPoint); }
         }
-        private class LeaveEvent : Event
-        {
-            public ControlPoint ControlPoint { get; private set; }
-            public Vehicle Vehicle { get; private set; }
-            internal LeaveEvent(ControlPoint controlPoint, Vehicle vehicle)
-            {
-                ControlPoint = controlPoint;
-                Vehicle = vehicle;
-            }
-            public override void Invoke()
-            {
-                if (!ControlPoint.At.Contains(Vehicle)) throw new VehicleIsNotAtException();
-                if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
-                ControlPoint.At.Remove(Vehicle);
-                ControlPoint.Outgoing.Add(Vehicle);
-            }
-            public override string ToString() { return string.Format("{0}_Leave", ControlPoint); }
-        }
         private class MoveOutEvent : Event
         {
             public ControlPoint ControlPoint { get; private set; }
@@ -129,18 +111,36 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
+                if (!ControlPoint.At.Contains(Vehicle)) throw new VehicleIsNotAtException();
+                if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
+                ControlPoint.At.Remove(Vehicle);
+                ControlPoint.Outgoing.Add(Vehicle);
+            }
+            public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
+        }
+        private class LeaveEvent : Event
+        {
+            public ControlPoint ControlPoint { get; private set; }
+            public Vehicle Vehicle { get; private set; }
+            internal LeaveEvent(ControlPoint controlPoint, Vehicle vehicle)
+            {
+                ControlPoint = controlPoint;
+                Vehicle = vehicle;
+            }
+            public override void Invoke()
+            {
                 if (!ControlPoint.Outgoing.Contains(Vehicle)) throw new VehicleIsNotOutgoingException();
                 ControlPoint.Outgoing.Remove(Vehicle);
             }
-            public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
+            public override string ToString() { return string.Format("{0}_Leave", ControlPoint); }
         }
         #endregion
 
         #region Input Events - Getters
         public Event MoveIn(Vehicle vehicle) { return new MoveInEvent(this, vehicle); }
         public Event Reach(Vehicle vehicle) { return new ReachEvent(this, vehicle); }
-        public Event Leave(Vehicle vehicle) { return new LeaveEvent(this, vehicle); }
         public Event MoveOut(Vehicle vehicle) { return new MoveOutEvent(this, vehicle); }
+        public Event Leave(Vehicle vehicle) { return new LeaveEvent(this, vehicle); }
         #endregion
 
         #region Output Events - Reference to Getters

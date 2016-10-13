@@ -25,6 +25,7 @@ namespace O2DESNet
         public List<TLoad> Sequence { get; private set; }
         public HourCounter HourCounter { get { return InnerServer.HourCounter; } } // statistics   
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
+        public int NOccupied { get { return InnerServer.NOccupied; } }
         public double Utilization { get { return InnerServer.Utilization; } }        
         #endregion
 
