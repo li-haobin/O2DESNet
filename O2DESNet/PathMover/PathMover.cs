@@ -30,13 +30,14 @@ namespace O2DESNet
             /// <summary>
             /// Create and return a new path
             /// </summary>
-            public Path.Statics CreatePath(double length, double fullSpeed, Path.Direction direction = Path.Direction.TwoWay)
+            public Path.Statics CreatePath(double length, double fullSpeed, int capacity = int.MaxValue, Path.Direction direction = Path.Direction.TwoWay)
             {
                 CheckInitialized();
                 var path = new Path.Statics(this)
                 {
                     Length = length,
                     FullSpeed = fullSpeed,
+                    Capacity = capacity,
                     Direction = direction,
                 };
                 Paths.Add(path);
@@ -298,6 +299,18 @@ namespace O2DESNet
             Config.Initialize();
             ControlPoints = Config.ControlPoints.ToDictionary(cfg => cfg, cfg => new ControlPoint(cfg, DefaultRS.Next(), string.Format("CP${0}", cfg.Index)) { PathMover = this });
             Paths = Config.Paths.ToDictionary(cfg => cfg, cfg => new Path(cfg, DefaultRS.Next(), string.Format("PATH${0}", cfg.Index)) { PathMover = this });
+
+            // Attach Path Segments (FIFOServers) to Control Points
+            foreach (var path in Paths.Values)
+            {
+                for (int i = 0; i < path.ControlPoints.Length - 1; i++)
+                {
+                    path.ControlPoints[i].OutgoingSegments.Add(path.ForwardSegments[i]);
+                    path.ControlPoints[i].IncomingSegments.Add(path.BackwardSegments[i]);
+                    path.ControlPoints[i + 1].IncomingSegments.Add(path.ForwardSegments[i]);
+                    path.ControlPoints[i + 1].OutgoingSegments.Add(path.BackwardSegments[i]);
+                }
+            }
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());

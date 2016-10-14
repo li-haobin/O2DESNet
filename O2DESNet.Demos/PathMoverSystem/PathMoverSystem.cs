@@ -46,7 +46,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 Vehicle.Log(this);
                 Execute(Vehicle.PutOn(From));
                 Execute(Vehicle.Depart(To));
-                Execute(PathMoverSystem.PathMover.Paths.ElementAt(0).Value.Enter(Vehicle));
+                Execute(Vehicle.PathToNext.Enter(Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Test", PathMoverSystem); }
         }
@@ -104,6 +104,11 @@ namespace O2DESNet.Demos.PathMoverSystem
                 new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next()),
                 PathMover.ControlPoints.ElementAt(9).Value,
                 PathMover.ControlPoints.ElementAt(7).Value
+                ));
+            InitEvents.Add(new TestEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true }, DefaultRS.Next()),
+                PathMover.ControlPoints.ElementAt(1).Value,
+                PathMover.ControlPoints.ElementAt(0).Value
                 ));
         }
 

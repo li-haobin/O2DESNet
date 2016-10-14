@@ -32,6 +32,8 @@ namespace O2DESNet
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
         public int NOccupied { get { return Serving.Count + Served.Count; } }
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
+        public Dictionary<TLoad, DateTime> StartTimes { get; private set; }
+        public Dictionary<TLoad, DateTime> FinishTimes { get; private set; }
         #endregion
 
         #region Events
@@ -50,6 +52,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
+                Server.StartTimes.Add(Load, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
@@ -68,6 +71,7 @@ namespace O2DESNet
                 Load.Log(this);
                 Server.Serving.Remove(Load);
                 Server.Served.Add(Load);
+                Server.FinishTimes.Add(Load, ClockTime);
                 Execute(new DepartEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
@@ -87,9 +91,12 @@ namespace O2DESNet
                     if (Server.Config.ToDepart(load))
                     {
                         load.Log(this);
-                        Server.Served.Remove(load);
+                        Server.Served.Remove(load);                        
                         Server.HourCounter.ObserveChange(-1, ClockTime);
                         foreach (var evnt in Server.OnDepart) Execute(evnt(load));
+                        // in case the start / finish times are used in OnDepart events
+                        Server.StartTimes.Remove(load);
+                        Server.FinishTimes.Remove(load);
                         updated = true;
                     }
                 if (updated) Execute(new DepartEvent(Server));
@@ -128,6 +135,8 @@ namespace O2DESNet
             Serving = new HashSet<TLoad>();
             Served = new HashSet<TLoad>();
             HourCounter = new HourCounter();
+            StartTimes = new Dictionary<TLoad, DateTime>();
+            FinishTimes = new Dictionary<TLoad, DateTime>();
 
             // initialize for output events    
             OnDepart = new List<Func<TLoad, Event>>();

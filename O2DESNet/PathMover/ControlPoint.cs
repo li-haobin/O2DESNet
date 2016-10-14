@@ -10,6 +10,8 @@ namespace O2DESNet
     public class ControlPoint : Component<ControlPoint.Statics>
     {
         #region Sub-Components
+        internal List<FIFOServer<Vehicle>> IncomingSegments { get; private set; }
+        internal List<FIFOServer<Vehicle>> OutgoingSegments { get; private set; }
         #endregion
 
         #region Statics
@@ -74,7 +76,7 @@ namespace O2DESNet
         /// <summary>
         /// Chech if the control point is accessible via the given path
         /// </summary>
-        public bool Accessible (Path via)
+        public bool Accessible (Path via = null)
         {
             if (At != null) return false;
             foreach(var path in Config.Positions.Keys.Select(i => PathMover.Paths[i]))
@@ -84,6 +86,23 @@ namespace O2DESNet
         #endregion
 
         #region Events
+        internal class PutOnEvent : Event
+        {
+            public ControlPoint ControlPoint { get; private set; }
+            public Vehicle Vehicle { get; private set; }
+            internal PutOnEvent(ControlPoint controlPoint, Vehicle vehicle)
+            {
+                ControlPoint = controlPoint;
+                Vehicle = vehicle;
+            }
+            public override void Invoke()
+            {
+                if (!ControlPoint.Accessible()) throw new ZeroVacancyException();
+                Vehicle.Log(this);
+                ControlPoint.At = Vehicle;
+            }
+            public override string ToString() { return string.Format("{0}_MoveIn", ControlPoint); }
+        }
         private class MoveInEvent : Event
         {
             public ControlPoint ControlPoint { get; private set; }
@@ -173,6 +192,10 @@ namespace O2DESNet
         {
             public VehicleIsNotOutgoingException() : base("Please ensure the vehicle is outgoing before execute 'Leave' event.") { }
         }
+        public class ZeroVacancyException : Exception
+        {
+            public ZeroVacancyException() : base("Control Point is not accessible due to vacancy issue.") { }
+        }
         #endregion
 
         public ControlPoint(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
@@ -181,6 +204,8 @@ namespace O2DESNet
             Outgoing = new HashSet<Vehicle>();
             Incoming = new HashSet<Vehicle>();
             At = null;
+            IncomingSegments = new List<FIFOServer<Vehicle>>();
+            OutgoingSegments = new List<FIFOServer<Vehicle>>();
         }
 
         public override void WarmedUp(DateTime clockTime) { }

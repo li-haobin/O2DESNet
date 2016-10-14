@@ -82,7 +82,7 @@ namespace O2DESNet
         /// <summary>
         /// Get index of given control point
         /// </summary>
-        private Dictionary<ControlPoint, int> Indices
+        internal Dictionary<ControlPoint, int> Indices
         {
             get
             {
@@ -142,7 +142,6 @@ namespace O2DESNet
             {
                 Vehicle.Log(this);
                 if (!Path.Indices.ContainsKey(Vehicle.Current)) throw new StatusException("Vehicle has to be moved to any Control Point on the path before enter it.");
-                if (Path.Vacancy < 1) throw new HasZeroVacancy { Path = Path, Vehicle = Vehicle };
                 if (Path.Routes.ContainsKey(Vehicle)) throw new StatusException("Vehicle already exists on the path.");
                 
                 Path.Routes.Add(Vehicle, new List<ControlPoint>());
@@ -180,6 +179,12 @@ namespace O2DESNet
                 Vehicle.Log(this);
                 Path.Routes.Remove(Vehicle);
                 Execute(new EnterEvent(Vehicle.PathToNext, Vehicle));
+
+                // pull vehicles from other paths to enter when vacancy is released
+                foreach (var seg in Path.ControlPoints // all Control Points on the Path
+                    .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.Served.Count > 0)) // their incoming Segements where have vehicles stucked
+                    .OrderBy(seg => seg.FinishTime.Value)) // order by finish time
+                    Execute(seg.Depart());
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
         }
@@ -201,7 +206,7 @@ namespace O2DESNet
                 {
                     if (Path.BackwardSegments[startIndex].NOccupied > 0)
                         throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
-                            Vehicle, Path.BackwardSegments[startIndex].Sequence.First().Item1, ClockTime);
+                            Vehicle, Path.BackwardSegments[startIndex].Sequence.First(), ClockTime);
                     Execute(Vehicle.Move(Path.Routes[Vehicle].First()));
                     Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
                 }
@@ -209,7 +214,7 @@ namespace O2DESNet
                 {
                     if (Path.ForwardSegments[endIndex].NOccupied > 0)
                         throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
-                            Vehicle, Path.ForwardSegments[endIndex].Sequence.First().Item1, ClockTime);
+                            Vehicle, Path.ForwardSegments[endIndex].Sequence.First(), ClockTime);
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                 }
             }
@@ -315,6 +320,7 @@ namespace O2DESNet
             ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
             BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
             Routes = new Dictionary<Vehicle, List<ControlPoint>>();
+            
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());

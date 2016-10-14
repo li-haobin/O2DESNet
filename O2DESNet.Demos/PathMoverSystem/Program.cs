@@ -37,7 +37,8 @@ namespace O2DESNet.Demos.PathMoverSystem
         static PathMover.Statics GetPM1()
         {
             var pm = new PathMover.Statics();
-            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100, 
+            var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100,   
+                capacity: 2,              
                 //direction: Path.Direction.TwoWay
                 direction: Path.Direction.Forward
                 )).ToArray();

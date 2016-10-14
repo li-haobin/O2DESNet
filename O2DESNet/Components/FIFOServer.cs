@@ -30,12 +30,12 @@ namespace O2DESNet
                 int i = 0;
                 while (i < Sequence.Count)
                 {
-                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
+                    if (!InnerServer.Served.Contains(Sequence[i])) break;
                     i++;
                 }
                 while (i < Sequence.Count)
                 {
-                    serving.Add(Sequence[i].Item1);
+                    serving.Add(Sequence[i]);
                     i++;
                 }
                 return serving;
@@ -52,8 +52,8 @@ namespace O2DESNet
                 int i = 0;
                 while (i < Sequence.Count)
                 {
-                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
-                    served.Add(Sequence[i].Item1);
+                    if (!InnerServer.Served.Contains(Sequence[i])) break;
+                    served.Add(Sequence[i]);
                     i++;
                 }
                 return served;
@@ -71,12 +71,12 @@ namespace O2DESNet
                 int i = 0;
                 while (i < Sequence.Count)
                 {
-                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
+                    if (!InnerServer.Served.Contains(Sequence[i])) break;
                     i++;
                 }
                 while (i < Sequence.Count)
                 {
-                    if (InnerServer.Served.Contains(Sequence[i].Item1)) delayed.Add(Sequence[i].Item1);
+                    if (InnerServer.Served.Contains(Sequence[i])) delayed.Add(Sequence[i]);
                     i++;
                 }
                 return delayed;
@@ -84,11 +84,30 @@ namespace O2DESNet
         }
 
         public int Vancancy { get { return InnerServer.Vancancy; } }
-        public List<Tuple<TLoad, DateTime>> Sequence { get; private set; }
+        public List<TLoad> Sequence { get; private set; }
         public HourCounter HourCounter { get { return InnerServer.HourCounter; } } // statistics   
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
         public int NOccupied { get { return InnerServer.NOccupied; } }
-        public double Utilization { get { return InnerServer.Utilization; } }        
+        public double Utilization { get { return InnerServer.Utilization; } }
+        public Dictionary<TLoad, DateTime> StartTimes { get { return InnerServer.StartTimes; } }
+
+        /// <summary>
+        /// The finish time of the previously departed Load
+        /// </summary>
+        private DateTime PrevFinishTime = DateTime.MinValue;
+        /// <summary>
+        /// The finish time of the last served load, return null if there is no served load
+        /// </summary>
+        public DateTime? FinishTime
+        {
+            get
+            {
+                if (Served.Count == 0) return null;
+                // note that the finish time of inner server is NOT the true finish time as it should be delayed by previously departed load
+                var finishTime = InnerServer.FinishTimes[Sequence.First()]; 
+                return finishTime > PrevFinishTime ? finishTime : PrevFinishTime;
+            }
+        }
         #endregion
 
         #region Events
@@ -103,7 +122,7 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                FIFOServer.Sequence.Add(new Tuple<TLoad, DateTime>(Load, ClockTime));
+                FIFOServer.Sequence.Add(Load);
                 Execute(FIFOServer.InnerServer.Start(Load));                
             }
             public override string ToString() { return string.Format("{0}_Start", FIFOServer); }
@@ -112,7 +131,12 @@ namespace O2DESNet
         {
             public FIFOServer<TLoad> FIFOServer { get; private set; }
             internal RemoveEvent(FIFOServer<TLoad> fifoServer) { FIFOServer = fifoServer; }
-            public override void Invoke() { FIFOServer.Sequence.RemoveAt(0); }
+            public override void Invoke()
+            {
+                var finishTime = FIFOServer.InnerServer.FinishTimes[FIFOServer.Sequence.First()];
+                if (finishTime > FIFOServer.PrevFinishTime) FIFOServer.PrevFinishTime = finishTime;
+                FIFOServer.Sequence.RemoveAt(0);
+            }
             public override string ToString() { return string.Format("{0}_Remove", FIFOServer); }
         }
         #endregion
@@ -132,7 +156,7 @@ namespace O2DESNet
         public FIFOServer(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "FIFOServer";
-            Sequence = new List<Tuple<TLoad, DateTime>>();
+            Sequence = new List<TLoad>();
 
             // connect sub-components
             InnerServer = new Server<TLoad>(
@@ -140,7 +164,7 @@ namespace O2DESNet
                 {
                     Capacity = Config.Capacity,
                     ServiceTime = Config.ServiceTime,
-                    ToDepart = load => Config.ToDepart(load) && load == Sequence.First().Item1,
+                    ToDepart = load => Config.ToDepart(load) && load == Sequence.First(),
                 },
                 DefaultRS.Next(),
                 tag: "InnerServer");

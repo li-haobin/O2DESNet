@@ -60,10 +60,9 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");
-                Vehicle.Log(this);
+                if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");                
                 Vehicle.Current = ControlPoint;
-                ControlPoint.At = Vehicle;
+                Execute(new ControlPoint.PutOnEvent(ControlPoint, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_PutOn", Vehicle); }
         }
