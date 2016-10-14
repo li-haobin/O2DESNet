@@ -185,14 +185,16 @@ namespace O2DESNet
                 if (startIndex < endIndex)
                 {
                     if (Path.BackwardSegments[startIndex].NOccupied > 0)
-                        throw new StatusException(string.Format("Collision occurs between {0} & {1} on {2}.", Vehicle.Current, Path.Routes[Vehicle].First(), Path));
+                        throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
+                            Vehicle, Path.BackwardSegments[startIndex].Sequence.First(), ClockTime);
                     Execute(Vehicle.Move(Path.Routes[Vehicle].First()));
                     Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
                 }
                 else
                 {
                     if (Path.ForwardSegments[endIndex].NOccupied > 0)
-                        throw new StatusException(string.Format("Collision occurs between {0} & {1} on {2}.", Vehicle.Current, Path.Routes[Vehicle].First(), Path));
+                        throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
+                            Vehicle, Path.ForwardSegments[endIndex].Sequence.First(), ClockTime);
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                 }
             }
@@ -231,6 +233,23 @@ namespace O2DESNet
         public class StatusException : Exception
         {
             public StatusException(string msg) : base(string.Format("Path Status Exception: {0}", msg)) { }
+        }
+        public class CollisionException : Exception
+        {
+            public ControlPoint ControlPoint1 { get; private set; }
+            public ControlPoint ControlPoint2 { get; private set; }
+            public Vehicle Vehicle1 { get; private set; }
+            public Vehicle Vehicle2 { get; private set; }
+            public Path Path { get; private set; }
+            public DateTime ClockTime { get; private set; }
+            public CollisionException(Path path, ControlPoint cp1, ControlPoint cp2, Vehicle veh1, Vehicle veh2, DateTime clockTime) :
+                base(string.Format("{5} - Collision identified on {0} between {1} & {2} by {3} & {4}.", path, cp1, cp2, veh1, veh2, clockTime))
+            {
+                Path = path;
+                ControlPoint1 = cp1; ControlPoint2 = cp2;
+                Vehicle1 = veh1; Vehicle2 = veh2;
+                ClockTime = clockTime;
+            }
         }
         #endregion
 
