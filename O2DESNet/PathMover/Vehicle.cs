@@ -41,7 +41,7 @@ namespace O2DESNet
         {
             get
             {
-                if (Target != null)
+                if (Target != null && Target != Current)
                     return Current.PathMover.Paths[Current.Config.GetPathFor(Target.Config)];
                 else return null;
             }
@@ -63,7 +63,7 @@ namespace O2DESNet
                 if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");
                 Vehicle.Log(this);
                 Vehicle.Current = ControlPoint;
-                ControlPoint.At.Add(Vehicle);
+                ControlPoint.At = Vehicle;
             }
             public override string ToString() { return string.Format("{0}_PutOn", Vehicle); }
         }

@@ -14,7 +14,18 @@ namespace O2DESNet.Demos.PathMoverSystem
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
             var sim = new Simulator(pmSys);
             sim.Status.Display = true;
-            sim.Run(1000);
+
+            while (true)
+            {
+                sim.Run(1);
+
+                Console.WriteLine("Id\tVacancy\tTravelling\tDelayed\tStopped");
+                foreach(var path in pmSys.PathMover.Paths.Values)
+                {
+                    Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}", path, path.Vacancy, path.Travelling.Count, path.Delayed.Count, path.Stopped.Count);
+                }
+                Console.ReadKey();
+            }
 
 
             var config = GetPM1();
@@ -27,8 +38,8 @@ namespace O2DESNet.Demos.PathMoverSystem
         {
             var pm = new PathMover.Statics();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100, 
-                direction: Path.Direction.TwoWay
-                //direction: Path.Direction.Forward
+                //direction: Path.Direction.TwoWay
+                direction: Path.Direction.Forward
                 )).ToArray();
             pm.Connect(paths[0], paths[1]);
             pm.Connect(paths[1], paths[2]);

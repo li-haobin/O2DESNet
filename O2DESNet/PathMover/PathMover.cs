@@ -33,7 +33,12 @@ namespace O2DESNet
             public Path.Statics CreatePath(double length, double fullSpeed, Path.Direction direction = Path.Direction.TwoWay)
             {
                 CheckInitialized();
-                var path = new Path.Statics(this, length, fullSpeed, direction);
+                var path = new Path.Statics(this)
+                {
+                    Length = length,
+                    FullSpeed = fullSpeed,
+                    Direction = direction,
+                };
                 Paths.Add(path);
                 return path;
             }

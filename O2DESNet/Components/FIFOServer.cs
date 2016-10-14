@@ -19,10 +19,72 @@ namespace O2DESNet
         #endregion
 
         #region Dynamics
-        public HashSet<TLoad> Serving { get { return InnerServer.Serving; } }
-        public HashSet<TLoad> Served { get { return InnerServer.Served; } }
+        /// <summary>
+        /// Loads that the server is currently serving (including those being delayed).
+        /// </summary>
+        public HashSet<TLoad> Serving
+        {
+            get
+            {
+                var serving = new HashSet<TLoad>();
+                int i = 0;
+                while (i < Sequence.Count)
+                {
+                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
+                    i++;
+                }
+                while (i < Sequence.Count)
+                {
+                    serving.Add(Sequence[i].Item1);
+                    i++;
+                }
+                return serving;
+            }
+        }
+        /// <summary>
+        /// Loads that have been served by the server.
+        /// </summary>
+        public HashSet<TLoad> Served
+        {
+            get
+            {
+                var served = new HashSet<TLoad>();
+                int i = 0;
+                while (i < Sequence.Count)
+                {
+                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
+                    served.Add(Sequence[i].Item1);
+                    i++;
+                }
+                return served;
+            }
+        }
+        /// <summary>
+        /// Loads that the server is currently but delayed due to FIFO rule.
+        /// </summary>
+        public HashSet<TLoad> Delayed
+        {
+            get
+            {
+                var delayed = new HashSet<TLoad>();
+
+                int i = 0;
+                while (i < Sequence.Count)
+                {
+                    if (!InnerServer.Served.Contains(Sequence[i].Item1)) break;
+                    i++;
+                }
+                while (i < Sequence.Count)
+                {
+                    if (InnerServer.Served.Contains(Sequence[i].Item1)) delayed.Add(Sequence[i].Item1);
+                    i++;
+                }
+                return delayed;
+            }
+        }
+
         public int Vancancy { get { return InnerServer.Vancancy; } }
-        public List<TLoad> Sequence { get; private set; }
+        public List<Tuple<TLoad, DateTime>> Sequence { get; private set; }
         public HourCounter HourCounter { get { return InnerServer.HourCounter; } } // statistics   
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
         public int NOccupied { get { return InnerServer.NOccupied; } }
@@ -41,8 +103,8 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                FIFOServer.Sequence.Add(Load);
-                Execute(FIFOServer.InnerServer.Start(Load));
+                FIFOServer.Sequence.Add(new Tuple<TLoad, DateTime>(Load, ClockTime));
+                Execute(FIFOServer.InnerServer.Start(Load));                
             }
             public override string ToString() { return string.Format("{0}_Start", FIFOServer); }
         }
@@ -70,7 +132,7 @@ namespace O2DESNet
         public FIFOServer(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "FIFOServer";
-            Sequence = new List<TLoad>();
+            Sequence = new List<Tuple<TLoad, DateTime>>();
 
             // connect sub-components
             InnerServer = new Server<TLoad>(
@@ -78,7 +140,7 @@ namespace O2DESNet
                 {
                     Capacity = Config.Capacity,
                     ServiceTime = Config.ServiceTime,
-                    ToDepart = load => Config.ToDepart(load) && load.Equals(Sequence.First())
+                    ToDepart = load => Config.ToDepart(load) && load == Sequence.First().Item1,
                 },
                 DefaultRS.Next(),
                 tag: "InnerServer");

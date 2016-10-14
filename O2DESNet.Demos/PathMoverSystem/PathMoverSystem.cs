@@ -102,7 +102,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 ));
             InitEvents.Add(new TestEvent(this,
                 new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next()),
-                PathMover.ControlPoints.ElementAt(10).Value,
+                PathMover.ControlPoints.ElementAt(9).Value,
                 PathMover.ControlPoints.ElementAt(7).Value
                 ));
         }

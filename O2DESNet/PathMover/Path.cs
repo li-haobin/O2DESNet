@@ -26,22 +26,19 @@ namespace O2DESNet
             public int Index { get; private set; }
 
             public double Length { get; set; }
-            public Direction Direction { get; private set; }
-            public double FullSpeed { get; private set; }
+            public Direction Direction { get; set; }
+            public double FullSpeed { get; set; }
+            public int Capacity { get; set; }
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
-            public int Capacity { get; private set; }
 
             public List<DenseVector> Coordinates { get; private set; }
             public bool Crab { get; set; } = false;
 
-            public Statics(PathMover.Statics pathMover, double length, double fullSpeed, Direction direction, int capacity = int.MaxValue)
+            public Statics(PathMover.Statics pathMover)
             {
                 PathMover = pathMover;
                 Index = PathMover.Paths.Count;
-                Length = length;
-                FullSpeed = fullSpeed;
-                Direction = direction;
-                Capacity = capacity;
+                Capacity = int.MaxValue;
 
                 ControlPoints = new List<ControlPoint.Statics>();
                 Coordinates = new List<DenseVector>();
@@ -76,17 +73,12 @@ namespace O2DESNet
         #endregion
 
         #region Sub-Components
-        // ***REMARKS: Vehicle should always occupy some Segment, otherwise it becomes invisible (no collision can be identified)
         internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }         
         internal FIFOServer<Vehicle>[] BackwardSegments { get; private set; }
         /// <summary>
         /// The routes on the path to be followed by the vehicle
         /// </summary>
         private Dictionary<Vehicle, List<ControlPoint>> Routes { get; set; }
-        /// <summary>
-        /// The next path after the vehicle exit from the current path
-        /// </summary>
-        private Dictionary<Vehicle, Path> NextPaths { get; set; }
         /// <summary>
         /// Get index of given control point
         /// </summary>
@@ -108,8 +100,32 @@ namespace O2DESNet
 
         #region Dynamics
         public PathMover PathMover { get; internal set; }
-        public int Vacancy { get { return Config.Capacity - ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.Served.Count + seg.Serving.Count); } }
-        public List<Vehicle> WaitingToExit { get; private set; }
+        public ControlPoint[] ControlPoints { get { return Config.ControlPoints.Select(cp => PathMover.ControlPoints[cp]).ToArray(); } }
+        public int Vacancy { get { return Config.Capacity - ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.NOccupied) - ControlPoints.Count(cp => cp.At != null); } }
+        /// <summary>
+        /// Vehicles that currently travelling on the Path.
+        /// </summary>
+        public HashSet<Vehicle> Travelling { get { return new HashSet<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Serving).OrderBy(veh => veh.Id)); } }
+        /// <summary>
+        /// Vehicles travelling on the Path, which are delayed due to slow moving ahead. 
+        /// </summary>
+        public HashSet<Vehicle> Delayed { get { return new HashSet<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Delayed).OrderBy(veh => veh.Id)); } }
+        /// <summary>
+        /// Vehicles stopped on the Path.
+        /// </summary>
+        public HashSet<Vehicle> Stopped
+        {
+            get
+            {
+                var stopped = new List<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Served)); // stopped inside segments due to congestion
+                foreach (var cp in ControlPoints) if (cp.At != null) stopped.Add(cp.At); // stopped at Control Points
+                return new HashSet<Vehicle>(stopped.OrderBy(veh => veh.Id));
+            }
+        }
+        /// <summary>
+        /// All vehicles occupying the Path.
+        /// </summary>
+        public HashSet<Vehicle> Occupying { get { return new HashSet<Vehicle>(Travelling.Concat(Stopped).OrderBy(veh => veh.Id)); } }
         #endregion
 
         #region Events
@@ -126,10 +142,10 @@ namespace O2DESNet
             {
                 Vehicle.Log(this);
                 if (!Path.Indices.ContainsKey(Vehicle.Current)) throw new StatusException("Vehicle has to be moved to any Control Point on the path before enter it.");
+                if (Path.Vacancy < 1) throw new HasZeroVacancy { Path = Path, Vehicle = Vehicle };
                 if (Path.Routes.ContainsKey(Vehicle)) throw new StatusException("Vehicle already exists on the path.");
                 
                 Path.Routes.Add(Vehicle, new List<ControlPoint>());
-                Path.NextPaths.Add(Vehicle, null);
                 var cp = Vehicle.Current.Config;
                 while (true)
                 {
@@ -138,7 +154,6 @@ namespace O2DESNet
                     var path = cp.PathingTable[next];
                     if (!path.Equals(Path.Config))
                     {
-                        Path.NextPaths[Vehicle] = Path.PathMover.Paths[path];
                         break;
                     }
                     else
@@ -163,8 +178,8 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                foreach (var evnt in Path.OnExit) Execute(evnt(Vehicle));
-                //throw new NotImplementedException();
+                Path.Routes.Remove(Vehicle);
+                Execute(new EnterEvent(Vehicle.PathToNext, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
         }
@@ -186,7 +201,7 @@ namespace O2DESNet
                 {
                     if (Path.BackwardSegments[startIndex].NOccupied > 0)
                         throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
-                            Vehicle, Path.BackwardSegments[startIndex].Sequence.First(), ClockTime);
+                            Vehicle, Path.BackwardSegments[startIndex].Sequence.First().Item1, ClockTime);
                     Execute(Vehicle.Move(Path.Routes[Vehicle].First()));
                     Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
                 }
@@ -194,7 +209,7 @@ namespace O2DESNet
                 {
                     if (Path.ForwardSegments[endIndex].NOccupied > 0)
                         throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
-                            Vehicle, Path.ForwardSegments[endIndex].Sequence.First(), ClockTime);
+                            Vehicle, Path.ForwardSegments[endIndex].Sequence.First().Item1, ClockTime);
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                 }
             }
@@ -214,10 +229,23 @@ namespace O2DESNet
                 Vehicle.Log(this);
                 Execute(Vehicle.Reach(Path.Routes[Vehicle].First()));
                 Path.Routes[Vehicle].RemoveAt(0);
-                if (Path.Routes[Vehicle].Count > 0) Execute(new MoveEvent(Path, Vehicle));
-                else if (Path.NextPaths[Vehicle] != null) Execute(new ExitEvent(Path, Vehicle));
+
+                if (Path.Routes[Vehicle].Count > 0) Execute(new MoveEvent(Path, Vehicle)); // keep moving on the Path
+                else if (Vehicle.PathToNext != null) Execute(new ExitEvent(Path, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
+        }
+
+        private class CallToExitEvent : Event
+        {
+            public Path Path { get; private set; }
+            internal CallToExitEvent(Path path) { Path = path; }
+            public override void Invoke()
+            {
+                foreach (var innerServer in Path.ForwardSegments.Concat(Path.BackwardSegments))
+                    Execute(innerServer.Depart());
+            }
+            public override string ToString() { return string.Format("{0}_CallToExit", Path); }
         }
         #endregion
 
@@ -226,13 +254,23 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Vehicle, Event>> OnExit { get; private set; }
         #endregion
 
         #region Exeptions
         public class StatusException : Exception
         {
             public StatusException(string msg) : base(string.Format("Path Status Exception: {0}", msg)) { }
+        }
+        public class ToExitConditionNotSpecifiedException : Exception
+        {
+            public Path Path { get; set; }
+            public ToExitConditionNotSpecifiedException() : base("ToExit condition of Path has to be specified.") { }
+        }
+        public class HasZeroVacancy : Exception
+        {
+            public Path Path { get; set; }
+            public Vehicle Vehicle { get; set; }
+            public HasZeroVacancy() : base("Ensure Path has positive vacancy before move Vehicle in.") { }
         }
         public class CollisionException : Exception
         {
@@ -268,10 +306,7 @@ namespace O2DESNet
                     {
                         Capacity = Config.Capacity,
                         ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
-                        ToDepart = veh => Routes[veh].Count > 1 || (NextPaths[veh] != null && NextPaths[veh].Vacancy > 0),
-                        /// vehicle will be stucked in following case:
-                        /// 1. current segment is the last in the route, and
-                        /// 2. there is no next path towards the target (i.e., the last in the route is the target), or the next path is full
+                        ToDepart = veh => Routes[veh].First().Accessible(via: this)
                     },
                     DefaultRS.Next());
                 segment.OnDepart.Add(veh => new ReachEvent(this, veh));
@@ -280,7 +315,6 @@ namespace O2DESNet
             ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
             BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
             Routes = new Dictionary<Vehicle, List<ControlPoint>>();
-            NextPaths = new Dictionary<Vehicle, Path>();
 
             // connect sub-components
             //H_Server.OnDepart.Add(R_Server.Start());
@@ -288,7 +322,6 @@ namespace O2DESNet
             //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events
-            OnExit = new List<Func<Vehicle, Event>>();
 
             // initialize event, compulsory if it's assembly
             //InitEvents.Add(R_Server.Start());

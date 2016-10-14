@@ -58,7 +58,11 @@ namespace O2DESNet
             /// <summary>
             /// Get the next path for reaching the target
             /// </summary>
-            public Path.Statics GetPathFor(Statics target) { return PathingTable[RoutingTable[target]]; }
+            public Path.Statics GetPathFor(Statics target)
+            {
+                if (target == this) return null;
+                return PathingTable[RoutingTable[target]];
+            }
         }
         #endregion
 
@@ -66,7 +70,17 @@ namespace O2DESNet
         public PathMover PathMover { get; internal set; }
         public HashSet<Vehicle> Outgoing { get; private set; }
         public HashSet<Vehicle> Incoming { get; private set; }
-        public HashSet<Vehicle> At { get; private set; }
+        public Vehicle At { get; internal set; }
+        /// <summary>
+        /// Chech if the control point is accessible via the given path
+        /// </summary>
+        public bool Accessible (Path via)
+        {
+            if (At != null) return false;
+            foreach(var path in Config.Positions.Keys.Select(i => PathMover.Paths[i]))
+                if (path != via && path.Vacancy < 1) return false;
+            return true;
+        }
         #endregion
 
         #region Events
@@ -96,7 +110,7 @@ namespace O2DESNet
                 if (!ControlPoint.Incoming.Contains(Vehicle)) throw new VehicleIsNotIncomingException();
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.Incoming.Remove(Vehicle);
-                ControlPoint.At.Add(Vehicle);
+                ControlPoint.At = Vehicle;
             }
             public override string ToString() { return string.Format("{0}_Reach", ControlPoint); }
         }
@@ -111,9 +125,9 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (!ControlPoint.At.Contains(Vehicle)) throw new VehicleIsNotAtException();
+                if (ControlPoint.At != Vehicle) throw new VehicleIsNotAtException();
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
-                ControlPoint.At.Remove(Vehicle);
+                ControlPoint.At = null;
                 ControlPoint.Outgoing.Add(Vehicle);
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
@@ -166,7 +180,7 @@ namespace O2DESNet
             Name = "ControlPoint";
             Outgoing = new HashSet<Vehicle>();
             Incoming = new HashSet<Vehicle>();
-            At = new HashSet<Vehicle>();
+            At = null;
         }
 
         public override void WarmedUp(DateTime clockTime) { }
