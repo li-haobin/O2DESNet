@@ -198,6 +198,9 @@ namespace O2DESNet
                 var pathToNext = Vehicle.PathToNext;
                 if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
+
+                if (Vehicle.Targets.Count == 0)
+                    foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }

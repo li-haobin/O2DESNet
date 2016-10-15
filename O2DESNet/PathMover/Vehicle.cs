@@ -90,8 +90,7 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                Execute(Vehicle.Current.MoveOut(Vehicle));
-                Execute(Vehicle.Next.MoveIn(Vehicle));
+                Execute(Vehicle.Current.Move(Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Move", Vehicle); }
         }
@@ -103,12 +102,10 @@ namespace O2DESNet
             {
                 var next = Vehicle.Next;
                 Vehicle.Log(this);
-                Execute(Vehicle.Current.Leave(Vehicle));
                 Execute(next.Reach(Vehicle));
                 Vehicle.Current = next;
 
-                if (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
-                if (Vehicle.Targets.Count == 0) Execute(new CompleteEvent(Vehicle));
+                while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);                
             }
             public override string ToString() { return string.Format("{0}_Reach", Vehicle); }
         }
@@ -125,31 +122,38 @@ namespace O2DESNet
             {
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on MoveTo event.");
                 Vehicle.Log(this);
-                Vehicle.Targets.AddRange(Targets);
-
-                if (Vehicle.Targets.First() == Vehicle.Current) Execute(Vehicle.Reach());
-                else Execute(Vehicle.PathToNext.Move(Vehicle));
-
+                if (Vehicle.Targets.Count > 0) Vehicle.Targets.AddRange(Targets);
+                else
+                {
+                    Vehicle.Targets.AddRange(Targets);
+                    if (Vehicle.Targets.First() != Vehicle.Current) Execute(Vehicle.PathToNext.Move(Vehicle));
+                }
             }
             public override string ToString() { return string.Format("{0}_MoveTo", Vehicle); }
         }
-        private class CompleteEvent : Event
+        private class ClearTargetsEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            internal CompleteEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            internal ClearTargetsEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
-                Vehicle.Log(this);
-                foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
+                if (Vehicle.Targets.Count > 0) Vehicle.Targets = new List<ControlPoint> { Vehicle.Targets.First() };
             }
-            public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
+            public override string ToString() { return string.Format("{0}_ClearTargets", Vehicle); }
         }
         #endregion
 
         #region Input Events - Getters
         public Event PutOn(ControlPoint current) { return new PutOnEvent(this, current); }
         public Event PutOff() { return new PutOffEvent(this); }
+        /// <summary>
+        /// Move the vehicle to a list of targets in sequence, append to the list if there are existing targets
+        /// </summary>
         public Event MoveTo(List<ControlPoint> targets) { return new MoveToEvent(this, targets); }
+        /// <summary>
+        /// Clear all targets except the first one which is being executed.
+        /// </summary>
+        public Event ClearTargets() { return new ClearTargetsEvent(this); }
         
         // Moving from control point to control point
         internal Event Move() { return new MoveEvent(this); }

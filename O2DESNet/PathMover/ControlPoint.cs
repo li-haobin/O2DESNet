@@ -70,8 +70,6 @@ namespace O2DESNet
 
         #region Dynamics
         public PathMover PathMover { get; internal set; }
-        public HashSet<Vehicle> Outgoing { get; private set; }
-        public HashSet<Vehicle> Incoming { get; private set; }
         public Vehicle At { get; internal set; }
         /// <summary>
         /// Chech if the control point is accessible via the given path
@@ -103,18 +101,6 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_MoveIn", ControlPoint); }
         }
-        private class MoveInEvent : Event
-        {
-            public ControlPoint ControlPoint { get; private set; }
-            public Vehicle Vehicle { get; private set; }
-            internal MoveInEvent(ControlPoint controlPoint, Vehicle vehicle)
-            {
-                ControlPoint = controlPoint;
-                Vehicle = vehicle;
-            }
-            public override void Invoke() { ControlPoint.Incoming.Add(Vehicle); }
-            public override string ToString() { return string.Format("{0}_MoveIn", ControlPoint); }
-        }
         private class ReachEvent : Event
         {
             public ControlPoint ControlPoint { get; private set; }
@@ -126,18 +112,16 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (!ControlPoint.Incoming.Contains(Vehicle)) throw new VehicleIsNotIncomingException();
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
-                ControlPoint.Incoming.Remove(Vehicle);
                 ControlPoint.At = Vehicle;
             }
             public override string ToString() { return string.Format("{0}_Reach", ControlPoint); }
         }
-        private class MoveOutEvent : Event
+        private class MoveEvent : Event
         {
             public ControlPoint ControlPoint { get; private set; }
             public Vehicle Vehicle { get; private set; }
-            internal MoveOutEvent(ControlPoint controlPoint, Vehicle vehicle)
+            internal MoveEvent(ControlPoint controlPoint, Vehicle vehicle)
             {
                 ControlPoint = controlPoint;
                 Vehicle = vehicle;
@@ -147,33 +131,14 @@ namespace O2DESNet
                 if (ControlPoint.At != Vehicle) throw new VehicleIsNotAtException();
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = null;
-                ControlPoint.Outgoing.Add(Vehicle);
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
-        }
-        private class LeaveEvent : Event
-        {
-            public ControlPoint ControlPoint { get; private set; }
-            public Vehicle Vehicle { get; private set; }
-            internal LeaveEvent(ControlPoint controlPoint, Vehicle vehicle)
-            {
-                ControlPoint = controlPoint;
-                Vehicle = vehicle;
-            }
-            public override void Invoke()
-            {
-                if (!ControlPoint.Outgoing.Contains(Vehicle)) throw new VehicleIsNotOutgoingException();
-                ControlPoint.Outgoing.Remove(Vehicle);
-            }
-            public override string ToString() { return string.Format("{0}_Leave", ControlPoint); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event MoveIn(Vehicle vehicle) { return new MoveInEvent(this, vehicle); }
         public Event Reach(Vehicle vehicle) { return new ReachEvent(this, vehicle); }
-        public Event MoveOut(Vehicle vehicle) { return new MoveOutEvent(this, vehicle); }
-        public Event Leave(Vehicle vehicle) { return new LeaveEvent(this, vehicle); }
+        public Event Move(Vehicle vehicle) { return new MoveEvent(this, vehicle); }
         #endregion
 
         #region Output Events - Reference to Getters
@@ -201,8 +166,6 @@ namespace O2DESNet
         public ControlPoint(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
             Name = "ControlPoint";
-            Outgoing = new HashSet<Vehicle>();
-            Incoming = new HashSet<Vehicle>();
             At = null;
             IncomingSegments = new List<FIFOServer<Vehicle>>();
             OutgoingSegments = new List<FIFOServer<Vehicle>>();

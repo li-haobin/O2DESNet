@@ -28,26 +28,44 @@ namespace O2DESNet.Demos.PathMoverSystem
         #endregion
 
         #region Events
-        private class TestEvent : Event
+        private class TravelEvent : Event
         {
             public PathMoverSystem PathMoverSystem { get; private set; }
             public Vehicle Vehicle { get; private set; }
-            public ControlPoint From { get; private set; }
-            public ControlPoint To { get; private set; }
-            internal TestEvent(PathMoverSystem pathMoverSystem, Vehicle vehicle, ControlPoint from, ControlPoint to)
+            internal TravelEvent(PathMoverSystem pathMoverSystem, Vehicle vehicle)
             {
                 PathMoverSystem = pathMoverSystem;
                 Vehicle = vehicle;
-                From = from;
-                To = to;
             }
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                Execute(Vehicle.PutOn(From));
-                Execute(Vehicle.MoveTo(new List<ControlPoint> { To, From }));
+                if (Vehicle.Current == null) Execute(Vehicle.PutOn(GetControlPoint()));
+                if (Vehicle.OnComplete.Count == 0) Vehicle.OnComplete.Add(() => new ScheduleEvent(PathMoverSystem, Vehicle));
+
+                Execute(Vehicle.MoveTo(new List<ControlPoint> { GetControlPoint(), GetControlPoint() }));
+                
             }
-            public override string ToString() { return string.Format("{0}_Test", PathMoverSystem); }
+            private ControlPoint GetControlPoint()
+            {
+                return PathMoverSystem.PathMover.ControlPoints.Values.ElementAt(PathMoverSystem.DefaultRS.Next(PathMoverSystem.PathMover.ControlPoints.Count));
+            }
+            public override string ToString() { return string.Format("{0}_Travel", PathMoverSystem); }
+        }
+        private class ScheduleEvent : Event
+        {
+            public PathMoverSystem PathMoverSystem { get; private set; }
+            public Vehicle Vehicle { get; private set; }
+            internal ScheduleEvent(PathMoverSystem pathMoverSystem, Vehicle vehicle)
+            {
+                PathMoverSystem = pathMoverSystem;
+                Vehicle = vehicle;
+            }
+            public override void Invoke()
+            {
+                Schedule(new TravelEvent(PathMoverSystem, Vehicle), TimeSpan.FromSeconds(5));
+            }
+            public override string ToString() { return string.Format("{0}_Schedule", PathMoverSystem); }
         }
         #endregion
 
@@ -94,20 +112,14 @@ namespace O2DESNet.Demos.PathMoverSystem
             PathMover = new PathMover(Config.PathMover, DefaultRS.Next());
 
             // initialize event, compulsory if it's assembly
-            InitEvents.Add(new TestEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true }, DefaultRS.Next()),
-                PathMover.ControlPoints.ElementAt(3).Value,
-                PathMover.ControlPoints.ElementAt(0).Value
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true }, DefaultRS.Next())
                 ));
-            InitEvents.Add(new TestEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next()),
-                PathMover.ControlPoints.ElementAt(9).Value,
-                PathMover.ControlPoints.ElementAt(7).Value
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next())
                 ));
-            InitEvents.Add(new TestEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true }, DefaultRS.Next()),
-                PathMover.ControlPoints.ElementAt(1).Value,
-                PathMover.ControlPoints.ElementAt(0).Value
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true }, DefaultRS.Next())
                 ));
         }
 
