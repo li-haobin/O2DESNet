@@ -240,22 +240,10 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }
-
-        private class CallToExitEvent : Event
-        {
-            public Path Path { get; private set; }
-            internal CallToExitEvent(Path path) { Path = path; }
-            public override void Invoke()
-            {
-                foreach (var innerServer in Path.ForwardSegments.Concat(Path.BackwardSegments))
-                    Execute(innerServer.Depart());
-            }
-            public override string ToString() { return string.Format("{0}_CallToExit", Path); }
-        }
         #endregion
 
         #region Input Events - Getters
-        public Event Enter(Vehicle vehicle) { return new EnterEvent(this, vehicle); }
+        internal Event Enter(Vehicle vehicle) { return new EnterEvent(this, vehicle); }
         #endregion
 
         #region Output Events - Reference to Getters

@@ -129,6 +129,10 @@ namespace O2DESNet
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on Depart event.");
                 Vehicle.Log(this);
                 Vehicle.Target = Target;
+
+                if (Vehicle.Target == Vehicle.Current) Execute(new ArriveEvent(Vehicle));
+                else Execute(Vehicle.PathToNext.Enter(Vehicle));
+
             }
             public override string ToString() { return string.Format("{0}_Depart", Vehicle); }
         }
@@ -140,8 +144,9 @@ namespace O2DESNet
             {
                 if (Vehicle.Target == null) throw new VehicleStatusException("'Target' ControlPoint cannot be null on Arrive event");
                 Vehicle.Log(this);
-                Vehicle.Current = Vehicle.Target;
                 Vehicle.Target = null;
+
+                ///
             }
             public override string ToString() { return string.Format("{0}_Arrive", Vehicle); }
         }
@@ -151,9 +156,9 @@ namespace O2DESNet
         public Event PutOn(ControlPoint current) { return new PutOnEvent(this, current); }
         public Event PutOff() { return new PutOffEvent(this); }
         public Event Depart(ControlPoint target) { return new DepartEvent(this, target); }
-        public Event Arrive() { return new ArriveEvent(this); }
-        public Event Move(ControlPoint next) { return new MoveEvent(this, next); }
-        public Event Reach(ControlPoint next) { return new ReachEvent(this, next); }
+        // Moving from control point to control point, for internal calls
+        internal Event Move(ControlPoint next) { return new MoveEvent(this, next); }
+        internal Event Reach(ControlPoint next) { return new ReachEvent(this, next); }
         #endregion
 
         #region Output Events - Reference to Getters

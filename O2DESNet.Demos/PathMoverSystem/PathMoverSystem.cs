@@ -46,7 +46,6 @@ namespace O2DESNet.Demos.PathMoverSystem
                 Vehicle.Log(this);
                 Execute(Vehicle.PutOn(From));
                 Execute(Vehicle.Depart(To));
-                Execute(Vehicle.PathToNext.Enter(Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Test", PathMoverSystem); }
         }

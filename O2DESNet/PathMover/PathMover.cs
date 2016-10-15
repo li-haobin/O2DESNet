@@ -151,6 +151,9 @@ namespace O2DESNet
                             path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i - 1], path);
                 }
             }
+            /// <summary>
+            /// For constructing the graph
+            /// </summary>
             private List<Tuple<int, int, double>> GetEdges(Path.Statics path)
             {
                 var edges = new List<Tuple<int, int, double>>();
@@ -268,7 +271,6 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        //public Event Depart() { return H_Server.Depart(); }
         //public Event Start(TLoad load)
         //{
         //    if (Vancancy < 1) throw new HasZeroVacancyException();
