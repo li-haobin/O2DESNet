@@ -10,6 +10,7 @@ namespace O2DESNet
     public class Vehicle : Load<Vehicle.Statics>
     {
         #region Sub-Components
+        internal FIFOServer<Vehicle> Segment { get; set; } = null;
         #endregion
 
         #region Statics
@@ -62,6 +63,7 @@ namespace O2DESNet
             {
                 if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");                
                 Vehicle.Current = ControlPoint;
+                ControlPoint.PathMover.Vehicles.Add(Vehicle);
                 Execute(new ControlPoint.PutOnEvent(ControlPoint, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_PutOn", Vehicle); }
@@ -76,6 +78,7 @@ namespace O2DESNet
                 if (Vehicle.Targets.Count > 0) throw new VehicleStatusException("'Targets' must be empty on PutOff event.");
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on PutOff event.");
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
+                Vehicle.Current.PathMover.Vehicles.Remove(Vehicle);
                 Vehicle.Current = null;
             }
             public override string ToString() { return string.Format("{0}_PutOff", Vehicle); }
@@ -175,5 +178,22 @@ namespace O2DESNet
         public override void Log(Event evnt) { if (Category.KeepTrack) base.Log(evnt); }
 
         public override void WarmedUp(DateTime clockTime) { }
+
+        public override void WriteToConsole()
+        {
+            Console.Write("{0}:\t", this);
+            if (Targets.Count > 0)
+            {
+                Console.Write("{0} - {1}", Current, PathToNext);
+                if (Segment.Delayed.Contains(this)) Console.Write("!");
+                if (Segment.Served.Contains(this)) Console.Write("!!");
+                Console.Write(" -> {0}\t", Next);
+                Console.Write("*");
+                foreach (var cp in Targets) Console.Write("{0} ", cp);
+                Console.WriteLine();
+            }
+            else Console.WriteLine(Current);
+            
+        }
     }
 }

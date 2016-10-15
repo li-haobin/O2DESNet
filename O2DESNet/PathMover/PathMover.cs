@@ -249,6 +249,7 @@ namespace O2DESNet
         #region Dynamics
         public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }  
         public Dictionary<Path.Statics, Path> Paths { get; private set; }
+        public HashSet<Vehicle> Vehicles { get; private set; }
         #endregion
 
         #region Events
@@ -301,6 +302,7 @@ namespace O2DESNet
             Config.Initialize();
             ControlPoints = Config.ControlPoints.ToDictionary(cfg => cfg, cfg => new ControlPoint(cfg, DefaultRS.Next(), string.Format("CP${0}", cfg.Index)) { PathMover = this });
             Paths = Config.Paths.ToDictionary(cfg => cfg, cfg => new Path(cfg, DefaultRS.Next(), string.Format("PATH${0}", cfg.Index)) { PathMover = this });
+            Vehicles = new HashSet<Vehicle>();
 
             // Attach Path Segments (FIFOServers) to Control Points
             foreach (var path in Paths.Values)
@@ -336,13 +338,16 @@ namespace O2DESNet
         {
             Console.WriteLine("=== Paths ===");
             foreach (var path in Paths.Values) path.WriteToConsole();
+            Console.WriteLine();
+
+            Console.WriteLine("=== Vehicles ===");
+            foreach (var veh in Vehicles) veh.WriteToConsole();
+            Console.WriteLine();
+
             Console.WriteLine("---------------------------");
             Console.WriteLine("Remarks:");
             Console.WriteLine("! : Delayed by slow moving ahead");
             Console.WriteLine("!!: Completely stopped due zero vacancy ahead.");
-
-            Console.WriteLine("=== Vehicles ===");
-            //foreach (var path in Paths.Values) path.WriteToConsole();
         }
     }
 }

@@ -168,6 +168,7 @@ namespace O2DESNet
                             Vehicle, Path.BackwardSegments[startIndex].Sequence.First(), ClockTime);
                     Execute(Vehicle.Move());
                     Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
+                    Vehicle.Segment = Path.ForwardSegments[startIndex];
                 }
                 else
                 {
@@ -175,6 +176,7 @@ namespace O2DESNet
                         throw new CollisionException(Path, Vehicle.Current, next,
                             Vehicle, Path.ForwardSegments[endIndex].Sequence.First(), ClockTime);
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
+                    Vehicle.Segment = Path.BackwardSegments[endIndex];
                 }
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
