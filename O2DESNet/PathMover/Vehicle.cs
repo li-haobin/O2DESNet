@@ -26,14 +26,14 @@ namespace O2DESNet
 
         #region Dynamics
         public virtual double Speed { get { return Category.Speed; } }
-        public ControlPoint Target { get; private set; } = null;
+        public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
         public ControlPoint Current { get; private set; } = null;        
         public ControlPoint Next
         {
             get
             {
-                if (Target != null)
-                    return Current.PathMover.ControlPoints[Current.Config.RoutingTable[Target.Config]];
+                if (Targets.Count > 0)
+                    return Current.PathMover.ControlPoints[Current.Config.RoutingTable[Targets.First().Config]];
                 else return null;
             }
         }
@@ -41,8 +41,8 @@ namespace O2DESNet
         {
             get
             {
-                if (Target != null && Target != Current)
-                    return Current.PathMover.Paths[Current.Config.GetPathFor(Target.Config)];
+                if (Targets.Count > 0 && Targets.First() != Current)
+                    return Current.PathMover.Paths[Current.Config.GetPathFor(Targets.First().Config)];
                 else return null;
             }
         }
@@ -73,7 +73,7 @@ namespace O2DESNet
             internal PutOffEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
-                if (Vehicle.Target != null) throw new VehicleStatusException("'Target' must be null on PutOff event.");
+                if (Vehicle.Targets.Count > 0) throw new VehicleStatusException("'Targets' must be empty on PutOff event.");
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on PutOff event.");
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 Vehicle.Current = null;
@@ -103,50 +103,50 @@ namespace O2DESNet
                 Execute(Vehicle.Current.Leave(Vehicle));
                 Execute(next.Reach(Vehicle));
                 Vehicle.Current = next;
+
+                if (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
+                if (Vehicle.Targets.Count == 0) Execute(new CompleteEvent(Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Reach", Vehicle); }
         }
-        private class DepartEvent : Event
+        private class MoveToEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public ControlPoint Target { get; private set; }
-            internal DepartEvent(Vehicle vehicle, ControlPoint target)
+            public List<ControlPoint> Targets { get; private set; }
+            internal MoveToEvent(Vehicle vehicle, List<ControlPoint> targets)
             {
                 Vehicle = vehicle;
-                Target = target;
+                Targets = targets;
             }
             public override void Invoke()
             {
-                if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on Depart event.");
+                if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on MoveTo event.");
                 Vehicle.Log(this);
-                Vehicle.Target = Target;
+                Vehicle.Targets.AddRange(Targets);
 
-                if (Vehicle.Target == Vehicle.Current) Execute(new ArriveEvent(Vehicle));
+                if (Vehicle.Targets.First() == Vehicle.Current) Execute(Vehicle.Reach());
                 else Execute(Vehicle.PathToNext.Move(Vehicle));
 
             }
-            public override string ToString() { return string.Format("{0}_Depart", Vehicle); }
+            public override string ToString() { return string.Format("{0}_MoveTo", Vehicle); }
         }
-        private class ArriveEvent : Event
+        private class CompleteEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            internal ArriveEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            internal CompleteEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
-                if (Vehicle.Target == null) throw new VehicleStatusException("'Target' ControlPoint cannot be null on Arrive event");
                 Vehicle.Log(this);
-                Vehicle.Target = null;
-
-                foreach (var evnt in Vehicle.OnArrive) Execute(evnt());
+                foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
             }
-            public override string ToString() { return string.Format("{0}_Arrive", Vehicle); }
+            public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
         #endregion
 
         #region Input Events - Getters
         public Event PutOn(ControlPoint current) { return new PutOnEvent(this, current); }
         public Event PutOff() { return new PutOffEvent(this); }
-        public Event Depart(ControlPoint target) { return new DepartEvent(this, target); }
+        public Event MoveTo(List<ControlPoint> targets) { return new MoveToEvent(this, targets); }
         
         // Moving from control point to control point
         internal Event Move() { return new MoveEvent(this); }
@@ -154,7 +154,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Event>> OnArrive { get; private set; }
+        public List<Func<Event>> OnComplete { get; private set; }
         #endregion
 
         #region Exeptions
@@ -169,7 +169,7 @@ namespace O2DESNet
             Name = "Veh";
 
             // initialize for output events
-            OnArrive = new List<Func<Event>>();
+            OnComplete = new List<Func<Event>>();
         }
 
         public override void Log(Event evnt) { if (Category.KeepTrack) base.Log(evnt); }

@@ -212,7 +212,9 @@ namespace O2DESNet
 
         public override void WriteToConsole()
         {
-            throw new NotImplementedException();
+            Console.Write("|{0}", this);
+            if (At != null) Console.Write(":{0}", At);
+            Console.Write("|");
         }
     }
 }

@@ -276,16 +276,42 @@ namespace O2DESNet
 
         public override void WriteToConsole()
         {
-            //Console.WriteLine("[{0}]", this);
-            //Console.Write("Serving: ");
-            //foreach (var load in Serving) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Served: ");
-            //foreach (var load in Served) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Restoring: ");
-            //foreach (var load in Restoring) Console.Write("{0} ", load);
-            //Console.WriteLine();
+            Console.Write("{0}:\t", this);
+            for (int i = 0; i < ControlPoints.Length - 1; i++)
+            {
+                ControlPoints[i].WriteToConsole();
+                Console.Write(" ");
+
+                var forward = ForwardSegments[i].Sequence.ToList(); forward.Reverse();
+                var backward = BackwardSegments[i].Sequence.ToList();
+                if (forward.Count > 0)
+                {
+                    Console.Write("- ");
+                    foreach (var veh in forward.Concat(backward))
+                    {
+                        Console.Write(veh);
+                        if (ForwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
+                        if (ForwardSegments[i].Served.Contains(veh)) Console.Write("!!");
+                        Console.Write(" ");
+                    }
+                    Console.Write("-> ");
+                }
+                else if (backward.Count > 0)
+                {
+                    Console.Write("<- ");
+                    foreach (var veh in forward.Concat(backward))
+                    {
+                        Console.Write(veh);
+                        if (BackwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
+                        if (BackwardSegments[i].Served.Contains(veh)) Console.Write("!!");
+                        Console.Write(" ");
+                    }
+                    Console.Write("- ");
+                }
+                else Console.Write("- ");
+            }
+            ControlPoints.Last().WriteToConsole();
+            Console.WriteLine();
         }
     }
 }

@@ -334,16 +334,15 @@ namespace O2DESNet
 
         public override void WriteToConsole()
         {
-            //Console.WriteLine("[{0}]", this);
-            //Console.Write("Serving: ");
-            //foreach (var load in Serving) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Served: ");
-            //foreach (var load in Served) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Restoring: ");
-            //foreach (var load in Restoring) Console.Write("{0} ", load);
-            //Console.WriteLine();
+            Console.WriteLine("=== Paths ===");
+            foreach (var path in Paths.Values) path.WriteToConsole();
+            Console.WriteLine("---------------------------");
+            Console.WriteLine("Remarks:");
+            Console.WriteLine("! : Delayed by slow moving ahead");
+            Console.WriteLine("!!: Completely stopped due zero vacancy ahead.");
+
+            Console.WriteLine("=== Vehicles ===");
+            //foreach (var path in Paths.Values) path.WriteToConsole();
         }
     }
 }
