@@ -315,23 +315,12 @@ namespace O2DESNet
                     path.ControlPoints[i + 1].OutgoingSegments.Add(path.BackwardSegments[i]);
                 }
             }
-
-            // connect sub-components
-            //H_Server.OnDepart.Add(R_Server.Start());
-            //R_Server.Statics.ToDepart = load => true;
-            //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
-
-            // initialize for output events
-            //OnRestore = new List<Func<Event>>(); 
-
-            // initialize event, compulsory if it's assembly
-            //InitEvents.Add(R_Server.Start());
         }
 
         public override void WarmedUp(DateTime clockTime)
         {
-            //H_Server.WarmedUp(clockTime);
-            //R_Server.WarmedUp(clockTime);
+            foreach (var path in Paths.Values) path.WarmedUp(clockTime);
+            foreach (var cp in ControlPoints.Values) cp.WarmedUp(clockTime);
         }
 
         public override void WriteToConsole()

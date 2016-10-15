@@ -15,6 +15,8 @@ namespace O2DESNet.Demos.PathMoverSystem
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
 
+            sim.WarmUp(TimeSpan.FromHours(3));
+
             while (true)
             {
                 sim.Run(1);
@@ -22,13 +24,8 @@ namespace O2DESNet.Demos.PathMoverSystem
                 Console.Clear();
                 Console.WriteLine("-------------------------");
                 Console.WriteLine(sim.ClockTime);
-                pmSys.PathMover.WriteToConsole();
-
-                //Console.WriteLine("Id\tVacancy\tTravelling\tDelayed\tStopped");
-                //foreach(var path in pmSys.PathMover.Paths.Values)
-                //{
-                //    Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}", path, path.Vacancy, path.Travelling.Count, path.Delayed.Count, path.Stopped.Count);
-                //}
+                pmSys.WriteToConsole();
+                
                 Console.ReadKey();
             }
 

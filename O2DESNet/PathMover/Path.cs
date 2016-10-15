@@ -122,6 +122,15 @@ namespace O2DESNet
         /// All vehicles occupying the Path.
         /// </summary>
         public HashSet<Vehicle> Occupying { get { return new HashSet<Vehicle>(Travelling.Concat(Stopped).OrderBy(veh => veh.Id)); } }
+        public double Utilization
+        {
+            get
+            {
+                return (ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.HourCounter.CumValue) +
+                    ControlPoints.Sum(cp => cp.HourCounter.CumValue)) /
+                    ForwardSegments.First().HourCounter.TotalHours / Config.Capacity;
+            }
+        }
         #endregion
 
         #region Events
@@ -199,8 +208,7 @@ namespace O2DESNet
                 if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
 
-                if (Vehicle.Targets.Count == 0)
-                    foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
+                if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }
@@ -275,13 +283,12 @@ namespace O2DESNet
 
         public override void WarmedUp(DateTime clockTime)
         {
-            //H_Server.WarmedUp(clockTime);
-            //R_Server.WarmedUp(clockTime);
+            foreach (var seg in ForwardSegments.Concat(BackwardSegments)) seg.WarmedUp(clockTime);
         }
 
         public override void WriteToConsole()
         {
-            Console.Write("{0}:\t", this);
+            Console.Write("{0} (Util.{1:F4}):\t", this, Utilization);
             for (int i = 0; i < ControlPoints.Length - 1; i++)
             {
                 ControlPoints[i].WriteToConsole();

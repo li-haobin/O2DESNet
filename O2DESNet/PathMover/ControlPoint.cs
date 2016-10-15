@@ -81,6 +81,7 @@ namespace O2DESNet
                 if (path != via && path.Vacancy < 1) return false;
             return true;
         }
+        public HourCounter HourCounter { get; private set; }
         #endregion
 
         #region Events
@@ -98,6 +99,7 @@ namespace O2DESNet
                 if (!ControlPoint.Accessible()) throw new ZeroVacancyException();
                 Vehicle.Log(this);
                 ControlPoint.At = Vehicle;
+                ControlPoint.HourCounter.ObserveCount(1, ClockTime);
             }
             public override string ToString() { return string.Format("{0}_MoveIn", ControlPoint); }
         }
@@ -114,6 +116,7 @@ namespace O2DESNet
             {
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = Vehicle;
+                ControlPoint.HourCounter.ObserveCount(1, ClockTime);
             }
             public override string ToString() { return string.Format("{0}_Reach", ControlPoint); }
         }
@@ -131,6 +134,7 @@ namespace O2DESNet
                 if (ControlPoint.At != Vehicle) throw new VehicleIsNotAtException();
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = null;
+                ControlPoint.HourCounter.ObserveCount(0, ClockTime);
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
         }
@@ -169,9 +173,10 @@ namespace O2DESNet
             At = null;
             IncomingSegments = new List<FIFOServer<Vehicle>>();
             OutgoingSegments = new List<FIFOServer<Vehicle>>();
+            HourCounter = new HourCounter();
         }
 
-        public override void WarmedUp(DateTime clockTime) { }
+        public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
 
         public override void WriteToConsole()
         {

@@ -125,22 +125,12 @@ namespace O2DESNet.Demos.PathMoverSystem
 
         public override void WarmedUp(DateTime clockTime)
         {
-            //H_Server.WarmedUp(clockTime);
-            //R_Server.WarmedUp(clockTime);
+            PathMover.WarmedUp(clockTime);
         }
 
         public override void WriteToConsole()
         {
-            //Console.WriteLine("[{0}]", this);
-            //Console.Write("Serving: ");
-            //foreach (var load in Serving) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Served: ");
-            //foreach (var load in Served) Console.Write("{0} ", load);
-            //Console.WriteLine();
-            //Console.Write("Restoring: ");
-            //foreach (var load in Restoring) Console.Write("{0} ", load);
-            //Console.WriteLine();
+            PathMover.WriteToConsole();
         }
     }
 }

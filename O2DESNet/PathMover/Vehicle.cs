@@ -126,7 +126,9 @@ namespace O2DESNet
                 else
                 {
                     Vehicle.Targets.AddRange(Targets);
-                    if (Vehicle.Targets.First() != Vehicle.Current) Execute(Vehicle.PathToNext.Move(Vehicle));
+                    while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
+                    if (Vehicle.Targets.Count > 0) Execute(Vehicle.PathToNext.Move(Vehicle));
+                    else Execute(Vehicle.Complete());
                 }
             }
             public override string ToString() { return string.Format("{0}_MoveTo", Vehicle); }
@@ -140,6 +142,13 @@ namespace O2DESNet
                 if (Vehicle.Targets.Count > 0) Vehicle.Targets = new List<ControlPoint> { Vehicle.Targets.First() };
             }
             public override string ToString() { return string.Format("{0}_ClearTargets", Vehicle); }
+        }
+        private class CompleteEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            internal CompleteEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            public override void Invoke() { foreach (var evnt in Vehicle.OnComplete) Execute(evnt()); }
+            public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
         #endregion
 
@@ -158,6 +167,7 @@ namespace O2DESNet
         // Moving from control point to control point
         internal Event Move() { return new MoveEvent(this); }
         internal Event Reach() { return new ReachEvent(this); }
+        internal Event Complete() { return new CompleteEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
@@ -186,7 +196,7 @@ namespace O2DESNet
         public override void WriteToConsole()
         {
             Console.Write("{0}:\t", this);
-            if (Targets.Count > 0)
+            if (Targets.Count > 0 && Targets.First() != Current)
             {
                 Console.Write("{0} - {1}", Current, PathToNext);
                 if (Segment.Delayed.Contains(this)) Console.Write("!");
