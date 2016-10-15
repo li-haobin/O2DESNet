@@ -137,7 +137,7 @@ namespace O2DESNet
                 Vehicle.Log(this);
                 Vehicle.Target = null;
 
-                ///
+                foreach (var evnt in Vehicle.OnArrive) Execute(evnt());
             }
             public override string ToString() { return string.Format("{0}_Arrive", Vehicle); }
         }
@@ -147,12 +147,14 @@ namespace O2DESNet
         public Event PutOn(ControlPoint current) { return new PutOnEvent(this, current); }
         public Event PutOff() { return new PutOffEvent(this); }
         public Event Depart(ControlPoint target) { return new DepartEvent(this, target); }
-        // Moving from control point to control point, for internal calls
+        
+        // Moving from control point to control point
         internal Event Move() { return new MoveEvent(this); }
         internal Event Reach() { return new ReachEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
+        public List<Func<Event>> OnArrive { get; private set; }
         #endregion
 
         #region Exeptions
@@ -167,6 +169,7 @@ namespace O2DESNet
             Name = "Veh";
 
             // initialize for output events
+            OnArrive = new List<Func<Event>>();
         }
 
         public override void Log(Event evnt) { if (Category.KeepTrack) base.Log(evnt); }
