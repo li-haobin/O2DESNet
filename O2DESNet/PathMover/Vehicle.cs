@@ -83,37 +83,28 @@ namespace O2DESNet
         private class MoveEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public ControlPoint Next { get; private set; }
-            internal MoveEvent(Vehicle vehicle, ControlPoint next)
-            {
-                Vehicle = vehicle;
-                Next = next;
-            }
+            internal MoveEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
                 Vehicle.Log(this);
                 Execute(Vehicle.Current.MoveOut(Vehicle));
-                Execute(Next.MoveIn(Vehicle));
+                Execute(Vehicle.Next.MoveIn(Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Move", Vehicle); }
         }
         private class ReachEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public ControlPoint Next { get; private set; }
-            internal ReachEvent(Vehicle vehicle, ControlPoint next)
-            {
-                Vehicle = vehicle;
-                Next = next;
-            }
+            internal ReachEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
+                var next = Vehicle.Next;
                 Vehicle.Log(this);
                 Execute(Vehicle.Current.Leave(Vehicle));
-                Execute(Next.Reach(Vehicle));
-                Vehicle.Current = Next;
+                Execute(next.Reach(Vehicle));
+                Vehicle.Current = next;
             }
-            public override string ToString() { return string.Format("{0}_Move", Vehicle); }
+            public override string ToString() { return string.Format("{0}_Reach", Vehicle); }
         }
         private class DepartEvent : Event
         {
@@ -131,7 +122,7 @@ namespace O2DESNet
                 Vehicle.Target = Target;
 
                 if (Vehicle.Target == Vehicle.Current) Execute(new ArriveEvent(Vehicle));
-                else Execute(Vehicle.PathToNext.Enter(Vehicle));
+                else Execute(Vehicle.PathToNext.Move(Vehicle));
 
             }
             public override string ToString() { return string.Format("{0}_Depart", Vehicle); }
@@ -157,8 +148,8 @@ namespace O2DESNet
         public Event PutOff() { return new PutOffEvent(this); }
         public Event Depart(ControlPoint target) { return new DepartEvent(this, target); }
         // Moving from control point to control point, for internal calls
-        internal Event Move(ControlPoint next) { return new MoveEvent(this, next); }
-        internal Event Reach(ControlPoint next) { return new ReachEvent(this, next); }
+        internal Event Move() { return new MoveEvent(this); }
+        internal Event Reach() { return new ReachEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters

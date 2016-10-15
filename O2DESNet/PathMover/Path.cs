@@ -76,10 +76,6 @@ namespace O2DESNet
         internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }         
         internal FIFOServer<Vehicle>[] BackwardSegments { get; private set; }
         /// <summary>
-        /// The routes on the path to be followed by the vehicle
-        /// </summary>
-        private Dictionary<Vehicle, List<ControlPoint>> Routes { get; set; }
-        /// <summary>
         /// Get index of given control point
         /// </summary>
         internal Dictionary<ControlPoint, int> Indices
@@ -129,42 +125,6 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        private class EnterEvent : Event
-        {
-            public Path Path { get; private set; }
-            public Vehicle Vehicle { get; private set; }
-            internal EnterEvent(Path path, Vehicle vehicle)
-            {
-                Path = path;
-                Vehicle = vehicle;
-            }
-            public override void Invoke()
-            {
-                Vehicle.Log(this);
-                if (!Path.Indices.ContainsKey(Vehicle.Current)) throw new StatusException("Vehicle has to be moved to any Control Point on the path before enter it.");
-                if (Path.Routes.ContainsKey(Vehicle)) throw new StatusException("Vehicle already exists on the path.");
-                
-                Path.Routes.Add(Vehicle, new List<ControlPoint>());
-                var cp = Vehicle.Current.Config;
-                while (true)
-                {
-                    if (cp.Equals(Vehicle.Target.Config)) break;
-                    var next = cp.RoutingTable[Vehicle.Target.Config];
-                    var path = cp.PathingTable[next];
-                    if (!path.Equals(Path.Config))
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Path.Routes[Vehicle].Add(Path.PathMover.ControlPoints[next]);
-                        cp = next;
-                    }
-                } 
-                Execute(new MoveEvent(Path, Vehicle));
-            }
-            public override string ToString() { return string.Format("{0}_Enter", Path); }
-        }
         private class ExitEvent : Event
         {
             public Path Path { get; private set; }
@@ -177,8 +137,6 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                Path.Routes.Remove(Vehicle);
-                Execute(new EnterEvent(Vehicle.PathToNext, Vehicle));
 
                 // pull vehicles from other paths to enter when vacancy is released
                 foreach (var seg in Path.ControlPoints // all Control Points on the Path
@@ -200,20 +158,21 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
+                var next = Vehicle.Next;
                 var startIndex = Path.Indices[Vehicle.Current];
-                var endIndex = Path.Indices[Path.Routes[Vehicle].First()];
+                var endIndex = Path.Indices[next];
                 if (startIndex < endIndex)
                 {
                     if (Path.BackwardSegments[startIndex].NOccupied > 0)
-                        throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
+                        throw new CollisionException(Path, Vehicle.Current, next,
                             Vehicle, Path.BackwardSegments[startIndex].Sequence.First(), ClockTime);
-                    Execute(Vehicle.Move(Path.Routes[Vehicle].First()));
+                    Execute(Vehicle.Move());
                     Execute(Path.ForwardSegments[startIndex].Start(Vehicle));
                 }
                 else
                 {
                     if (Path.ForwardSegments[endIndex].NOccupied > 0)
-                        throw new CollisionException(Path, Vehicle.Current, Path.Routes[Vehicle].First(),
+                        throw new CollisionException(Path, Vehicle.Current, next,
                             Vehicle, Path.ForwardSegments[endIndex].Sequence.First(), ClockTime);
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                 }
@@ -232,18 +191,18 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                Execute(Vehicle.Reach(Path.Routes[Vehicle].First()));
-                Path.Routes[Vehicle].RemoveAt(0);
+                Execute(Vehicle.Reach());
 
-                if (Path.Routes[Vehicle].Count > 0) Execute(new MoveEvent(Path, Vehicle)); // keep moving on the Path
-                else if (Vehicle.PathToNext != null) Execute(new ExitEvent(Path, Vehicle));
+                var pathToNext = Vehicle.PathToNext;
+                if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
+                if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }
         #endregion
 
         #region Input Events - Getters
-        internal Event Enter(Vehicle vehicle) { return new EnterEvent(this, vehicle); }
+        internal Event Move(Vehicle vehicle) { return new MoveEvent(this, vehicle); }
         #endregion
 
         #region Output Events - Reference to Getters
@@ -299,26 +258,14 @@ namespace O2DESNet
                     {
                         Capacity = Config.Capacity,
                         ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
-                        ToDepart = veh => Routes[veh].First().Accessible(via: this)
+                        ToDepart = veh => veh.Next.Accessible(via: this)
                     },
                     DefaultRS.Next());
                 segment.OnDepart.Add(veh => new ReachEvent(this, veh));
                 return segment;
             };
             ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
-            BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
-            Routes = new Dictionary<Vehicle, List<ControlPoint>>();
-            
-
-            // connect sub-components
-            //H_Server.OnDepart.Add(R_Server.Start());
-            //R_Server.Statics.ToDepart = load => true;
-            //R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
-
-            // initialize for output events
-
-            // initialize event, compulsory if it's assembly
-            //InitEvents.Add(R_Server.Start());
+            BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();   
         }
 
         public override void WarmedUp(DateTime clockTime)
