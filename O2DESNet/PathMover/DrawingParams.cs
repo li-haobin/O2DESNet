@@ -37,9 +37,9 @@ namespace O2DESNet
             PathStyle = new Pen(Color.DarkSlateGray, 1);
         }
 
-        public Point GetPoint(IEnumerable<double> coord)
+        public System.Drawing.Point GetPoint(IEnumerable<double> coord)
         {
-            return new Point(
+            return new System.Drawing.Point(
                 (int)Math.Round(Margin + (Width - Margin * 2) * (coord.ElementAt(0) - _minX) / (_maxX - _minX), 0),
                 (int)Math.Round(Margin + (Height - Margin * 2) * (coord.ElementAt(1) - _minY) / (_maxY - _minY), 0)
                 );

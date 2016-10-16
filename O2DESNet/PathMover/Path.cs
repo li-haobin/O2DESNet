@@ -32,6 +32,8 @@ namespace O2DESNet
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
 
             public List<DenseVector> Coordinates { get; private set; }
+            public List<Point> Coords { get; set; }
+
             public bool Crab { get; set; } = false;
 
             public Statics(PathMover.Statics pathMover)
@@ -67,7 +69,7 @@ namespace O2DESNet
             public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
             {
                 g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
-            }
+            }            
         }
         public enum Direction { Forward, Backward, TwoWay }
         #endregion

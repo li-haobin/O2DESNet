@@ -80,6 +80,8 @@
     <Compile Include="Components\Resource.cs" />
     <Compile Include="Components\RestoreServer.cs" />
     <Compile Include="Components\Server.cs" />
+    <Compile Include="Graphics\Point.cs" />
+    <Compile Include="Graphics\SVG.cs" />
     <Compile Include="PathMover\ControlPoint.cs" />
     <Compile Include="PathMover\Dijkstra.cs" />
     <Compile Include="PathMover\DrawingParams.cs" />
