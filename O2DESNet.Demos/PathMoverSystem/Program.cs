@@ -19,7 +19,7 @@ namespace O2DESNet.Demos.PathMoverSystem
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
 
-            sim.WarmUp(TimeSpan.FromHours(3));
+            //sim.WarmUp(TimeSpan.FromHours(3));
 
             while (true)
             {

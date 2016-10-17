@@ -285,13 +285,13 @@ namespace O2DESNet
                         posture: new Tuple<Point, double>(postures[1].Item1, postures[1].Item2 + 180));
                     // draw the mark
                     Tuple<Point, double> posture = path.Direction == Path.Direction.Backward ? postures[1] : postures[0];
-                    svg.Body += SVG.GetText(classId: "path_label", text: string.Format("PATH{0}", path.Index), reference: new Point(-6, -6 - 9), posture: posture);
+                    svg.Body += SVG.GetText(text: string.Format("PATH{0}", path.Index), classId: "path_label", reference: new Point(-6, -6 - 9), posture: posture);
                     // draw the control points
                     for (int i = 2; i < postures.Count; i++)
                         if (!processed.Contains(path.ControlPoints[i - 2]))
                         {
                             svg.Body += SVG.GetUse("cross", reference: new Point(4, 4), posture: postures[i]);
-                            svg.Body += SVG.GetText(classId: "cp_label", text: string.Format("CP{0}", path.ControlPoints[i - 2].Index), 
+                            svg.Body += SVG.GetText(text: string.Format("CP{0}", path.ControlPoints[i - 2].Index), classId: "cp_label",
                                 reference: new Point(-6, 6), posture: postures[i]);
                             processed.Add(path.ControlPoints[i - 2]);
                         }
@@ -415,6 +415,14 @@ namespace O2DESNet
                         posture: new Tuple<Point, double>(svg.Reference + posture.Item1 * scale, posture.Item2));
             }
 
+            svg.Size += new Point(0, 25);
+            svg.Body += SVG.GetText(clockTime.ToString()+string.Format(".{0:d3}", clockTime.Value.Millisecond),
+                new SVG.Style("clockTime",
+                    new SVG.Attr("text-anchor", "end"),
+                    new SVG.Attr("font-family", "Verdana"),
+                    new SVG.Attr("font-size", "22px"),
+                    new SVG.Attr("fill", "black")), 
+                new Point(25, 0), new Tuple<Point, double>(svg.Size, 0));
             return svg;
         }
     }

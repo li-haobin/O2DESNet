@@ -30,6 +30,10 @@ namespace O2DESNet
             public string ClassId { get; private set; }
             public Attr[] Attributes { get; private set; }
             public Style(string classId, params Attr[] attributes) { ClassId = classId; Attributes = attributes; }
+            public static string ToString(Style style, Func<string,string, string> format)
+            {
+                string str = ""; foreach (var attr in style.Attributes) str += format(attr.Name, attr.Value); return str;
+            }
         }
         public class Attr
         {
@@ -66,11 +70,19 @@ namespace O2DESNet
                 id, translate.X, translate.Y, posture.Item2, reference.X, reference.Y);
         }
 
-        public static string GetText(string classId, string text, Point reference, Tuple<Point, double> posture)
+        public static string GetText(string text, string classId, Point reference, Tuple<Point, double> posture)
         {
             Point translate = posture.Item1 - reference;
             return string.Format("<text class=\"{0}\" transform=\"translate({1},{2}) rotate({3}, {4}, {5})\">{6}</text>\n",
                 classId, translate.X, translate.Y, posture.Item2, reference.X, reference.Y, text);
+        }
+
+        public static string GetText(string text, Style style, Point reference, Tuple<Point, double> posture)
+        {
+            Point translate = posture.Item1 - reference;
+            return string.Format("<text {0} transform=\"translate({1},{2}) rotate({3}, {4}, {5})\">{6}</text>\n",
+                Style.ToString(style, (name, value) => string.Format("{0}=\"{1}\" ", name, value)),
+                translate.X, translate.Y, posture.Item2, reference.X, reference.Y, text);
         }
 
         public static string GetPath(IEnumerable<Point> path, string classId)
