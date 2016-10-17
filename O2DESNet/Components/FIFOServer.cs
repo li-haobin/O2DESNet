@@ -173,6 +173,6 @@ namespace O2DESNet
 
         public override void WarmedUp(DateTime clockTime) { InnerServer.WarmedUp(clockTime); }
 
-        public override void WriteToConsole() { InnerServer.WriteToConsole(); }
+        public override void WriteToConsole(DateTime? clockTime = null) { InnerServer.WriteToConsole(); }
     }
 }

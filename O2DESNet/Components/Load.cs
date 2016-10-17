@@ -39,7 +39,7 @@ namespace O2DESNet
 
         public override void WarmedUp(DateTime clockTime) { }
 
-        public override void WriteToConsole() { Console.WriteLine(this); }
+        public override void WriteToConsole(DateTime? clockTime = null) { Console.WriteLine(this); }
     }
 
     public abstract class Load<TStatics> : Load

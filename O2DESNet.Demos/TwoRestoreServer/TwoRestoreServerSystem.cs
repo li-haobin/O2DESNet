@@ -135,7 +135,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Server2.WarmedUp(clockTime);
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             Console.WriteLine("===[{0}]===", this); Console.WriteLine();
             Queue.WriteToConsole(); Console.WriteLine();

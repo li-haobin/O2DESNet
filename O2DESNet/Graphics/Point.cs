@@ -32,13 +32,13 @@ namespace O2DESNet
         /// <param name="coords">Points that form the curve</param>
         /// <param name="ratios">The proportions of the interests point on the curve</param>
         /// <returns>List of Tuples, in each Item1 is coordinate of the interest point, and Item2 is the direction</returns>
-        public static List<Tuple<Point, Point>> SlipOnCurve(List<Point> coords, List<double> ratios)
+        public static List<Tuple<Point, double>> SlipOnCurve(List<Point> coords, List<double> ratios)
         {
             var indices = Enumerable.Range(0, ratios.Count).OrderBy(i => ratios[i]).ToList();
             var distances = new List<double>();
             for (int i = 0; i < coords.Count - 1; i++) distances.Add(coords[i].Distance(coords[i + 1]));
             var total = distances.Sum();
-            var results = ratios.Select(p => (Tuple<Point, Point>)null).ToList();
+            var results = ratios.Select(p => (Tuple<Point, double>)null).ToList();
             double cum = distances.First();
             int k = 0, j = 0;
             while (k < ratios.Count && j < coords.Count)
@@ -48,9 +48,9 @@ namespace O2DESNet
 
                 if (dist <= cum)
                 {
-                    results[indices[k]] = new Tuple<Point, Point>(
+                    results[indices[k]] = new Tuple<Point, double>(
                         coords[j + 1] - (coords[j + 1] - coords[j]) / distances[j] * (cum - dist),
-                        coords[j + 1] - coords[j]);
+                        (coords[j + 1] - coords[j]).Degree());
                     k++;
                 }
                 else
@@ -61,5 +61,6 @@ namespace O2DESNet
             }
             return results;
         }
+        public static Tuple<Point, double> SlipOnCurve(List<Point> coords, double ratio) { return SlipOnCurve(coords, new List<double> { ratio }).First(); }
     }
 }

@@ -238,6 +238,66 @@ namespace O2DESNet
             }
 
             #endregion
+
+            public SVG Graph(double scale = 5)
+            {
+                var svg = new SVG();
+                var coords = Paths.SelectMany(path => path.Coords).ToList();
+                if (coords.Count == 0) return svg;
+
+                Point min = new Point(coords.Min(pt => pt.X), coords.Min(pt => pt.Y));
+                Point max = new Point(coords.Max(pt => pt.X), coords.Max(pt => pt.Y));
+                Point margin = new Point(25, 25);
+                svg.Size = (max - min) * scale + margin * 2;
+                svg.Reference = margin;
+
+                svg.Styles.Add(new SVG.Style("path",
+                        new SVG.Attr("fill", "none"),
+                        new SVG.Attr("stroke", "black"),
+                        new SVG.Attr("stroke-width", "1"),
+                        new SVG.Attr("stroke-dasharray", "3,3")
+                        ));
+                svg.Styles.Add(new SVG.Style("path_label",
+                        new SVG.Attr("text-anchor", "start"),
+                        new SVG.Attr("font-family", "Verdana"),
+                        new SVG.Attr("font-size", "9px"),
+                        new SVG.Attr("fill", "black")
+                        ));
+                svg.Styles.Add(new SVG.Style("cp_label",
+                        new SVG.Attr("text-anchor", "start"),
+                        new SVG.Attr("font-family", "Verdana"),
+                        new SVG.Attr("font-size", "9px"),
+                        new SVG.Attr("fill", "darkred")
+                        ));
+                svg.Defs += SVG.GetArrowMark(id: "arrow", color: "black", width: 10, height: 8);
+                svg.Defs += SVG.GetCrossMark(id: "cross", color: "darkred", width: 8);
+
+                var processed = new HashSet<ControlPoint.Statics>();
+                foreach (var path in Paths)
+                {
+                    coords = path.Coords.Select(pt => (pt - min) * scale + margin).ToList(); // transform coords for proper view
+                    // draw the path
+                    svg.Body += SVG.GetPath(path: coords, classId: "path");
+                    var postures = Point.SlipOnCurve(coords, new List<double> { 1.0 / 3, 2.0 / 3 }.Concat(path.ControlPoints.Select(cp => cp.Positions[path] / path.Length)).ToList());
+                    // draw the arrow
+                    if (path.Direction != Path.Direction.Backward) svg.Body += SVG.GetUse(id: "arrow", reference: new Point(10, 4), posture: postures[0]);
+                    if (path.Direction != Path.Direction.Forward) svg.Body += SVG.GetUse(id: "arrow", reference: new Point(10, 4),
+                        posture: new Tuple<Point, double>(postures[1].Item1, postures[1].Item2 + 180));
+                    // draw the mark
+                    Tuple<Point, double> posture = path.Direction == Path.Direction.Backward ? postures[1] : postures[0];
+                    svg.Body += SVG.GetText(classId: "path_label", text: string.Format("PATH{0}", path.Index), reference: new Point(-6, -6 - 9), posture: posture);
+                    // draw the control points
+                    for (int i = 2; i < postures.Count; i++)
+                        if (!processed.Contains(path.ControlPoints[i - 2]))
+                        {
+                            svg.Body += SVG.GetUse("cross", reference: new Point(4, 4), posture: postures[i]);
+                            svg.Body += SVG.GetText(classId: "cp_label", text: string.Format("CP{0}", path.ControlPoints[i - 2].Index), 
+                                reference: new Point(-6, 6), posture: postures[i]);
+                            processed.Add(path.ControlPoints[i - 2]);
+                        }
+                }
+                return svg;
+            }
         }
         #endregion
 
@@ -323,20 +383,39 @@ namespace O2DESNet
             foreach (var cp in ControlPoints.Values) cp.WarmedUp(clockTime);
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime)
         {
             Console.WriteLine("=== Paths ===");
             foreach (var path in Paths.Values) path.WriteToConsole();
             Console.WriteLine();
 
             Console.WriteLine("=== Vehicles ===");
-            foreach (var veh in Vehicles) veh.WriteToConsole();
+            foreach (var veh in Vehicles) veh.WriteToConsole(clockTime);
             Console.WriteLine();
 
             Console.WriteLine("---------------------------");
             Console.WriteLine("Remarks:");
             Console.WriteLine("! : Delayed by slow moving ahead");
             Console.WriteLine("!!: Completely stopped due zero vacancy ahead.");
+        }
+
+        public SVG Graph(DateTime? clockTime, double scale = 5)
+        {
+            var svg = Config.Graph(scale);            
+
+            var vehDefs = Vehicles.Select(veh => veh.Category).Distinct().ToDictionary(veh=>veh, veh => veh.Graph(scale));
+            foreach (var vehGraph in vehDefs) svg.Defs += vehGraph.Value.Body;
+            svg.Styles.AddRange(Vehicle.Statics.SVGStyles);
+            
+            foreach(var veh in Vehicles)
+            {
+                var posture = veh.GetPosture(clockTime.Value);
+                if (posture != null)
+                    svg.Body += SVG.GetUse(vehDefs[veh.Category].Id, vehDefs[veh.Category].Reference,
+                        posture: new Tuple<Point, double>(svg.Reference + posture.Item1 * scale, posture.Item2));
+            }
+
+            return svg;
         }
     }
 }

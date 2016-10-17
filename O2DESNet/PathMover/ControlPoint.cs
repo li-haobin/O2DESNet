@@ -10,8 +10,8 @@ namespace O2DESNet
     public class ControlPoint : Component<ControlPoint.Statics>
     {
         #region Sub-Components
-        internal List<FIFOServer<Vehicle>> IncomingSegments { get; private set; }
-        internal List<FIFOServer<Vehicle>> OutgoingSegments { get; private set; }
+        internal List<Path.Segment> IncomingSegments { get; private set; }
+        internal List<Path.Segment> OutgoingSegments { get; private set; }
         #endregion
 
         #region Statics
@@ -171,14 +171,14 @@ namespace O2DESNet
         {
             Name = "ControlPoint";
             At = null;
-            IncomingSegments = new List<FIFOServer<Vehicle>>();
-            OutgoingSegments = new List<FIFOServer<Vehicle>>();
+            IncomingSegments = new List<Path.Segment>();
+            OutgoingSegments = new List<Path.Segment>();
             HourCounter = new HourCounter();
         }
 
         public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             Console.Write("|{0}", this);
             if (At != null) Console.Write(":{0}", At);

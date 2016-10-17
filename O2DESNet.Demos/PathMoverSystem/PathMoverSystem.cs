@@ -128,9 +128,9 @@ namespace O2DESNet.Demos.PathMoverSystem
             PathMover.WarmedUp(clockTime);
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime)
         {
-            PathMover.WriteToConsole();
+            PathMover.WriteToConsole(clockTime);
         }
     }
 }

@@ -147,7 +147,7 @@ namespace O2DESNet
             HourCounter.WarmedUp(clockTime);
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             Console.WriteLine("[{0}]", this);
             Console.Write("Serving: ");

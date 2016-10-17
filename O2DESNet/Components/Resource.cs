@@ -102,7 +102,7 @@ namespace O2DESNet
 
         public override void WarmedUp(DateTime clockTime) { HourCounter.WarmedUp(clockTime); }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             Console.WriteLine("[{0}]", this);
             Console.Write("Occupation: {0}/{1}", Occupation, Config.Capacity);

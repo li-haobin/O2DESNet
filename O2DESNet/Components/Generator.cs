@@ -96,7 +96,7 @@ namespace O2DESNet
             Count = 0;
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             throw new NotImplementedException();
         }

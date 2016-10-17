@@ -31,9 +31,19 @@ namespace O2DESNet
             public int Capacity { get; set; }
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
 
+            /// <summary>
+            /// For old path mover drawing
+            /// </summary>
             public List<DenseVector> Coordinates { get; private set; }
+
+            /// <summary>
+            /// For path mover graphical display
+            /// </summary>
             public List<Point> Coords { get; set; }
 
+            /// <summary>
+            /// Do not change the direction of the vehicle
+            /// </summary>
             public bool Crab { get; set; } = false;
 
             public Statics(PathMover.Statics pathMover)
@@ -75,8 +85,25 @@ namespace O2DESNet
         #endregion
 
         #region Sub-Components
-        internal FIFOServer<Vehicle>[] ForwardSegments { get; private set; }         
-        internal FIFOServer<Vehicle>[] BackwardSegments { get; private set; }
+        public class Segment : FIFOServer<Vehicle>
+        {
+            public Path Path { get; private set; }
+            /// <summary>
+            /// The ratio of the start on the path.
+            /// </summary>
+            public double StartRatio { get; private set; }
+            /// <summary>
+            /// The ratio of the end on the path.
+            /// </summary>
+            public double EndRatio { get; private set; }
+            public bool Forward { get; private set; }
+
+            public Segment(Path path, double start, double end, bool forward, Statics config, int seed, string tag = null) 
+                : base(config, seed, tag) { Path = path; StartRatio = start; EndRatio = end; Forward = forward; }
+        }
+
+        internal Segment[] ForwardSegments { get; private set; }         
+        internal Segment[] BackwardSegments { get; private set; }
         /// <summary>
         /// Get index of given control point
         /// </summary>
@@ -266,9 +293,11 @@ namespace O2DESNet
             int n = config.ControlPoints.Count;
             
             AbsDistances = Enumerable.Range(0, n - 1).Select(i => Math.Abs(Config.GetDistance(Config.ControlPoints[i], Config.ControlPoints[i + 1]))).ToArray();
-            Func<int, FIFOServer<Vehicle>> getSegment = i =>
+            var ratios = Enumerable.Range(0, n).Select(i => Config.ControlPoints[i].Positions[Config] / Config.Length).ToArray();
+            Func<int, bool, Segment> getSegment = (i, forward) =>
             {
-                var segment = new FIFOServer<Vehicle>(
+                var segment = new Segment(
+                    this, ratios[i], ratios[i + 1], forward,
                     new FIFOServer<Vehicle>.Statics
                     {
                         Capacity = Config.Capacity,
@@ -279,8 +308,8 @@ namespace O2DESNet
                 segment.OnDepart.Add(veh => new ReachEvent(this, veh));
                 return segment;
             };
-            ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();
-            BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i)).ToArray();   
+            ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i, true)).ToArray();
+            BackwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i, false)).ToArray();   
         }
 
         public override void WarmedUp(DateTime clockTime)
@@ -288,12 +317,12 @@ namespace O2DESNet
             foreach (var seg in ForwardSegments.Concat(BackwardSegments)) seg.WarmedUp(clockTime);
         }
 
-        public override void WriteToConsole()
+        public override void WriteToConsole(DateTime? clockTime = null)
         {
             Console.Write("{0} (Util.{1:F4}):\t", this, Utilization);
             for (int i = 0; i < ControlPoints.Length - 1; i++)
             {
-                ControlPoints[i].WriteToConsole();
+                ControlPoints[i].WriteToConsole(clockTime);
                 Console.Write(" ");
 
                 var forward = ForwardSegments[i].Sequence.ToList(); forward.Reverse();

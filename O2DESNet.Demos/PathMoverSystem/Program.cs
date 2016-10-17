@@ -12,10 +12,9 @@ namespace O2DESNet.Demos.PathMoverSystem
         static void Main(string[] args)
         {
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
-
-            //new SVG(pmSys.PathMover.Config.Paths.First()).View();
-            new SVG(pmSys.PathMover.Config).View();
-            return;
+            
+            //pmSys.PathMover.Graph().View();
+            //return;
 
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
@@ -29,8 +28,9 @@ namespace O2DESNet.Demos.PathMoverSystem
                 Console.Clear();
                 Console.WriteLine("-------------------------");
                 Console.WriteLine(sim.ClockTime);
-                pmSys.WriteToConsole();
-                
+                sim.WriteToConsole();
+
+                pmSys.PathMover.Graph(sim.ClockTime).View();
                 Console.ReadKey();
             }
 
