@@ -13,7 +13,8 @@ namespace O2DESNet.Demos.PathMoverSystem
         {
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
 
-            new SVG(pmSys.PathMover.Config.Paths.First()).View();
+            //new SVG(pmSys.PathMover.Config.Paths.First()).View();
+            new SVG(pmSys.PathMover.Config).View();
             return;
 
             var sim = new Simulator(pmSys);
@@ -61,7 +62,11 @@ namespace O2DESNet.Demos.PathMoverSystem
             var cp2 = pm.CreateControlPoint(paths[0], 40);
 
             paths[0].Coords = new List<Point> { new Point(0, 0), new Point(100, 0) };
-            //paths[0].Coords = new List<Point> { new Point(0, 0), new Point(0, 100) };
+            paths[1].Coords = new List<Point> { new Point(100, 0), new Point(100, 100) };
+            paths[2].Coords = new List<Point> { new Point(100, 100), new Point(0, 100) };
+            paths[3].Coords = new List<Point> { new Point(0, 100), new Point(0, 0) };
+            paths[4].Coords = new List<Point> { new Point(50, 0), new Point(50, 100) };
+            paths[5].Coords = new List<Point> { new Point(100, 50), new Point(0, 50) };
             return pm;
         }
 

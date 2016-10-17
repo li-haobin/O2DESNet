@@ -18,6 +18,7 @@ namespace O2DESNet
         /// </summary>
         public double Distance(Point point) { return (point - this).L2Norm(); }
         public double L2Norm() { return Math.Sqrt(X * X + Y * Y); }
+        public double Degree() { return Math.Atan2(Y, X) / Math.PI * 180; }
         
         public static Point operator +(Point pt1, Point pt2) { return new Point(pt1.X + pt2.X, pt1.Y + pt2.Y); }
         public static Point operator -(Point pt1, Point pt2) { return new Point(pt1.X - pt2.X, pt1.Y - pt2.Y); }
