@@ -280,8 +280,8 @@ namespace O2DESNet
                     svg.Body += SVG.GetPath(path: coords, classId: "path");
                     var postures = Point.SlipOnCurve(coords, new List<double> { 1.0 / 3, 2.0 / 3 }.Concat(path.ControlPoints.Select(cp => cp.Positions[path] / path.Length)).ToList());
                     // draw the arrow
-                    if (path.Direction != Path.Direction.Backward) svg.Body += SVG.GetUse(id: "arrow", reference: new Point(10, 4), posture: postures[0]);
-                    if (path.Direction != Path.Direction.Forward) svg.Body += SVG.GetUse(id: "arrow", reference: new Point(10, 4),
+                    if (path.Direction != Path.Direction.Backward) svg.Body += SVG.GetUse(href: "arrow", reference: new Point(10, 4), posture: postures[0]);
+                    if (path.Direction != Path.Direction.Forward) svg.Body += SVG.GetUse(href: "arrow", reference: new Point(10, 4),
                         posture: new Tuple<Point, double>(postures[1].Item1, postures[1].Item2 + 180));
                     // draw the mark
                     Tuple<Point, double> posture = path.Direction == Path.Direction.Backward ? postures[1] : postures[0];
@@ -411,17 +411,17 @@ namespace O2DESNet
             {
                 var posture = veh.GetPosture(clockTime.Value);
                 if (posture != null)
-                    svg.Body += SVG.GetUse(vehDefs[veh.Category].Id, vehDefs[veh.Category].Reference,
+                    svg.Body += SVG.GetUse(vehDefs[veh.Category].Id, veh.ToString(), vehDefs[veh.Category].Reference,
                         posture: new Tuple<Point, double>(svg.Reference + posture.Item1 * scale, posture.Item2));
             }
 
             svg.Size += new Point(0, 25);
-            svg.Body += SVG.GetText(clockTime.ToString()+string.Format(".{0:d3}", clockTime.Value.Millisecond),
+            svg.Body += SVG.GetText(clockTime.Value.ToString("yyyy/MM/dd HH:mm:ss.fff"),
                 new SVG.Style("clockTime",
                     new SVG.Attr("text-anchor", "end"),
                     new SVG.Attr("font-family", "Verdana"),
                     new SVG.Attr("font-size", "22px"),
-                    new SVG.Attr("fill", "black")), 
+                    new SVG.Attr("fill", "black")),
                 new Point(25, 0), new Tuple<Point, double>(svg.Size, 0));
             return svg;
         }

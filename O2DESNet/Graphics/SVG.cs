@@ -63,11 +63,17 @@ namespace O2DESNet
             return string.Format("<path id=\"{0}\" d=\"M 0 0 L {1} {1} M 0 {1} L {1} 0\" fill=\"none\" stroke=\"{2}\" />\n", id, width, color);
         }
 
-        public static string GetUse(string id, Point reference, Tuple<Point, double> posture)
+        public static string GetUse(string href, Point reference, Tuple<Point, double> posture)
         {
             Point translate = posture.Item1 - reference;
             return string.Format("<use href=\"#{0}\" transform=\"translate({1},{2}) rotate({3},{4},{5})\" />\n",
-                id, translate.X, translate.Y, posture.Item2, reference.X, reference.Y);
+                href, translate.X, translate.Y, posture.Item2, reference.X, reference.Y);
+        }
+        public static string GetUse(string href, string id, Point reference, Tuple<Point, double> posture)
+        {
+            Point translate = posture.Item1 - reference;
+            return string.Format("<use href=\"#{0}\" id=\"{6}\" transform=\"translate({1},{2}) rotate({3},{4},{5})\" />\n",
+                href, translate.X, translate.Y, posture.Item2, reference.X, reference.Y, id);
         }
 
         public static string GetText(string text, string classId, Point reference, Tuple<Point, double> posture)

@@ -19,26 +19,106 @@ namespace O2DESNet.Demos.PathMoverSystem
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
 
-            //sim.WarmUp(TimeSpan.FromHours(3));
+            sim.WarmUp(TimeSpan.FromMinutes(1));
+            var lastClockTime = sim.ClockTime;
+            var lastPostures = pmSys.PathMover.Vehicles.ToDictionary(veh => veh, veh => veh.GetPosture(sim.ClockTime));
+                      
 
+            Dictionary<Vehicle, List<Tuple<DateTime, Point, double>>> postures =
+                pmSys.PathMover.Vehicles.ToDictionary(veh => veh, veh => new List<Tuple<DateTime, Point, double>>());
+            
             while (true)
             {
                 sim.Run(1);
 
-                Console.Clear();
-                Console.WriteLine("-------------------------");
+                //Console.Clear();
+                //Console.WriteLine("-------------------------");
                 Console.WriteLine(sim.ClockTime);
-                sim.WriteToConsole();
+                //sim.WriteToConsole();
+                
+                foreach (var veh in pmSys.PathMover.Vehicles)
+                {
+                    var posture = veh.GetPosture(sim.ClockTime);
+                    var count = postures[veh].Count;
+                    if (count > 1 &&
+                        postures[veh].Last().Item2.X == posture.Item1.X && postures[veh].Last().Item2.Y == posture.Item1.Y && postures[veh].Last().Item3 == posture.Item2 &&
+                        postures[veh][count - 2].Item2.X == posture.Item1.X && postures[veh][count - 2].Item2.Y == posture.Item1.Y && postures[veh][count - 2].Item3 == posture.Item2)
+                    {
+                        postures[veh].RemoveAt(count - 1);
+                    }
+                    postures[veh].Add(new Tuple<DateTime, Point, double>(sim.ClockTime, posture.Item1, posture.Item2));
+                }
 
-                pmSys.PathMover.Graph(sim.ClockTime).View();
-                Console.ReadKey();
+                //pmSys.PathMover.Graph(sim.ClockTime).View();
+                if (sim.ClockTime > DateTime.MinValue.AddMinutes(10)) break;
+                //Console.ReadKey();
             }
+
+            var svg = Motion(pmSys.PathMover.Config, postures, 5);
+            svg.View();
+
+            //while (true)
+            //{
+            //    sim.Run(1);
+
+            //    Console.Clear();
+            //    Console.WriteLine("-------------------------");
+            //    Console.WriteLine(sim.ClockTime);
+            //    sim.WriteToConsole();
+
+            //    pmSys.PathMover.Graph(sim.ClockTime).View();
+            //    Console.ReadKey();
+            //}         
 
 
             var config = GetPM1();
             var pm = new PathMover(config, 0);
             var pm1 = new PathMover(config, 0);
 
+        }
+
+        static SVG Motion(PathMover.Statics pathMover, Dictionary<Vehicle, List<Tuple<DateTime, Point, double>>> postures, double scale = 5)
+        {
+            var svg = pathMover.Graph(scale);
+            svg.Styles.AddRange(Vehicle.Statics.SVGStyles);
+
+            var start = postures.Min(i => i.Value.First().Item1);
+            var last = postures.Max(i => i.Value.Last().Item1);
+            var totalSeconds = (last - start).TotalSeconds;
+            var dur = string.Format("{0}s", totalSeconds);
+                        
+            foreach (var i in postures)
+            {
+                string keyTimes = "", xValues = "", yValues = "", degreeValues = "";
+                foreach (var record in i.Value)
+                {
+                    keyTimes += string.Format("{0};", (record.Item1 - start).TotalSeconds / totalSeconds);
+                    xValues += string.Format("{0};", record.Item2.X * scale + svg.Reference.X);
+                    yValues += string.Format("{0};", record.Item2.Y * scale + svg.Reference.Y);
+                    degreeValues += string.Format("{0},9.875,4.175;", record.Item3);
+                }
+                keyTimes = keyTimes.Remove(keyTimes.Length - 1);
+                xValues = xValues.Remove(xValues.Length - 1);
+                yValues = yValues.Remove(yValues.Length - 1);
+                degreeValues = degreeValues.Remove(degreeValues.Length - 1);
+
+                var animateX = new Dictionary<string, string> { { "attributeName", "x" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", xValues }, { "keyTimes", keyTimes } };
+                var animateY = new Dictionary<string, string> { { "attributeName", "y" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", yValues }, { "keyTimes", keyTimes } };
+                var animateDegree = new Dictionary<string, string> { { "attributeName", "transform" }, { "type", "rotate" }, { "calcMode", "discrete" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", degreeValues }, { "keyTimes", keyTimes } };
+
+                svg.Body += "<defs><g id=\"vehCate_" + i.Key.Id + "\">\n" +
+                    "<rect width=\"19.75\" height=\"8.35\" stroke=\"black\" fill=\"white\" fill-opacity=\"0.5\" />\n" +
+                    "<text class=\"vehCate_label\" transform=\"translate(9.875,8.175)\">" + i.Key.Category.Name + "</text>\n" + GetXML("animateTransform", animateDegree) +
+                    "</g></defs>\n" +
+                    "<use transform=\"translate(-9.875,-4.175)\" href=\"#vehCate_" + i.Key.Id + "\">\n" + GetXML("animate", animateX) + GetXML("animate", animateY) + "</use>\n";
+            }
+            return svg;
+        }
+        static string GetXML(string name, Dictionary<string,string> attributes)
+        {
+            string str = string.Format("<{0} ", name);
+            foreach (var i in attributes) str += string.Format("{0}=\"{1}\" ", i.Key, i.Value);
+            return str + "/>\n";
         }
 
         static PathMover.Statics GetPM1()

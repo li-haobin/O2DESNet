@@ -116,7 +116,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true }, DefaultRS.Next())
                 ));
             InitEvents.Add(new ScheduleEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 2.5, KeepTrack = true }, DefaultRS.Next())
+                new Vehicle(new Vehicle.Statics { Speed = 10, KeepTrack = true }, DefaultRS.Next())
                 ));
             InitEvents.Add(new ScheduleEvent(this,
                 new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true }, DefaultRS.Next())
