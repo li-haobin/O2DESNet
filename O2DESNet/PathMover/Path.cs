@@ -98,8 +98,28 @@ namespace O2DESNet
             public double EndRatio { get; private set; }
             public bool Forward { get; private set; }
 
-            public Segment(Path path, double start, double end, bool forward, Statics config, int seed, string tag = null) 
+            public Segment(Path path, double start, double end, bool forward, Statics config, int seed, string tag = null)
                 : base(config, seed, tag) { Path = path; StartRatio = start; EndRatio = end; Forward = forward; }
+
+            public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
+            {
+                // posture of vehicle on depart
+                vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(
+                    vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
+
+                // postures of vehicles on the Segment
+                var furthest = Path.Config.Length * (EndRatio - StartRatio) - vehicleOnDepart.Category.Length / 2;
+                foreach (var veh in Sequence)
+                {
+                    var distance = Math.Min(
+                        furthest,
+                        (clockTime - StartTimes[veh]).TotalSeconds * // time lapsed since enter
+                        Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
+                        );
+                    furthest = distance - veh.Category.Length / 2;
+                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + distance / Path.Config.Length * (Forward ? 1 : -1))));
+                }
+            }
         }
 
         internal Segment[] ForwardSegments { get; private set; }         
@@ -226,12 +246,14 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                Vehicle.Log(this);
+                Vehicle.Log(this);                
                 Execute(Vehicle.Reach());
 
                 var pathToNext = Vehicle.PathToNext;
+                var seg = Vehicle.Segment;
                 if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
+                seg.LogPostures(Vehicle, ClockTime);
 
                 if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());
             }

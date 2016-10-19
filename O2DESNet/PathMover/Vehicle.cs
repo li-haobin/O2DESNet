@@ -84,6 +84,7 @@ namespace O2DESNet
             }
         }
 
+        public List<Tuple<DateTime, Tuple<Point, double>>> Postures { get; private set; } = new List<Tuple<DateTime, Tuple<Point, double>>>();
         public Tuple<Point, double> GetPosture(DateTime clockTime)
         {
             if (Current == null) return null;
