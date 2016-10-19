@@ -12,9 +12,9 @@ namespace O2DESNet.Demos.FIFOQueues
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
         public Queue<Load> Queue { get; private set; }
-        public FIFOServer2<Load> Server1 { get; private set; }
+        public FIFOServer<Load> Server1 { get; private set; }
         public Queue<Load> Buffer { get; private set; }
-        public FIFOServer2<Load> Server2 { get; private set; }
+        public FIFOServer<Load> Server2 { get; private set; }
         #endregion
 
         #region Statics
@@ -24,12 +24,12 @@ namespace O2DESNet.Demos.FIFOQueues
                 = new Generator<Load>.Statics();
             internal Queue<Load>.Statics Queue { get; private set; } 
                 = new Queue<Load>.Statics();
-            internal FIFOServer2<Load>.Statics Server1 { get; private set; } 
-                = new FIFOServer2<Load>.Statics();
+            internal FIFOServer<Load>.Statics Server1 { get; private set; } 
+                = new FIFOServer<Load>.Statics();
             internal Queue<Load>.Statics Buffer { get; private set; }
                 = new Queue<Load>.Statics();
-            internal FIFOServer2<Load>.Statics Server2 { get; private set; } 
-                = new FIFOServer2<Load>.Statics();
+            internal FIFOServer<Load>.Statics Server2 { get; private set; } 
+                = new FIFOServer<Load>.Statics();
             
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
             public int ServerCapacity1 { get { return Server1.Capacity; } set { Server1.Capacity = value; } }
@@ -100,7 +100,7 @@ namespace O2DESNet.Demos.FIFOQueues
             Queue.Config.ToDequeue = load => Server1.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server1.Start(load));
 
-            Server1 = new FIFOServer2<Load>(
+            Server1 = new FIFOServer<Load>(
                config: Config.Server1,
                seed: DefaultRS.Next(),
                tag: "1st Server");
@@ -115,7 +115,7 @@ namespace O2DESNet.Demos.FIFOQueues
             Buffer.OnDequeue.Add(load => Server2.Start(load));
             Buffer.OnDequeue.Add(load => Server1.Depart());
 
-            Server2 = new FIFOServer2<Load>(
+            Server2 = new FIFOServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");

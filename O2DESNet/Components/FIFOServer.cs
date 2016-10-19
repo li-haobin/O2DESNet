@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using O2DESNet;
 
 namespace O2DESNet
 {
@@ -11,103 +10,48 @@ namespace O2DESNet
         where TLoad : Load
     {
         #region Statics
-        public class Statics : Server<TLoad>.Statics { }
-        #endregion
-
-        #region Sub-Components
-        internal Server<TLoad> InnerServer { get; private set; }
+        public class Statics : Scenario
+        {
+            /// <summary>
+            /// Maximum number of loads in the queue
+            /// </summary>
+            public int Capacity { get; set; } = int.MaxValue;
+            /// <summary>
+            /// Random generator for service time
+            /// </summary>
+            public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
+            /// <summary>
+            /// Random generator for the minimum time between two consecutive departures, given the two corresponding loads
+            /// </summary>
+            public Func<TLoad, TLoad, Random, TimeSpan> MinInterDepartureTime { get; set; }
+            public Func<TLoad, bool> ToDepart { get; set; }
+        }
         #endregion
 
         #region Dynamics
-        /// <summary>
-        /// Loads that the server is currently serving (including those being delayed).
-        /// </summary>
-        public HashSet<TLoad> Serving
-        {
-            get
-            {
-                var serving = new HashSet<TLoad>();
-                int i = 0;
-                while (i < Sequence.Count)
-                {
-                    if (!InnerServer.Served.Contains(Sequence[i])) break;
-                    i++;
-                }
-                while (i < Sequence.Count)
-                {
-                    serving.Add(Sequence[i]);
-                    i++;
-                }
-                return serving;
-            }
-        }
-        /// <summary>
-        /// Loads that have been served by the server.
-        /// </summary>
-        public HashSet<TLoad> Served
-        {
-            get
-            {
-                var served = new HashSet<TLoad>();
-                int i = 0;
-                while (i < Sequence.Count)
-                {
-                    if (!InnerServer.Served.Contains(Sequence[i])) break;
-                    served.Add(Sequence[i]);
-                    i++;
-                }
-                return served;
-            }
-        }
-        /// <summary>
-        /// Loads that the server is currently but delayed due to FIFO rule.
-        /// </summary>
-        public HashSet<TLoad> Delayed
-        {
-            get
-            {
-                var delayed = new HashSet<TLoad>();
+        public HashSet<TLoad> Serving { get; private set; }
+        public HashSet<TLoad> Served { get; private set; }
 
-                int i = 0;
-                while (i < Sequence.Count)
-                {
-                    if (!InnerServer.Served.Contains(Sequence[i])) break;
-                    i++;
-                }
-                while (i < Sequence.Count)
-                {
-                    if (InnerServer.Served.Contains(Sequence[i])) delayed.Add(Sequence[i]);
-                    i++;
-                }
-                return delayed;
-            }
-        }
-
-        public int Vancancy { get { return InnerServer.Vancancy; } }
-        public List<TLoad> Sequence { get; private set; }
-        public HourCounter HourCounter { get { return InnerServer.HourCounter; } } // statistics   
+        public int Vancancy { get { return Config.Capacity - NOccupied; } }
+        public List<TLoad> Sequence { get; private set; } = new List<TLoad>();
+        public HourCounter HourCounter { get; private set; } // statistics    
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
-        public int NOccupied { get { return InnerServer.NOccupied; } }
-        public double Utilization { get { return InnerServer.Utilization; } }
-        public Dictionary<TLoad, DateTime> StartTimes { get { return InnerServer.StartTimes; } }
+        public int NOccupied { get { return Serving.Count + Served.Count; } }
+        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
+        public Dictionary<TLoad, DateTime> StartTimes { get; private set; }
+        public Dictionary<TLoad, DateTime> FinishTimes { get; private set; }
 
         /// <summary>
-        /// The finish time of the previously departed Load
+        /// Time of being ready for departure
         /// </summary>
-        private DateTime PrevFinishTime = DateTime.MinValue;
+        public DateTime? ReadyTime { get; private set; } = null;
+
         /// <summary>
-        /// The finish time of the last served load, return null if there is no served load
+        /// Last departure time + inter-departure time
         /// </summary>
-        public DateTime? FinishTime
-        {
-            get
-            {
-                if (Served.Count == 0) return null;
-                // note that the finish time of inner server is NOT the true finish time as it should be delayed by previously departed load
-                var finishTime = InnerServer.FinishTimes[Sequence.First()]; 
-                return finishTime > PrevFinishTime ? finishTime : PrevFinishTime;
-            }
-        }
+        public DateTime? NextAvailableDepartureTime { get; private set; } = null;
+        public TLoad LastDepartedLoad { get; private set; } = null;
+        public DateTime LastDepartureTime { get; private set; }
         #endregion
 
         #region Events
@@ -122,57 +66,142 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
+                if (FIFOServer.Vancancy < 1) throw new HasZeroVacancyException();
+                Load.Log(this);
                 FIFOServer.Sequence.Add(Load);
-                Execute(FIFOServer.InnerServer.Start(Load));                
+                FIFOServer.Serving.Add(Load);
+                FIFOServer.HourCounter.ObserveChange(1, ClockTime);
+                FIFOServer.StartTimes.Add(Load, ClockTime);
+                Schedule(new FinishEvent(FIFOServer, Load), FIFOServer.Config.ServiceTime(Load, FIFOServer.DefaultRS));
             }
             public override string ToString() { return string.Format("{0}_Start", FIFOServer); }
         }
-        private class RemoveEvent : Event
+        private class FinishEvent : Event
         {
             public FIFOServer<TLoad> FIFOServer { get; private set; }
-            internal RemoveEvent(FIFOServer<TLoad> fifoServer) { FIFOServer = fifoServer; }
+            public TLoad Load { get; private set; }
+            internal FinishEvent(FIFOServer<TLoad> fifoServer, TLoad load)
+            {
+                FIFOServer = fifoServer;
+                Load = load;
+            }
             public override void Invoke()
             {
-                var finishTime = FIFOServer.InnerServer.FinishTimes[FIFOServer.Sequence.First()];
-                if (finishTime > FIFOServer.PrevFinishTime) FIFOServer.PrevFinishTime = finishTime;
-                FIFOServer.Sequence.RemoveAt(0);
+                Load.Log(this);
+                FIFOServer.Serving.Remove(Load);
+                FIFOServer.Served.Add(Load);
+                FIFOServer.FinishTimes.Add(Load, ClockTime);
+                Execute(new DepartEvent(FIFOServer));
             }
-            public override string ToString() { return string.Format("{0}_Remove", FIFOServer); }
+            public override string ToString() { return string.Format("{0}_Finish", FIFOServer); }
+        }
+        private class DepartEvent : Event
+        {
+            public FIFOServer<TLoad> FIFOServer { get; private set; }
+            internal DepartEvent(FIFOServer<TLoad> fifoServer)
+            {
+                FIFOServer = fifoServer;
+            }
+            public override void Invoke()
+            {
+                if (FIFOServer.Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+
+                // there must be some load
+                var load = FIFOServer.Sequence.FirstOrDefault();
+                if (load == null) return;
+                // the load must be served
+                if (!FIFOServer.Served.Contains(load)) return;
+                                
+                if (FIFOServer.LastDepartedLoad != null)
+                {
+                    // must wait until next available departure time
+                    if (FIFOServer.NextAvailableDepartureTime == null)
+                    {
+                        FIFOServer.NextAvailableDepartureTime = FIFOServer.LastDepartureTime + FIFOServer.Config.MinInterDepartureTime(FIFOServer.LastDepartedLoad, load, DefaultRS);
+                        if (ClockTime < FIFOServer.NextAvailableDepartureTime)
+                        {
+                            Schedule(new DepartEvent(FIFOServer), FIFOServer.NextAvailableDepartureTime.Value);
+                            return;
+                        }
+                    }
+                    else if (ClockTime < FIFOServer.NextAvailableDepartureTime) return;
+                }
+                FIFOServer.ReadyTime = ClockTime;
+
+                // the depart condition must be satisfied
+                if (!FIFOServer.Config.ToDepart(load)) return;
+
+                load.Log(this);
+                FIFOServer.Served.Remove(load);
+                FIFOServer.Sequence.RemoveAt(0);                  
+                FIFOServer.HourCounter.ObserveChange(-1, ClockTime);                
+                // in case the start / finish times are used in OnDepart events
+                FIFOServer.StartTimes.Remove(load);
+                FIFOServer.FinishTimes.Remove(load);
+
+                FIFOServer.LastDepartedLoad = load;
+                FIFOServer.LastDepartureTime = ClockTime;
+                FIFOServer.NextAvailableDepartureTime = null;
+                FIFOServer.ReadyTime = null;
+
+                foreach (var evnt in FIFOServer.OnDepart) Execute(evnt(load));
+                if (FIFOServer.Sequence.Count > 0) Execute(new DepartEvent(FIFOServer));                
+            }
+            public override string ToString() { return string.Format("{0}_Depart", FIFOServer); }
         }
         #endregion
 
         #region Input Events - Getters
         public Event Start(TLoad load) { return new StartEvent(this, load); }
-        public Event Depart() { return InnerServer.Depart(); }
+        public Event Depart() { return new DepartEvent(this); }        
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event>> OnDepart { get { return InnerServer.OnDepart; } }
+        public List<Func<TLoad, Event>> OnDepart { get; private set; }
         #endregion
-
+        
         #region Exeptions
+        public class HasZeroVacancyException : Exception
+        {
+            public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
+        }
+        public class ServiceTimeNotSpecifiedException : Exception
+        {
+            public ServiceTimeNotSpecifiedException() : base("Set ServiceTime as a random generator.") { }
+        }
+        public class DepartConditionNotSpecifiedException : Exception
+        {
+            public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
+        }
         #endregion
-
+        
         public FIFOServer(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "FIFOServer";
-            Sequence = new List<TLoad>();
+            Serving = new HashSet<TLoad>();
+            Served = new HashSet<TLoad>();
+            HourCounter = new HourCounter();
+            StartTimes = new Dictionary<TLoad, DateTime>();
+            FinishTimes = new Dictionary<TLoad, DateTime>();
 
-            // connect sub-components
-            InnerServer = new Server<TLoad>(
-                new Server<TLoad>.Statics
-                {
-                    Capacity = Config.Capacity,
-                    ServiceTime = Config.ServiceTime,
-                    ToDepart = load => Config.ToDepart(load) && load == Sequence.First(),
-                },
-                DefaultRS.Next(),
-                tag: "InnerServer");
-            InnerServer.OnDepart.Add(l => new RemoveEvent(this));
+            // initialize for output events    
+            OnDepart = new List<Func<TLoad, Event>>();
         }
 
-        public override void WarmedUp(DateTime clockTime) { InnerServer.WarmedUp(clockTime); }
+        public override void WarmedUp(DateTime clockTime)
+        {
+            HourCounter.WarmedUp(clockTime);
+        }
 
-        public override void WriteToConsole(DateTime? clockTime = null) { InnerServer.WriteToConsole(); }
+        public override void WriteToConsole(DateTime? clockTime = null)
+        {
+            Console.WriteLine("[{0}]", this);
+            Console.Write("Serving: ");
+            foreach (var load in Serving) Console.Write("{0} ", load);
+            Console.WriteLine();
+            Console.Write("Served: ");
+            foreach (var load in Served) Console.Write("{0} ", load);
+            Console.WriteLine();
+        }
     }
 }

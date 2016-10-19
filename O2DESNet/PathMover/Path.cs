@@ -132,10 +132,6 @@ namespace O2DESNet
         /// </summary>
         public HashSet<Vehicle> Travelling { get { return new HashSet<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Serving).OrderBy(veh => veh.Id)); } }
         /// <summary>
-        /// Vehicles travelling on the Path, which are delayed due to slow moving ahead. 
-        /// </summary>
-        public HashSet<Vehicle> Delayed { get { return new HashSet<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Delayed).OrderBy(veh => veh.Id)); } }
-        /// <summary>
         /// Vehicles stopped on the Path.
         /// </summary>
         public HashSet<Vehicle> Stopped
@@ -178,8 +174,8 @@ namespace O2DESNet
 
                 // pull vehicles from other paths to enter when vacancy is released
                 foreach (var seg in Path.ControlPoints // all Control Points on the Path
-                    .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.Served.Count > 0)) // their incoming Segements where have vehicles stucked
-                    .OrderBy(seg => seg.FinishTime.Value)) // order by finish time
+                    .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.ReadyTime != null)) // segment ready for vehicle to depart
+                    .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
                     Execute(seg.Depart());
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
@@ -302,7 +298,11 @@ namespace O2DESNet
                     {
                         Capacity = Config.Capacity,
                         ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
-                        ToDepart = veh => veh.Next.Accessible(via: this)
+                        ToDepart = veh => veh.Next.Accessible(via: this),
+                        MinInterDepartureTime = (veh1, veh2, rs) => TimeSpan.FromSeconds(
+                            (veh1.Category.Length + veh2.Category.Length) / 2 // distance between centers of the two consecutive vehicles, i.e., the gap
+                            / new double[] { Config.FullSpeed, veh1.Speed, veh2.Speed }.Min() // the speed to fill the gap
+                            ),
                     },
                     DefaultRS.Next());
                 segment.OnDepart.Add(veh => new ReachEvent(this, veh));
@@ -333,7 +333,7 @@ namespace O2DESNet
                     foreach (var veh in forward.Concat(backward))
                     {
                         Console.Write(veh);
-                        if (ForwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
+                        //if (ForwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
                         if (ForwardSegments[i].Served.Contains(veh)) Console.Write("!!");
                         Console.Write(" ");
                     }
@@ -345,7 +345,7 @@ namespace O2DESNet
                     foreach (var veh in forward.Concat(backward))
                     {
                         Console.Write(veh);
-                        if (BackwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
+                        //if (BackwardSegments[i].Delayed.Contains(veh)) Console.Write("!");
                         if (BackwardSegments[i].Served.Contains(veh)) Console.Write("!!");
                         Console.Write(" ");
                     }

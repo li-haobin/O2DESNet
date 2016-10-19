@@ -93,7 +93,6 @@ namespace O2DESNet
              
             var served = segment.Served;
             var serving = segment.Serving;
-            var delayed = segment.Delayed;
 
             if (!served.Contains(this) && !serving.Contains(this))  // when the vehicle is on the control point
                 return Point.SlipOnCurve(segment.Path.Config.Coords, segment.EndRatio);
@@ -276,7 +275,7 @@ namespace O2DESNet
             if (Targets.Count > 0 && Targets.First() != Current)
             {
                 Console.Write("{0} - {1}", Current, PathToNext);
-                if (Segment.Delayed.Contains(this)) Console.Write("!");
+                //if (Segment.Delayed.Contains(this)) Console.Write("!");
                 if (Segment.Served.Contains(this)) Console.Write("!!");
                 Console.Write(" -> {0}\t", Next);
                 Console.Write("*");
