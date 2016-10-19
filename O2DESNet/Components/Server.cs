@@ -129,7 +129,7 @@ namespace O2DESNet
         }
         #endregion
         
-        public Server(Statics statics, int seed, string tag = null) : base(statics, seed, tag)
+        public Server(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Server";
             Serving = new HashSet<TLoad>();

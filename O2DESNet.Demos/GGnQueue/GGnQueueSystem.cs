@@ -76,7 +76,7 @@ namespace O2DESNet.Demos.GGnQueue
             Queue.OnDequeue.Add(load => Server.Start(load));
 
             Server = new Server<Load>(
-               statics: Config.Server,
+               config: Config.Server,
                seed: DefaultRS.Next(),
                tag: "Server");
             Server.Config.ToDepart = load => true;
