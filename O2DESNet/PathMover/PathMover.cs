@@ -310,6 +310,11 @@ namespace O2DESNet
         public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }  
         public Dictionary<Path.Statics, Path> Paths { get; private set; }
         public HashSet<Vehicle> Vehicles { get; private set; }
+        public void RecordVehiclePostures(DateTime clockTime)
+        {
+            foreach (var veh in Vehicles)
+                veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, veh.GetPosture(clockTime)));
+        }
         #endregion
 
         #region Events

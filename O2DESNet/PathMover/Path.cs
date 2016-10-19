@@ -103,11 +103,10 @@ namespace O2DESNet
 
             public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
             {
-                return;
-
                 // posture of vehicle on depart
-                vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(
-                    vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
+                if (vehicleOnDepart.Next!= null) // just started new segment
+                    vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
+                else vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.EndRatio))); // stopped after the previous segment
 
                 // postures of vehicles on the Segment
                 var furthest = Path.Config.Length * (EndRatio - StartRatio) - vehicleOnDepart.Category.Length / 2;
@@ -118,8 +117,8 @@ namespace O2DESNet
                         (clockTime - StartTimes[veh]).TotalSeconds * // time lapsed since enter
                         Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
                         );
-                    furthest = distance - veh.Category.Length / 2;
-                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + distance / Path.Config.Length * (Forward ? 1 : -1))));
+                    furthest = distance - veh.Category.Length;
+                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1))));
                 }
             }
         }
@@ -214,6 +213,7 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
+                var seg = Vehicle.Segment; // record previous segment 
                 var next = Vehicle.Next;
                 var startIndex = Path.Indices[Vehicle.Current];
                 var endIndex = Path.Indices[next];
@@ -234,6 +234,10 @@ namespace O2DESNet
                     Execute(Path.BackwardSegments[endIndex].Start(Vehicle));
                     Vehicle.Segment = Path.BackwardSegments[endIndex];
                 }
+
+                // record posture of vehicles
+                if (seg != null) seg.LogPostures(Vehicle, ClockTime);
+                else Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
         }
@@ -255,6 +259,8 @@ namespace O2DESNet
                 var seg = Vehicle.Segment;
                 if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
+
+                // record posture of vehicles
                 seg.LogPostures(Vehicle, ClockTime);
 
                 if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());
@@ -317,7 +323,7 @@ namespace O2DESNet
             Func<int, bool, Segment> getSegment = (i, forward) =>
             {
                 var segment = new Segment(
-                    this, ratios[i], ratios[i + 1], forward,
+                    this, forward ? ratios[i] : ratios[i + 1], forward ? ratios[i + 1] : ratios[i], forward,
                     new FIFOServer<Vehicle>.Statics
                     {
                         Capacity = Config.Capacity,

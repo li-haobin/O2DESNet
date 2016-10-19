@@ -149,6 +149,11 @@ namespace O2DESNet
                 if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");                
                 Vehicle.Current = ControlPoint;
                 ControlPoint.PathMover.Vehicles.Add(Vehicle);
+                Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Parking));
+
+                // add vehicle posture
+                Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
+
                 Execute(new ControlPoint.PutOnEvent(ControlPoint, Vehicle));
             }
             public override string ToString() { return string.Format("{0}_PutOn", Vehicle); }

@@ -19,7 +19,7 @@ namespace O2DESNet.Demos.PathMoverSystem
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
 
-            sim.WarmUp(TimeSpan.FromMinutes(1));
+            //sim.WarmUp(TimeSpan.FromMinutes(1));
             var lastClockTime = sim.ClockTime;
             var lastPostures = pmSys.PathMover.Vehicles.ToDictionary(veh => veh, veh => veh.GetPosture(sim.ClockTime));
                                   
@@ -31,13 +31,10 @@ namespace O2DESNet.Demos.PathMoverSystem
                 //Console.WriteLine("-------------------------");
                 Console.WriteLine(sim.ClockTime);
                 //sim.WriteToConsole();
-
-                foreach (var veh in pmSys.PathMover.Vehicles)
-                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(sim.ClockTime, veh.GetPosture(sim.ClockTime)));
-
+                
 
                 //pmSys.PathMover.Graph(sim.ClockTime).View();
-                if (sim.ClockTime > DateTime.MinValue.AddMinutes(10)) break;
+                if (sim.ClockTime > DateTime.MinValue.AddMinutes(2)) break;
                 //Console.ReadKey();
             }
 
@@ -68,8 +65,8 @@ namespace O2DESNet.Demos.PathMoverSystem
         {
             var svg = pathMover.Config.Graph(scale);
             svg.Styles.AddRange(Vehicle.Statics.SVGStyles);
-            
-            var start = pathMover.Vehicles.Min(veh => veh.Postures.First().Item1);
+
+            var start = pathMover.Vehicles.Min(veh => veh.StateHistory.First().Item1);
             var last = pathMover.Vehicles.Min(veh => veh.Postures.Last().Item1);
             var totalSeconds = (last - start).TotalSeconds;
             var dur = string.Format("{0}s", totalSeconds);
@@ -127,7 +124,7 @@ namespace O2DESNet.Demos.PathMoverSystem
         {
             var pm = new PathMover.Statics();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100,   
-                capacity: 2,              
+                capacity: 3,              
                 //direction: Path.Direction.TwoWay
                 direction: Path.Direction.Forward
                 )).ToArray();
