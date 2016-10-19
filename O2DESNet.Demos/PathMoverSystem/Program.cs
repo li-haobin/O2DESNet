@@ -31,7 +31,11 @@ namespace O2DESNet.Demos.PathMoverSystem
                 //Console.WriteLine("-------------------------");
                 Console.WriteLine(sim.ClockTime);
                 //sim.WriteToConsole();
-                
+
+                foreach (var veh in pmSys.PathMover.Vehicles)
+                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(sim.ClockTime, veh.GetPosture(sim.ClockTime)));
+
+
                 //pmSys.PathMover.Graph(sim.ClockTime).View();
                 if (sim.ClockTime > DateTime.MinValue.AddMinutes(10)) break;
                 //Console.ReadKey();
@@ -75,7 +79,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 string keyTimes = "", xValues = "", yValues = "", degreeValues = "";
                 foreach (var record in veh.Postures)
                 {
-                    keyTimes += string.Format("{0};", (record.Item1 - start).TotalSeconds / totalSeconds);
+                    keyTimes += string.Format("{0};", keyTimes.Length == 0 ? 0 : Math.Min(1, (record.Item1 - start).TotalSeconds / totalSeconds));
                     xValues += string.Format("{0};", record.Item2.Item1.X * scale + svg.Reference.X);
                     yValues += string.Format("{0};", record.Item2.Item1.Y * scale + svg.Reference.Y);
                     degreeValues += string.Format("{0},9.875,4.175;", record.Item2.Item2);
@@ -89,9 +93,24 @@ namespace O2DESNet.Demos.PathMoverSystem
                 var animateY = new Dictionary<string, string> { { "attributeName", "y" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", yValues }, { "keyTimes", keyTimes } };
                 var animateDegree = new Dictionary<string, string> { { "attributeName", "transform" }, { "type", "rotate" }, { "calcMode", "discrete" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", degreeValues }, { "keyTimes", keyTimes } };
 
+                keyTimes = "";
+                var values = "";
+                while (veh.StateHistory.First().Item1 < start) veh.StateHistory.RemoveAt(0);
+                foreach (var record in veh.StateHistory)
+                {
+                    keyTimes += string.Format("{0};", keyTimes.Length == 0 ? 0 : Math.Max(0, Math.Min(1, (record.Item1 - start).TotalSeconds / totalSeconds)));
+                    values += string.Format("{0};", record.Item2 == Vehicle.State.Parking ? "visible" : "hidden");
+                }
+                keyTimes += "1";
+                values += "hidden";
+                var animateParkingLabel = new Dictionary<string, string> { { "attributeName", "visibility" }, { "dur", dur }, { "repeatCount", "indefinite" }, { "values", values }, { "keyTimes", keyTimes } };
+
                 svg.Body += "<defs><g id=\"vehCate_" + veh.Id + "\">\n" +
-                    "<rect width=\"19.75\" height=\"8.35\" stroke=\"black\" fill=\"white\" fill-opacity=\"0.5\" />\n" +
-                    "<text class=\"vehCate_label\" transform=\"translate(9.875,8.175)\">" + veh.Category.Name + "</text>\n" + GetXML("animateTransform", animateDegree) +
+                    "<rect width=\"19.75\" height=\"8.35\" stroke=\"black\" fill=\"" + veh.Category.Color + "\" fill-opacity=\"0.5\" />\n" +
+                    "<text class=\"vehCate_label\" transform=\"translate(9.875,8.175)\">" + veh.Category.Name + "</text>\n" +
+                    "<text class=\"vehCate_sign\" transform=\"translate(9.875,20)\">\n" + GetXML("animate", animateParkingLabel) +
+                    "PARKING</text>" +
+                    GetXML("animateTransform", animateDegree) +
                     "</g></defs>\n" +
                     "<use transform=\"translate(-9.875,-4.175)\" href=\"#vehCate_" + veh.Id + "\">\n" + GetXML("animate", animateX) + GetXML("animate", animateY) + "</use>\n";
             }

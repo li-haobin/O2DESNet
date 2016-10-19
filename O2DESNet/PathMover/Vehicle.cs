@@ -28,6 +28,8 @@ namespace O2DESNet
             public double Length { get; set; } = 3.95;
             public double Width { get; set; } = 1.67;
 
+            public string Color { get; set; } = "white";
+
             public Statics() { Name = Guid.NewGuid().ToString().Substring(0, 6); }
             public SVG Graph(double scale)
             {
@@ -38,7 +40,7 @@ namespace O2DESNet
                 svg.Reference = new Point(Length * scale / 2, Width * scale / 2);
 
                 svg.Body = string.Format("<g id=\"{0}\">\n", svg.Id);
-                svg.Body += string.Format("<rect width=\"{0}\" height=\"{1}\" stroke=\"black\" fill=\"white\" fill-opacity=\"0.5\"/>\n", Length * scale, Width * scale);
+                svg.Body += string.Format("<rect width=\"{0}\" height=\"{1}\" stroke=\"black\" fill=\"" + Color + "\" fill-opacity=\"0.5\"/>\n", Length * scale, Width * scale);
                 svg.Body += SVG.GetText(classId: "vehCate_label", text: Name, reference: new Point(0, -4), posture: new Tuple<Point, double>(new Point(Length * scale / 2, Width * scale / 2), 0));
                 svg.Body += "</g>\n";
 
@@ -54,6 +56,12 @@ namespace O2DESNet
                             new SVG.Attr("font-family", "Verdana"),
                             new SVG.Attr("font-size", "8px"),
                             new SVG.Attr("fill", "darkgreen")
+                            ),
+                        new SVG.Style("vehCate_sign",
+                            new SVG.Attr("text-anchor", "middle"),
+                            new SVG.Attr("font-family", "Verdana"),
+                            new SVG.Attr("font-size", "9px"),
+                            new SVG.Attr("fill", "red")
                             ),
                     };
                 }
@@ -122,6 +130,8 @@ namespace O2DESNet
                 throw new Exception("Vehicle not exist in sequence of FIFO Server.");
             }
         }
+        public enum State { Travelling, Parking }
+        public List<Tuple<DateTime, State>> StateHistory { get; private set; } = new List<Tuple<DateTime, State>>();
         #endregion
 
         #region Events
@@ -202,7 +212,11 @@ namespace O2DESNet
                 {
                     Vehicle.Targets.AddRange(Targets);
                     while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
-                    if (Vehicle.Targets.Count > 0) Execute(Vehicle.PathToNext.Move(Vehicle));
+                    if (Vehicle.Targets.Count > 0)
+                    {
+                        Execute(Vehicle.PathToNext.Move(Vehicle));
+                        Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Travelling));
+                    }
                     else Execute(Vehicle.Complete());
                 }
             }
@@ -222,7 +236,11 @@ namespace O2DESNet
         {
             public Vehicle Vehicle { get; private set; }
             internal CompleteEvent(Vehicle vehicle) { Vehicle = vehicle; }
-            public override void Invoke() { foreach (var evnt in Vehicle.OnComplete) Execute(evnt()); }
+            public override void Invoke()
+            {                
+                foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
+                Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Parking));
+            }
             public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
         #endregion

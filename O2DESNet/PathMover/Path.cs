@@ -103,6 +103,8 @@ namespace O2DESNet
 
             public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
             {
+                return;
+
                 // posture of vehicle on depart
                 vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(
                     vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));

@@ -113,13 +113,13 @@ namespace O2DESNet.Demos.PathMoverSystem
 
             // initialize event, compulsory if it's assembly
             InitEvents.Add(new ScheduleEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true }, DefaultRS.Next())
+                new Vehicle(new Vehicle.Statics { Speed = 20, KeepTrack = true, Color = "blue" }, DefaultRS.Next())
                 ));
             InitEvents.Add(new ScheduleEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 10, KeepTrack = true }, DefaultRS.Next())
+                new Vehicle(new Vehicle.Statics { Speed = 10, KeepTrack = true, Color = "yellow" }, DefaultRS.Next())
                 ));
             InitEvents.Add(new ScheduleEvent(this,
-                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true }, DefaultRS.Next())
+                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true, Color = "red" }, DefaultRS.Next())
                 ));
         }
 
