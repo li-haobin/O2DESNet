@@ -48,8 +48,9 @@ namespace O2DESNet.Demos.PathMoverSystem
 
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
-            
-                                  
+
+
+            sim.WarmUp(TimeSpan.FromMinutes(1));
             while (true)
             {
                 sim.Run(1);
@@ -61,7 +62,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 
 
                 //pmSys.PathMover.Graph(sim.ClockTime).View();
-                if (sim.ClockTime > DateTime.MinValue.AddMinutes(2)) break;
+                if (sim.ClockTime > DateTime.MinValue.AddMinutes(3)) break;
                 //Console.ReadKey();
             }
 
