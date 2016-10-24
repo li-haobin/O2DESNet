@@ -17,17 +17,29 @@ namespace O2DESNet.Demos.PathMoverSystem
             
             var veh_cate1 = new Vehicle.Statics { Name = "AGV", Color = "lightgreen" };
             var veh1 = new Vehicle(veh_cate1, 0);
-            //var veh2 = new Vehicle(veh_cate1, 0);
+            var veh2 = new Vehicle(veh_cate1, 0);
 
-            veh1.Positions = new List<Tuple<Path.Statics, List<double>, List<double>>> {
-                new Tuple<Path.Statics, List<double>, List<double>>(pmSys.PathMover.Config.Paths[1], new List<double> { 0, 1, 2, 3}, new List<double> { 0, 0.3, 0.3, 1 }),
-                new Tuple<Path.Statics, List<double>, List<double>>(pmSys.PathMover.Config.Paths[2], new List<double> { 3, 4, 5, 6}, new List<double> { 0, 0.3, 0.3, 1 }),
-            };
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0, pmSys.PathMover.Config.Paths[1], 0));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0.5, pmSys.PathMover.Config.Paths[1], 0.3));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(3, pmSys.PathMover.Config.Paths[1], 0.3));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[1], 1));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[2], 0));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4.5, pmSys.PathMover.Config.Paths[2], 0.3));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(5.5, pmSys.PathMover.Config.Paths[2], 0.35));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(7, pmSys.PathMover.Config.Paths[2], 1));
 
-            pmSys.PathMover.Vehicles.Add(veh1);
-            //pmSys.PathMover.Vehicles.Add(veh2);
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(0, pmSys.PathMover.Config.Paths[0], 0));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(1, pmSys.PathMover.Config.Paths[0], 0.4));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(1.5, pmSys.PathMover.Config.Paths[0], 0.5));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[0], 1));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[1], 0));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[1], 0.2));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(5, pmSys.PathMover.Config.Paths[1], 0.3));
+            veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(6, pmSys.PathMover.Config.Paths[1], 1));
             
-
+            pmSys.PathMover.Vehicles.Add(veh1);
+            pmSys.PathMover.Vehicles.Add(veh2);
+            
             var svg = new SVG(1050, 1050,
                 pmSys.PathMover.SVGDefs,
                 pmSys.PathMover.SVG(25, 25, 0)

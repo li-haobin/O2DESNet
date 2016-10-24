@@ -261,18 +261,37 @@ namespace O2DESNet
         {
             var g = new Group("veh#" + Id,
                 new Use("veh_cate#" + Category.Name),
-                new Text(Statics.LabelStyle, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width/0.2 - 5)))
+                new Text(Statics.LabelStyle, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
                 );
 
-            foreach (var pos in Positions)
+            if (Anchors.Count > 0)
             {
-                var dur = pos.Item2.Last() - pos.Item2.First();
-                g.Add(new AnimateMotion(string.Format("path#{0}_d", pos.Item1.Index), new XAttribute("begin", string.Format("{0}s", pos.Item2.First())), new XAttribute("dur", string.Format("{0}s", dur)), new XAttribute("rotate", "auto"), new XAttribute("keyTimes", string.Join(";", pos.Item2.Select(t => (t - pos.Item2.First()) / dur))), new XAttribute("keyPoints", string.Join(";", pos.Item3)), new XAttribute("calcMode", "linear")));
+                double begin = Anchors.First().Item1;
+                Path.Statics path = Anchors.First().Item2;
+                List<double> keyTimes = new List<double> { 0 }, keyPoints = new List<double> { Anchors.First().Item3 };
+                int i = 0;
+                while (true)
+                {
+                    if (++i == Anchors.Count || Anchors[i].Item2 != path)
+                    {
+                        g.Add(new AnimateMotion(string.Format("path#{0}_d", path.Index), new XAttribute("begin", string.Format("{0}s", begin)), new XAttribute("dur", string.Format("{0}s", keyTimes.Last())), new XAttribute("rotate", "auto"), new XAttribute("keyTimes", string.Join(";", keyTimes.Select(t => (t - keyTimes.First()) / keyTimes.Last()))), new XAttribute("keyPoints", string.Join(";", keyPoints)), new XAttribute("calcMode", "linear")));
+                        if (i == Anchors.Count) break;
+                        begin = Anchors[i].Item1;
+                        path = Anchors[i].Item2;
+                        keyTimes = new List<double> { 0 };
+                        keyPoints = new List<double> { Anchors[i].Item3 };
+                    }
+                    else
+                    {
+                        keyTimes.Add(Anchors[i].Item1 - begin);
+                        keyPoints.Add(Anchors[i].Item3);
+                    }
+                }
             }
             return g;
         }
 
-        public List<Tuple<Path.Statics, List<double>, List<double>>> Positions { get; set; }
+        public List<Tuple<double, Path.Statics, double>> Anchors { get; set; } = new List<Tuple<double, Path.Statics, double>>();
         #endregion
 }
 }
