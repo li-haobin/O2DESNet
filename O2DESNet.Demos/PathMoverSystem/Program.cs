@@ -20,12 +20,12 @@ namespace O2DESNet.Demos.PathMoverSystem
             var veh1 = new Vehicle(veh_cate1, 0);
             var veh2 = new Vehicle(veh_cate2, 0);
 
-            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0, pmSys.PathMover.Config.Paths[1], 0));
-            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0.5, pmSys.PathMover.Config.Paths[1], 0.3));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(1, pmSys.PathMover.Config.Paths[1], 0));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[1], 0.3));
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(3, pmSys.PathMover.Config.Paths[1], 0.3));
-            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[1], 1));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(3.5, pmSys.PathMover.Config.Paths[1], 1));
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[2], 0));
-            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4.5, pmSys.PathMover.Config.Paths[2], 0.3));
+            veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(5, pmSys.PathMover.Config.Paths[2], 0.3));
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(5.5, pmSys.PathMover.Config.Paths[2], 0.35));
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(7, pmSys.PathMover.Config.Paths[2], 1));
 

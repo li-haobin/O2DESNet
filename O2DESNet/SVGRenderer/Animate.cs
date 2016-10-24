@@ -14,7 +14,6 @@ namespace O2DESNet.SVGRenderer
             base(SVG.Namespace + "animate",
                 new XAttribute("attributeName", attributeName),
                 new XAttribute("dur", string.Format("{0}s", keyTimes.Last())),
-                new XAttribute("repeatCount", "indefinite"),
                 new XAttribute("keyTimes", GetKeyTimes(keyTimes)),
                 new XAttribute("values", GetValues(values)),
                 content)
