@@ -14,8 +14,7 @@ namespace O2DESNet.Demos.PathMoverSystem
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
 
             new SVGRenderer.SVG(1050, 1050,
-                Path.Statics.SVGDefs,
-                ControlPoint.Statics.SVGDefs,
+                PathMover.Statics.SVGDefs,
                 pmSys.PathMover.Config.SVG(25, 25, 0)
                 ).View();
 

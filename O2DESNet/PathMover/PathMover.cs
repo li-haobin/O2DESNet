@@ -246,6 +246,20 @@ namespace O2DESNet
                 return new Group(id: "pm", x: x, y: y, rotate: degree,
                     content: Paths.Select(path => path.SVG()).Concat(ControlPoints.Select(cp => cp.SVG())));
             }
+
+            /// <summary>
+            /// Including arrows, styles
+            /// </summary>
+            public static Definition SVGDefs
+            {
+                get
+                {
+                    var defs = new Definition();
+                    defs.Add(Path.Statics.SVGDefs);
+                    defs.Add(ControlPoint.Statics.SVGDefs);
+                    return defs;
+                }
+            }
             #endregion
         }
         #endregion
