@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Distributions;
 using O2DESNet.SVGRenderer;
+using System.Xml.Linq;
 
 namespace O2DESNet.Demos.PathMoverSystem
 {
@@ -13,12 +14,26 @@ namespace O2DESNet.Demos.PathMoverSystem
         static void Main(string[] args)
         {
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
+            
+            var veh_cate1 = new Vehicle.Statics { Name = "AGV", Color = "lightgreen" };
+            var veh1 = new Vehicle(veh_cate1, 0);
+            //var veh2 = new Vehicle(veh_cate1, 0);
 
-            new SVGRenderer.SVG(1050, 1050,
-                PathMover.Statics.SVGDefs,
-                pmSys.PathMover.Config.SVG(25, 25, 0),
-                new Group("veh", x:300, y:300, rotate:30, content: new Vehicle.Statics().SVG())
-                ).View();
+            veh1.Positions = new List<Tuple<Path.Statics, List<double>, List<double>>> {
+                new Tuple<Path.Statics, List<double>, List<double>>(pmSys.PathMover.Config.Paths[1], new List<double> { 0, 1, 2, 3}, new List<double> { 0, 0.3, 0.3, 1 }),
+                new Tuple<Path.Statics, List<double>, List<double>>(pmSys.PathMover.Config.Paths[2], new List<double> { 3, 4, 5, 6}, new List<double> { 0, 0.3, 0.3, 1 }),
+            };
+
+            pmSys.PathMover.Vehicles.Add(veh1);
+            //pmSys.PathMover.Vehicles.Add(veh2);
+            
+
+            var svg = new SVG(1050, 1050,
+                pmSys.PathMover.SVGDefs,
+                pmSys.PathMover.SVG(25, 25, 0)
+                );
+            
+            svg.View();
 
             return;
             
@@ -65,13 +80,6 @@ namespace O2DESNet.Demos.PathMoverSystem
 
         }
        
-        static string GetXML(string name, Dictionary<string,string> attributes)
-        {
-            string str = string.Format("<{0} ", name);
-            foreach (var i in attributes) str += string.Format("{0}=\"{1}\" ", i.Key, i.Value);
-            return str + "/>\n";
-        }
-
         static PathMover.Statics GetPM1()
         {
             var pm = new PathMover.Statics();
@@ -93,7 +101,7 @@ namespace O2DESNet.Demos.PathMoverSystem
             var cp2 = pm.CreateControlPoint(paths[0], 40);
 
             paths[0].Description = "M 0 0 L 1000 0";
-            paths[1].Description = "M 1000 0 L 1000 1000";
+            paths[1].Description = "M 1000 0 C 50 50 50 50 1000 500 L 1000 1000";
             paths[2].Description = "M 1000 1000 L 0 1000";
             paths[3].Description = "M 0 1000 L 0 0";
             paths[4].Description = "M 500 0 L 500 1000";

@@ -81,7 +81,8 @@ namespace O2DESNet
             /// </summary>
             public void Connect(Path.Statics path_0, Path.Statics path_1) { Connect(path_0, path_1, path_0.Length, 0); }
 
-            private void CheckInitialized() {
+            private void CheckInitialized()
+            {
                 if (_initialized) throw new StaticsBuildException("PathMover cannot be modified after initialization.");
             }
             #endregion
@@ -132,7 +133,8 @@ namespace O2DESNet
                             sinkIndices.Remove(path[i + 1]);
                         }
                     }
-                    else {
+                    else
+                    {
                         ControlPoints[sourceIndex].RoutingTable[ControlPoints[sinkIndex]] = null;
                         sinkIndices.Remove(sinkIndex);
                     }
@@ -241,7 +243,7 @@ namespace O2DESNet
             #endregion
 
             #region SVG Output
-            public Group SVG(double x, double y, double degree)
+            public Group SVG(double x = 0, double y = 0, double degree = 0)
             {
                 return new Group(id: "pm", x: x, y: y, rotate: degree,
                     content: Paths.Select(path => path.SVG()).Concat(ControlPoints.Select(cp => cp.SVG())));
@@ -271,13 +273,13 @@ namespace O2DESNet
         #endregion
 
         #region Dynamics
-        public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }  
+        public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }
         public Dictionary<Path.Statics, Path> Paths { get; private set; }
         public HashSet<Vehicle> Vehicles { get; private set; }
         public void RecordVehiclePostures(DateTime clockTime)
         {
             //foreach (var veh in Vehicles)
-                //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, veh.GetPosture(clockTime)));
+            //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, veh.GetPosture(clockTime)));
         }
         #endregion
 
@@ -367,6 +369,26 @@ namespace O2DESNet
             Console.WriteLine("! : Delayed by slow moving ahead");
             Console.WriteLine("!!: Completely stopped due zero vacancy ahead.");
         }
-        
+
+        #region SVG Output
+        public Group SVG(double x=0, double y=0, double rotate=0)
+        {
+            var g = new Group("pm", x: x, y: y, rotate: rotate);
+            g.Add(Config.SVG());
+            foreach (var veh in Vehicles) g.Add(veh.SVG());
+            return g;
+        }
+
+        public Definition SVGDefs
+        {
+            get
+            {
+                var defs = new Definition();
+                defs.Add(Statics.SVGDefs.Elements());
+                foreach (var vehCate in Vehicles.Select(veh => veh.Category).Distinct()) defs.Add(vehCate.SVG());
+                return defs;
+            }
+        }
+        #endregion
     }
 }

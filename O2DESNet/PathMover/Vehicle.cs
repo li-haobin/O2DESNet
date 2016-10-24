@@ -40,9 +40,8 @@ namespace O2DESNet
                 string veh_cate_name = "veh_cate#" + Name;
                 var g = new Group(veh_cate_name,
                     new Rectangular(-Length / 0.2, -Width / 0.2, Length * 10, Width * 10, "black", Color, new XAttribute("fill-opacity", 0.5)),
-                    new Text(LabelStyle, "#" + Name, new XAttribute("transform", "translate(0 4.5)"))
+                    new Text(LabelStyle, Name, new XAttribute("transform", "translate(0 4.5)"))
                     );
-                //string path_name = "path#" + path.Index;
                 var label = new Text(LabelStyle, Name, new XAttribute("transform", "translate(0 4.5)"));
                 return g;
             }
@@ -52,13 +51,7 @@ namespace O2DESNet
             /// <summary>
             /// Including arrows, styles
             /// </summary>
-            public static Definition SVGDefs
-            {
-                get
-                {
-                    return new Definition(new Style(LabelStyle));
-                }
-            }
+            public static Definition SVGDefs { get { return new Definition(new Style(LabelStyle)); } }
             #endregion           
         }
         #endregion
@@ -262,5 +255,24 @@ namespace O2DESNet
             }
             else Console.WriteLine(Current);
         }
-    }
+
+        #region SVG Output
+        public Group SVG()
+        {
+            var g = new Group("veh#" + Id,
+                new Use("veh_cate#" + Category.Name),
+                new Text(Statics.LabelStyle, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width/0.2 - 5)))
+                );
+
+            foreach (var pos in Positions)
+            {
+                var dur = pos.Item2.Last() - pos.Item2.First();
+                g.Add(new AnimateMotion(string.Format("path#{0}_d", pos.Item1.Index), new XAttribute("begin", string.Format("{0}s", pos.Item2.First())), new XAttribute("dur", string.Format("{0}s", dur)), new XAttribute("rotate", "auto"), new XAttribute("keyTimes", string.Join(";", pos.Item2.Select(t => (t - pos.Item2.First()) / dur))), new XAttribute("keyPoints", string.Join(";", pos.Item3)), new XAttribute("calcMode", "linear")));
+            }
+            return g;
+        }
+
+        public List<Tuple<Path.Statics, List<double>, List<double>>> Positions { get; set; }
+        #endregion
+}
 }
