@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using O2DESNet;
+using O2DESNet.SVGRenderer;
+using System.Xml.Linq;
 
 namespace O2DESNet
 {
@@ -65,6 +67,33 @@ namespace O2DESNet
                 if (target == this) return null;
                 return PathingTable[RoutingTable[target]];
             }
+
+            #region SVG Output
+            public Group SVG()
+            {
+                string cp_name = "cp#" + Index;
+                var path = Positions.Select(i => i.Key).OrderBy(p => p.Index).First();
+                string path_name = "path#" + path.Index;
+                var label = new Text(LabelStyle, string.Format("CP{0}", Index), new XAttribute("transform", "translate(12 15)"));
+                return new PathMarker(cp_name, path_name + "_d", Positions[path] / path.Length, new Use("cross"), label);
+            }
+            
+            public static CSS LabelStyle = new CSS("pm_cp_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "darkred"));
+
+            /// <summary>
+            /// Including arrows, styles
+            /// </summary>
+            public static Definition SVGDefs
+            {
+                get
+                {
+                    return new Definition(
+                        new SVGRenderer.Path("M -4 -4 L 4 4 M -4 4 L 4 -4", "darkred", new XAttribute("id", "cross")),
+                        new Style(LabelStyle)
+                        );
+                }
+            }
+            #endregion
         }
         #endregion
 

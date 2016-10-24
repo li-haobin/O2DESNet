@@ -15,8 +15,11 @@ namespace O2DESNet.Demos.PathMoverSystem
 
             new SVGRenderer.SVG(1050, 1050,
                 Path.Statics.SVGDefs,
+                ControlPoint.Statics.SVGDefs,
                 pmSys.PathMover.Config.SVG(25, 25, 0)
                 ).View();
+
+            return;
             
             //pmSys.PathMover.Graph().View();
             //return;

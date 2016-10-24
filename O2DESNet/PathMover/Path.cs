@@ -93,7 +93,7 @@ namespace O2DESNet
             {
                 string name = "path#" + Index;
                 var g = new Group(name, new O2DESNet.SVGRenderer.Path(LineStyle, Description, new XAttribute("id", name + "_d")));
-                var label = new Text(LabelStyle, string.Format("PATH#{0}", Index), new XAttribute("transform", "translate(-10 15)"));
+                var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -7)"));
                 if (Direction != Direction.Backward) g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional
                 else g.Add(new PathMarker(name + "_marker", name + "_d", 0.667, new Use("arrow", 0, 0, 180), label)); // backwards
                 if (Direction == Direction.TwoWay) g.Add(new PathMarker(name + "_marker2", name + "_d", 0.667, new Use("arrow", 0, 0, 180))); // bi-directional
@@ -112,7 +112,6 @@ namespace O2DESNet
                 {
                     return new Definition(
                         new SVGRenderer.Path("M -10 -4 L 0 0 L -10 4", "black", new XAttribute("id", "arrow")),
-                        new SVGRenderer.Path("M -4 -4 L 4 4 M -4 4 L 4 -4", "darkred", new XAttribute("id", "cross")),
                         new Style(LineStyle, LabelStyle)
                         );
                 }

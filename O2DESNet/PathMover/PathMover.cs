@@ -243,7 +243,8 @@ namespace O2DESNet
             #region SVG Output
             public Group SVG(double x, double y, double degree)
             {
-                return new Group(id: "pm", x: x, y: y, rotate: degree, content: Paths.Select(path => path.SVG()));
+                return new Group(id: "pm", x: x, y: y, rotate: degree,
+                    content: Paths.Select(path => path.SVG()).Concat(ControlPoints.Select(cp => cp.SVG())));
             }
             #endregion
         }
