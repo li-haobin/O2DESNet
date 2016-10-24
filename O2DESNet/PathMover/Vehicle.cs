@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using O2DESNet;
+using O2DESNet.SVGRenderer;
+using System.Xml.Linq;
 
 namespace O2DESNet
 {
@@ -28,9 +30,36 @@ namespace O2DESNet
             public double Length { get; set; } = 3.95;
             public double Width { get; set; } = 1.67;
 
-            public string Color { get; set; } = "white";
+            public string Color { get; set; } = "green";
 
-            public Statics() { Name = Guid.NewGuid().ToString().Substring(0, 6); }            
+            public Statics() { Name = Guid.NewGuid().ToString().ToUpper().Substring(0, 4); }
+
+            #region SVG Output
+            public Group SVG()
+            {
+                string veh_cate_name = "veh_cate#" + Name;
+                var g = new Group(veh_cate_name,
+                    new Rectangular(-Length / 0.2, -Width / 0.2, Length * 10, Width * 10, "black", Color, new XAttribute("fill-opacity", 0.5)),
+                    new Text(LabelStyle, "#" + Name, new XAttribute("transform", "translate(0 4.5)"))
+                    );
+                //string path_name = "path#" + path.Index;
+                var label = new Text(LabelStyle, Name, new XAttribute("transform", "translate(0 4.5)"));
+                return g;
+            }
+
+            public static CSS LabelStyle = new CSS("pm_vehCate_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "black"));
+
+            /// <summary>
+            /// Including arrows, styles
+            /// </summary>
+            public static Definition SVGDefs
+            {
+                get
+                {
+                    return new Definition(new Style(LabelStyle));
+                }
+            }
+            #endregion           
         }
         #endregion
 

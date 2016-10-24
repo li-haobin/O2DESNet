@@ -255,8 +255,9 @@ namespace O2DESNet
                 get
                 {
                     var defs = new Definition();
-                    defs.Add(Path.Statics.SVGDefs);
-                    defs.Add(ControlPoint.Statics.SVGDefs);
+                    defs.Add(Path.Statics.SVGDefs.Elements());
+                    defs.Add(ControlPoint.Statics.SVGDefs.Elements());
+                    defs.Add(Vehicle.Statics.SVGDefs.Elements());
                     return defs;
                 }
             }

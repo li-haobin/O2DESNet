@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Distributions;
+using O2DESNet.SVGRenderer;
 
 namespace O2DESNet.Demos.PathMoverSystem
 {
@@ -15,7 +16,8 @@ namespace O2DESNet.Demos.PathMoverSystem
 
             new SVGRenderer.SVG(1050, 1050,
                 PathMover.Statics.SVGDefs,
-                pmSys.PathMover.Config.SVG(25, 25, 0)
+                pmSys.PathMover.Config.SVG(25, 25, 0),
+                new Group("veh", x:300, y:300, rotate:30, content: new Vehicle.Statics().SVG())
                 ).View();
 
             return;
