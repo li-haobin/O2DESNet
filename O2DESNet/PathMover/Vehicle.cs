@@ -322,7 +322,6 @@ namespace O2DESNet
         public void LogPosition(double time, Path.Statics path, double ratio)
         {
             //if (History.Count > 0 && time == History.Last().Item1 && path == History.Last().Item2) return;
-            if (Math.Min(1, Math.Max(0, ratio)) != ratio) Console.WriteLine();
             History.Add(new Tuple<double, Path.Statics, double>(time, path, Math.Min(1, Math.Max(0, ratio))));
         }
         public void ResetHistory() { History = new List<Tuple<double, Path.Statics, double>>(); }
