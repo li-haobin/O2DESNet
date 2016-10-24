@@ -7,6 +7,8 @@ using O2DESNet;
 using MathNet.Numerics.LinearAlgebra.Double;
 using System.Drawing;
 using O2DESNet.Optimizer;
+using O2DESNet.SVGRenderer;
+using System.Xml.Linq;
 
 namespace O2DESNet
 {
@@ -40,7 +42,7 @@ namespace O2DESNet
             /// For path mover graphical display
             /// </summary>
             public List<Point> Coords { get; set; }
-
+            
             /// <summary>
             /// Do not change the direction of the vehicle
             /// </summary>
@@ -79,7 +81,43 @@ namespace O2DESNet
             public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
             {
                 g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
-            }            
+            }
+
+            #region SVG Output
+            /// <summary>
+            /// SVG Description
+            /// </summary>
+            public string Description { get; set; }
+
+            public Group SVG()
+            {
+                string name = "path#" + Index;
+                var g = new Group(name, new O2DESNet.SVGRenderer.Path(LineStyle, Description, new XAttribute("id", name + "_d")));
+                var label = new Text(LabelStyle, string.Format("PATH#{0}", Index), new XAttribute("transform", "translate(-10 15)"));
+                if (Direction != Direction.Backward) g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional
+                else g.Add(new PathMarker(name + "_marker", name + "_d", 0.667, new Use("arrow", 0, 0, 180), label)); // backwards
+                if (Direction == Direction.TwoWay) g.Add(new PathMarker(name + "_marker2", name + "_d", 0.667, new Use("arrow", 0, 0, 180))); // bi-directional
+                return g;
+            }
+
+            public static CSS LineStyle = new CSS("pm_path", new XAttribute("stroke", "black"), new XAttribute("stroke-dasharray", "3,3"), new XAttribute("fill", "none"));
+            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "black"));
+
+            /// <summary>
+            /// Including arrows, styles
+            /// </summary>
+            public static Definition SVGDefs
+            {
+                get
+                {
+                    return new Definition(
+                        new SVGRenderer.Path("M -10 -4 L 0 0 L -10 4", "black", new XAttribute("id", "arrow")),
+                        new SVGRenderer.Path("M -4 -4 L 4 4 M -4 4 L 4 -4", "darkred", new XAttribute("id", "cross")),
+                        new Style(LineStyle, LabelStyle)
+                        );
+                }
+            }
+            #endregion
         }
         public enum Direction { Forward, Backward, TwoWay }
         #endregion
@@ -104,9 +142,9 @@ namespace O2DESNet
             public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
             {
                 // posture of vehicle on depart
-                if (vehicleOnDepart.Next!= null) // just started new segment
-                    vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
-                else vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.EndRatio))); // stopped after the previous segment
+               // if (vehicleOnDepart.Next!= null) // just started new segment
+               //     vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
+                //else vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.EndRatio))); // stopped after the previous segment
 
                 // postures of vehicles on the Segment
                 var furthest = Path.Config.Length * (EndRatio - StartRatio) - vehicleOnDepart.Category.Length / 2;
@@ -118,7 +156,7 @@ namespace O2DESNet
                         Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
                         );
                     furthest = distance - veh.Category.Length;
-                    veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1))));
+                    //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1))));
                 }
             }
         }
@@ -237,7 +275,7 @@ namespace O2DESNet
 
                 // record posture of vehicles
                 if (seg != null) seg.LogPostures(Vehicle, ClockTime);
-                else Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
+                //else Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
         }

@@ -30,42 +30,7 @@ namespace O2DESNet
 
             public string Color { get; set; } = "white";
 
-            public Statics() { Name = Guid.NewGuid().ToString().Substring(0, 6); }
-            public SVG Graph(double scale)
-            {
-                var svg = new SVG();
-
-                svg.Id = string.Format("vehCate_{0}", Name);
-                svg.Styles.AddRange(SVGStyles);
-                svg.Reference = new Point(Length * scale / 2, Width * scale / 2);
-
-                svg.Body = string.Format("<g id=\"{0}\">\n", svg.Id);
-                svg.Body += string.Format("<rect width=\"{0}\" height=\"{1}\" stroke=\"black\" fill=\"" + Color + "\" fill-opacity=\"0.5\"/>\n", Length * scale, Width * scale);
-                svg.Body += SVG.GetText(classId: "vehCate_label", text: Name, reference: new Point(0, -4), posture: new Tuple<Point, double>(new Point(Length * scale / 2, Width * scale / 2), 0));
-                svg.Body += "</g>\n";
-
-                return svg;
-            }
-            public static List<SVG.Style> SVGStyles
-            {
-                get
-                {
-                    return new List<SVG.Style> {
-                        new SVG.Style("vehCate_label",
-                            new SVG.Attr("text-anchor", "middle"),
-                            new SVG.Attr("font-family", "Verdana"),
-                            new SVG.Attr("font-size", "8px"),
-                            new SVG.Attr("fill", "darkgreen")
-                            ),
-                        new SVG.Style("vehCate_sign",
-                            new SVG.Attr("text-anchor", "middle"),
-                            new SVG.Attr("font-family", "Verdana"),
-                            new SVG.Attr("font-size", "9px"),
-                            new SVG.Attr("fill", "red")
-                            ),
-                    };
-                }
-            }
+            public Statics() { Name = Guid.NewGuid().ToString().Substring(0, 6); }            
         }
         #endregion
 
@@ -91,45 +56,7 @@ namespace O2DESNet
                 else return null;
             }
         }
-
-        public List<Tuple<DateTime, Tuple<Point, double>>> Postures { get; private set; } = new List<Tuple<DateTime, Tuple<Point, double>>>();
-        public Tuple<Point, double> GetPosture(DateTime clockTime)
-        {
-            if (Current == null) return null;
-            var segment = Segment != null ? Segment : Current.IncomingSegments
-                .Where(seg => seg.Path.Config.Coords != null && seg.Path.Config.Coords.Count > 0).FirstOrDefault();
-            if (segment == null) return null;
-             
-            var served = segment.Served;
-            var serving = segment.Serving;
-
-            if (!served.Contains(this) && !serving.Contains(this))  // when the vehicle is on the control point
-                return Point.SlipOnCurve(segment.Path.Config.Coords, segment.EndRatio);
-            else
-            {
-                var positions = segment.Sequence.Select(veh => segment.StartRatio + (segment.Forward ? 1 : -1) *
-                    (clockTime - segment.StartTimes[veh]).TotalSeconds * // time lapsed since enter
-                    Math.Min(veh.Category.Speed, segment.Path.Config.FullSpeed) // speed taken
-                    / segment.Path.Config.Length
-                    ).ToList();
-                var startTime = segment.StartTimes[this];
-
-                var vehLength = Category.Length / segment.Path.Config.Length; // ratio gap occupied by vehicle length
-                var ratio = segment.EndRatio;
-                if (Next.At != null) ratio -= (segment.Forward ? 1 : -1) * vehLength;
-                for(int i = 0; i < segment.Sequence.Count; i++)
-                {
-                    ratio = segment.Forward ? Math.Min(ratio, positions[i]) : Math.Max(ratio, positions[i]);
-                    if (segment.Sequence[i] == this)
-                    {
-
-                        return Point.SlipOnCurve(segment.Path.Config.Coords, ratio);
-                    }
-                    ratio -= (segment.Forward ? 1 : -1) * vehLength;
-                }
-                throw new Exception("Vehicle not exist in sequence of FIFO Server.");
-            }
-        }
+        
         public enum State { Travelling, Parking }
         public List<Tuple<DateTime, State>> StateHistory { get; private set; } = new List<Tuple<DateTime, State>>();
         #endregion
@@ -152,7 +79,7 @@ namespace O2DESNet
                 Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Parking));
 
                 // add vehicle posture
-                Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
+                //Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
 
                 Execute(new ControlPoint.PutOnEvent(ControlPoint, Vehicle));
             }
@@ -294,8 +221,6 @@ namespace O2DESNet
         public override void WriteToConsole(DateTime? clockTime)
         {
             Console.Write("{0}:\t", this);
-            var posture = GetPosture(clockTime.Value);
-            if (posture != null) Console.Write("[{0:F2},{1:F2},{2:F2}]\t", posture.Item1.X, posture.Item1.Y, posture.Item2);
             if (Targets.Count > 0 && Targets.First() != Current)
             {
                 Console.Write("{0} - {1}", Current, PathToNext);
