@@ -16,8 +16,9 @@ namespace O2DESNet.Demos.PathMoverSystem
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
             
             var veh_cate1 = new Vehicle.Statics { Name = "AGV", Color = "lightgreen" };
+            var veh_cate2 = new Vehicle.Statics { Name = "AGV2", Color = "yellow", Length = 7, Width = 3 };
             var veh1 = new Vehicle(veh_cate1, 0);
-            var veh2 = new Vehicle(veh_cate1, 0);
+            var veh2 = new Vehicle(veh_cate2, 0);
 
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0, pmSys.PathMover.Config.Paths[1], 0));
             veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(0.5, pmSys.PathMover.Config.Paths[1], 0.3));
