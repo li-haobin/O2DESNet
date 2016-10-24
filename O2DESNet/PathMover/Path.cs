@@ -138,26 +138,26 @@ namespace O2DESNet
             public Segment(Path path, double start, double end, bool forward, Statics config, int seed, string tag = null)
                 : base(config, seed, tag) { Path = path; StartRatio = start; EndRatio = end; Forward = forward; }
 
-            public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
-            {
-                // posture of vehicle on depart
-               // if (vehicleOnDepart.Next!= null) // just started new segment
-               //     vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
-                //else vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.EndRatio))); // stopped after the previous segment
+            //public void LogPostures(Vehicle vehicleOnDepart, DateTime clockTime)
+            //{
+            //    // posture of vehicle on depart
+            //   // if (vehicleOnDepart.Next!= null) // just started new segment
+            //   //     vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.StartRatio)));
+            //    //else vehicleOnDepart.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(vehicleOnDepart.Segment.Path.Config.Coords, vehicleOnDepart.Segment.EndRatio))); // stopped after the previous segment
 
-                // postures of vehicles on the Segment
-                var furthest = Path.Config.Length * (EndRatio - StartRatio) - vehicleOnDepart.Category.Length / 2;
-                foreach (var veh in Sequence)
-                {
-                    var distance = Math.Min(
-                        furthest,
-                        (clockTime - StartTimes[veh]).TotalSeconds * // time lapsed since enter
-                        Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
-                        );
-                    furthest = distance - veh.Category.Length;
-                    //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1))));
-                }
-            }
+            //    // postures of vehicles on the Segment
+            //    var furthest = Path.Config.Length * (EndRatio - StartRatio) - vehicleOnDepart.Category.Length / 2;
+            //    foreach (var veh in Sequence)
+            //    {
+            //        var distance = Math.Min(
+            //            furthest,
+            //            (clockTime - StartTimes[veh]).TotalSeconds * // time lapsed since enter
+            //            Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
+            //            );
+            //        furthest = distance - veh.Category.Length;
+            //        //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, Point.SlipOnCurve(Path.Config.Coords, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1))));
+            //    }
+            //}
         }
 
         internal Segment[] ForwardSegments { get; private set; }         
@@ -185,26 +185,6 @@ namespace O2DESNet
         public PathMover PathMover { get; internal set; }
         public ControlPoint[] ControlPoints { get { return Config.ControlPoints.Select(cp => PathMover.ControlPoints[cp]).ToArray(); } }
         public int Vacancy { get { return Config.Capacity - ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.NOccupied) - ControlPoints.Count(cp => cp.At != null); } }
-        /// <summary>
-        /// Vehicles that currently travelling on the Path.
-        /// </summary>
-        public HashSet<Vehicle> Travelling { get { return new HashSet<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Serving).OrderBy(veh => veh.Id)); } }
-        /// <summary>
-        /// Vehicles stopped on the Path.
-        /// </summary>
-        public HashSet<Vehicle> Stopped
-        {
-            get
-            {
-                var stopped = new List<Vehicle>(ForwardSegments.Concat(BackwardSegments).SelectMany(seg => seg.Served)); // stopped inside segments due to congestion
-                foreach (var cp in ControlPoints) if (cp.At != null) stopped.Add(cp.At); // stopped at Control Points
-                return new HashSet<Vehicle>(stopped.OrderBy(veh => veh.Id));
-            }
-        }
-        /// <summary>
-        /// All vehicles occupying the Path.
-        /// </summary>
-        public HashSet<Vehicle> Occupying { get { return new HashSet<Vehicle>(Travelling.Concat(Stopped).OrderBy(veh => veh.Id)); } }
         public double Utilization
         {
             get
@@ -273,8 +253,9 @@ namespace O2DESNet
                 }
 
                 // record posture of vehicles
-                if (seg != null) seg.LogPostures(Vehicle, ClockTime);
-                //else Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
+                var time = (ClockTime - Path.PathMover.StartTime).TotalSeconds;
+                if (seg != null) Vehicle.Anchors.Add(new Tuple<double, Statics, double>(time, seg.Path.Config, seg.EndRatio));
+                if (Vehicle.Segment != null) Vehicle.Anchors.Add(new Tuple<double, Statics, double>(time, Vehicle.Segment.Path.Config, Vehicle.Segment.StartRatio));
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
         }
@@ -294,13 +275,13 @@ namespace O2DESNet
 
                 var pathToNext = Vehicle.PathToNext;
                 var seg = Vehicle.Segment;
+                var time = (ClockTime - Path.PathMover.StartTime).TotalSeconds;
+                if (seg != null) Vehicle.Anchors.Add(new Tuple<double, Statics, double>(time, seg.Path.Config, seg.EndRatio));
+
                 if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
-
-                // record posture of vehicles
-                seg.LogPostures(Vehicle, ClockTime);
-
-                if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());
+                
+                if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());               
             }
             public override string ToString() { return string.Format("{0}_Reach", Path); }
         }

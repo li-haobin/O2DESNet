@@ -281,6 +281,7 @@ namespace O2DESNet
             //foreach (var veh in Vehicles)
             //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, veh.GetPosture(clockTime)));
         }
+        public DateTime StartTime { get; private set; } = DateTime.MinValue;
         #endregion
 
         #region Events
@@ -352,6 +353,7 @@ namespace O2DESNet
         {
             foreach (var path in Paths.Values) path.WarmedUp(clockTime);
             foreach (var cp in ControlPoints.Values) cp.WarmedUp(clockTime);
+            StartTime = clockTime;
         }
 
         public override void WriteToConsole(DateTime? clockTime)
