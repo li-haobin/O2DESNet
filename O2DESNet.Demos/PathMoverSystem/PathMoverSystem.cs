@@ -39,12 +39,9 @@ namespace O2DESNet.Demos.PathMoverSystem
             }
             public override void Invoke()
             {
-                Vehicle.Log(this);
-                if (Vehicle.Current == null) Execute(Vehicle.PutOn(GetControlPoint()));
+                Vehicle.Log(this);                
                 if (Vehicle.OnComplete.Count == 0) Vehicle.OnComplete.Add(() => new ScheduleEvent(PathMoverSystem, Vehicle));
-
-                Execute(Vehicle.MoveTo(new List<ControlPoint> { GetControlPoint(), GetControlPoint() }));
-                
+                Execute(Vehicle.MoveTo(new List<ControlPoint> { GetControlPoint(), GetControlPoint() }));                
             }
             private ControlPoint GetControlPoint()
             {
@@ -63,9 +60,15 @@ namespace O2DESNet.Demos.PathMoverSystem
             }
             public override void Invoke()
             {
+                if (Vehicle.Current == null) Execute(Vehicle.PutOn(GetControlPoint()));
                 Schedule(new TravelEvent(PathMoverSystem, Vehicle), TimeSpan.FromSeconds(5));
             }
             public override string ToString() { return string.Format("{0}_Schedule", PathMoverSystem); }
+            private ControlPoint GetControlPoint()
+            {
+                var cps = PathMoverSystem.PathMover.ControlPoints.Values.Where(cp => !cp.Locked).ToList();
+                return cps[DefaultRS.Next(cps.Count)];
+            }
         }
         #endregion
 
@@ -119,7 +122,19 @@ namespace O2DESNet.Demos.PathMoverSystem
                 new Vehicle(new Vehicle.Statics { Speed = 10, KeepTrack = true, Color = "yellow" }, DefaultRS.Next())
                 ));
             InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 10, KeepTrack = true, Color = "yellow" }, DefaultRS.Next())
+                ));
+            InitEvents.Add(new ScheduleEvent(this,
                 new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true, Color = "red" }, DefaultRS.Next())
+                ));
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 50, KeepTrack = true, Color = "red" }, DefaultRS.Next())
+                ));
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 30, KeepTrack = true, Color = "green" }, DefaultRS.Next())
+                ));
+            InitEvents.Add(new ScheduleEvent(this,
+                new Vehicle(new Vehicle.Statics { Speed = 30, KeepTrack = true, Color = "green" }, DefaultRS.Next())
                 ));
         }
 

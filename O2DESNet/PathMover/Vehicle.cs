@@ -28,7 +28,9 @@ namespace O2DESNet
 
             // for graphical display
             public double Length { get; set; } = 3.95;
+            public double SafetyLength { get { return Length * (1 + DistanceSafetyFactor); } }
             public double Width { get; set; } = 1.67;
+            public double DistanceSafetyFactor { get; set; } = 0.15;
 
             public string Color { get; set; } = "green";
 

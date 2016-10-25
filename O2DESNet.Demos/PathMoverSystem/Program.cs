@@ -25,7 +25,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 sim.Run(1);
 
                 //Console.Clear();
-                Console.WriteLine(sim.ClockTime);
+                //Console.WriteLine(sim.ClockTime);
                 //sim.WriteToConsole();
                 //Console.WriteLine();
 
@@ -48,7 +48,7 @@ namespace O2DESNet.Demos.PathMoverSystem
         {
             var pm = new PathMover.Statics();
             var paths = Enumerable.Range(0, 6).Select(i => pm.CreatePath(length: 100, fullSpeed: 100,   
-                capacity: 3,              
+                capacity: 4,              
                 //direction: Path.Direction.TwoWay
                 direction: Path.Direction.Forward
                 )).ToArray();

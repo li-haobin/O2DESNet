@@ -143,7 +143,7 @@ namespace O2DESNet
                 // postures of vehicles on the Segment
                 var time = (clockTime - Path.PathMover.StartTime).TotalSeconds;
                 var furthest = Path.Config.Length * (EndRatio - StartRatio) - 
-                    (vehicleOnDepart != null ? vehicleOnDepart.Category.Length / 2 : 0);
+                    (vehicleOnDepart != null ? vehicleOnDepart.Category.SafetyLength / 2 : 0);
                 foreach (var veh in Sequence)
                 {
                     var distance = Math.Min(
@@ -151,9 +151,9 @@ namespace O2DESNet
                         (clockTime - StartTimes[veh]).TotalSeconds * // time lapsed since enter
                         Math.Min(veh.Category.Speed, Path.Config.FullSpeed) // speed taken
                         );
-                    furthest = distance - veh.Category.Length;
+                    furthest = distance - veh.Category.SafetyLength;
 
-                    veh.LogPosition(time, Path.Config, StartRatio + Math.Max(0, (distance - veh.Category.Length / 2)) / Path.Config.Length * (Forward ? 1 : -1));
+                    veh.LogPosition(time, Path.Config, StartRatio + Math.Max(0, (distance - veh.Category.SafetyLength / 2)) / Path.Config.Length * (Forward ? 1 : -1));
                 }
             }
         }
@@ -355,7 +355,7 @@ namespace O2DESNet
                         ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
                         ToDepart = veh => veh.Next.Accessible(via: this),
                         MinInterDepartureTime = (veh1, veh2, rs) => TimeSpan.FromSeconds(
-                            (veh1.Category.Length + veh2.Category.Length) / 2 // distance between centers of the two consecutive vehicles, i.e., the gap
+                            (veh1.Category.SafetyLength + veh2.Category.SafetyLength) / 2 // distance between centers of the two consecutive vehicles, i.e., the gap
                             / new double[] { Config.FullSpeed, veh1.Speed, veh2.Speed }.Min() // the speed to fill the gap
                             ),
                     },

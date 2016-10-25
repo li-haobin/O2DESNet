@@ -168,7 +168,12 @@ namespace O2DESNet
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = null;
                 ControlPoint.HourCounter.ObserveCount(0, ClockTime);
-                Schedule(new ReleaseEvent(ControlPoint), TimeSpan.FromSeconds(1)); //to be revised
+                Schedule(new ReleaseEvent(ControlPoint), TimeSpan.FromSeconds(
+                    // time delay for releasing the control point
+                    Math.Max(1, // min 1s
+                    Vehicle.Category.SafetyLength / Math.Min(Vehicle.Speed, ControlPoint.IncomingSegments.Min(seg => seg.Path.Config.FullSpeed)) 
+                    * 1.5 // safety factor for time
+                    ))); 
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
         }
