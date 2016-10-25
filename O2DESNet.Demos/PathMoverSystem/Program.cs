@@ -13,80 +13,20 @@ namespace O2DESNet.Demos.PathMoverSystem
     {
         static void Main(string[] args)
         {
-            string color = "black";
-            int size = 10;
-            List<double> keyTimes = new List<double> { 0, 1,2,3,4,5,6,7,8,9,10 };
-            string v = "visible", h = "hidden";
-            var g = new Group("clock", x: 10, y: 10, rotate: 0, content: new object[] {
-                new Line(0, 0, size, 0, color, new Animate("visibility", keyTimes,
-                    new object[] { v,h,v,v,h,v,v,v,v,v,v }, new XAttribute("repeatCount","indefinite"))),
-                new Line(0, size, size, size, color, new Animate("visibility", keyTimes,
-                    new object[] { h,h,v,v,v,v,v,h,v,v,h }, new XAttribute("repeatCount","indefinite"))),
-                new Line(0, size * 2, size, size * 2, color, new Animate("visibility", keyTimes,
-                    new object[] { v,h,v,v,h,v,v,h,v,v,v }, new XAttribute("repeatCount","indefinite"))),
-                new Line(0, 0, 0, size, color, new Animate("visibility", keyTimes,
-                    new object[] { v,h,h,h,v,v,v,h,v,v,v }, new XAttribute("repeatCount","indefinite"))),
-                new Line(0, size, 0, size * 2, color, new Animate("visibility", keyTimes,
-                    new object[] { v,h,v,h,h,h,v,h,v,h,v }, new XAttribute("repeatCount","indefinite"))),
-                new Line(size, 0, size, size, color, new Animate("visibility", keyTimes,
-                    new object[] {v,v,v,v,v,h,h,v,v,v,v }, new XAttribute("repeatCount","indefinite"))),
-                new Line(size, size, size, size * 2, color, new Animate("visibility", keyTimes,
-                    new object[] { v,v,h,v,v,v,v,v,v,v,v }, new XAttribute("repeatCount","indefinite")))
-            });
-            new SVG(100, 100, g).View();
-            return;
-
-
 
             var pmSys = new PathMoverSystem(new PathMoverSystem.Statics { PathMover = GetPM1() }, 0);
-            
-            //var veh_cate1 = new Vehicle.Statics { Name = "AGV", Color = "lightgreen" };
-            //var veh_cate2 = new Vehicle.Statics { Name = "AGV2", Color = "yellow", Length = 7, Width = 3 };
-            //var veh1 = new Vehicle(veh_cate1, 0);
-            //var veh2 = new Vehicle(veh_cate2, 0);
-
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(1, pmSys.PathMover.Config.Paths[1], 0));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[1], 0.3));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(3, pmSys.PathMover.Config.Paths[1], 0.3));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(3.5, pmSys.PathMover.Config.Paths[1], 1));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[2], 0));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(5, pmSys.PathMover.Config.Paths[2], 0.3));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(5.5, pmSys.PathMover.Config.Paths[2], 0.35));
-            //veh1.Anchors.Add(new Tuple<double, Path.Statics, double>(7, pmSys.PathMover.Config.Paths[2], 1));
-
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(0, pmSys.PathMover.Config.Paths[0], 0));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(1, pmSys.PathMover.Config.Paths[0], 0.4));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(1.5, pmSys.PathMover.Config.Paths[0], 0.5));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[0], 1));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(2, pmSys.PathMover.Config.Paths[1], 0));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(4, pmSys.PathMover.Config.Paths[1], 0.2));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(5, pmSys.PathMover.Config.Paths[1], 0.3));
-            //veh2.Anchors.Add(new Tuple<double, Path.Statics, double>(6, pmSys.PathMover.Config.Paths[1], 1));
-            
-            //pmSys.PathMover.Vehicles.Add(veh1);
-            //pmSys.PathMover.Vehicles.Add(veh2);
-            
-           
-            
-            //pmSys.PathMover.Graph().View();
-            //return;
 
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
-
-
+            
             sim.WarmUp(TimeSpan.FromMinutes(1));
             while (true)
             {
                 sim.Run(1);
-
-                //Console.Clear();
-                //Console.WriteLine("-------------------------");
+                
                 Console.WriteLine(sim.ClockTime);
                 //sim.WriteToConsole();
                 
-
-                //pmSys.PathMover.Graph(sim.ClockTime).View();
                 if (sim.ClockTime > DateTime.MinValue.AddMinutes(3)) break;
                 //Console.ReadKey();
             }
@@ -99,25 +39,6 @@ namespace O2DESNet.Demos.PathMoverSystem
             svg.View();
 
             return;
-
-
-            //while (true)
-            //{
-            //    sim.Run(1);
-
-            //    Console.Clear();
-            //    Console.WriteLine("-------------------------");
-            //    Console.WriteLine(sim.ClockTime);
-            //    sim.WriteToConsole();
-
-            //    pmSys.PathMover.Graph(sim.ClockTime).View();
-            //    Console.ReadKey();
-            //}         
-
-
-            var config = GetPM1();
-            var pm = new PathMover(config, 0);
-            var pm1 = new PathMover(config, 0);
 
         }
        

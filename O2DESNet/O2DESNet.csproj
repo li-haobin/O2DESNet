@@ -94,6 +94,7 @@
     <Compile Include="Status.cs" />
     <Compile Include="SVGRenderer\Animate.cs" />
     <Compile Include="SVGRenderer\AnimateMotion.cs" />
+    <Compile Include="SVGRenderer\Clock.cs" />
     <Compile Include="SVGRenderer\Definition.cs" />
     <Compile Include="SVGRenderer\Group.cs" />
     <Compile Include="SVGRenderer\Line.cs" />
