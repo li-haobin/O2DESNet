@@ -133,10 +133,19 @@ namespace O2DESNet
             /// The ratio of the end on the path.
             /// </summary>
             public double EndRatio { get; private set; }
+            public ControlPoint.Statics StartPoint { get; private set; }
+            public ControlPoint.Statics EndPoint { get; private set; }
             public bool Forward { get; private set; }
 
-            public Segment(Path path, double start, double end, bool forward, Statics config, int seed, string tag = null)
-                : base(config, seed, tag) { Path = path; StartRatio = start; EndRatio = end; Forward = forward; }
+            public Segment(Path path, ControlPoint.Statics startPoint, ControlPoint.Statics endPoint, Statics config, int seed, string tag = null)
+                : base(config, seed, tag)
+            {
+                Path = path;
+                StartPoint = startPoint; EndPoint = endPoint;
+                StartRatio = StartPoint.Positions[Path.Config] / Path.Config.Length;
+                EndRatio = EndPoint.Positions[Path.Config] / Path.Config.Length;
+                Forward = StartRatio <= EndRatio;
+            }
 
             public void LogAnchors(Vehicle vehicleOnDepart, DateTime clockTime)
             {
@@ -348,7 +357,7 @@ namespace O2DESNet
             Func<int, bool, Segment> getSegment = (i, forward) =>
             {
                 var segment = new Segment(
-                    this, forward ? ratios[i] : ratios[i + 1], forward ? ratios[i + 1] : ratios[i], forward,
+                    this, forward ? Config.ControlPoints[i] : Config.ControlPoints[i + 1], forward ? Config.ControlPoints[i + 1] : Config.ControlPoints[i],
                     new FIFOServer<Vehicle>.Statics
                     {
                         Capacity = Config.Capacity,

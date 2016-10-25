@@ -29,7 +29,7 @@ namespace O2DESNet.Demos.PathMoverSystem
                 //sim.WriteToConsole();
                 //Console.WriteLine();
 
-                if (sim.ClockTime > DateTime.MinValue.AddSeconds(60*60)) break;
+                if (sim.ClockTime > DateTime.MinValue.AddSeconds(60 * 3)) break;
                 //Console.ReadKey();
             }
 
