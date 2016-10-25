@@ -207,8 +207,9 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-
-                // pull vehicles from other paths to enter when vacancy is released
+                
+                /*************** PULL WHEN VEHICLE EXIT A PATH ****************/
+                // path vacancy is released
                 foreach (var seg in Path.ControlPoints // all Control Points on the Path
                     .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.ReadyTime != null)) // segment ready for vehicle to depart
                     .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time

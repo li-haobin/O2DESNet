@@ -168,7 +168,14 @@ namespace O2DESNet
                     while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
                     if (Vehicle.Targets.Count > 0)
                     {
+                        var current = Vehicle.Current;
                         Execute(Vehicle.PathToNext.Move(Vehicle));
+                        /*************** PULL WHEN VEHICLE RESTART TO MOVE ****************/
+                        // control point vacancy is released
+                        foreach (var seg in current.IncomingSegments
+                            .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
+                            .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
+                            Execute(seg.Depart());
                         Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Travelling));
                     }
                     else Execute(Vehicle.Complete());

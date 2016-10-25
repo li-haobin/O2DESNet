@@ -19,15 +19,17 @@ namespace O2DESNet.Demos.PathMoverSystem
             var sim = new Simulator(pmSys);
             //sim.Status.Display = true;
             
-            sim.WarmUp(TimeSpan.FromMinutes(1));
+            sim.WarmUp(TimeSpan.FromSeconds(60) );
             while (true)
             {
                 sim.Run(1);
-                
+
+                //Console.Clear();
                 Console.WriteLine(sim.ClockTime);
-                //sim.WriteToConsole();
-                
-                if (sim.ClockTime > DateTime.MinValue.AddMinutes(3)) break;
+                sim.WriteToConsole();
+                Console.WriteLine();
+
+                if (sim.ClockTime > DateTime.MinValue.AddSeconds(120)) break;
                 //Console.ReadKey();
             }
 
