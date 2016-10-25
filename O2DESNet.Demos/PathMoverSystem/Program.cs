@@ -26,14 +26,14 @@ namespace O2DESNet.Demos.PathMoverSystem
 
                 //Console.Clear();
                 Console.WriteLine(sim.ClockTime);
-                sim.WriteToConsole();
-                Console.WriteLine();
+                //sim.WriteToConsole();
+                //Console.WriteLine();
 
-                if (sim.ClockTime > DateTime.MinValue.AddSeconds(120)) break;
+                if (sim.ClockTime > DateTime.MinValue.AddSeconds(60*60)) break;
                 //Console.ReadKey();
             }
 
-            var svg = new SVG(1050, 1050,
+            var svg = new SVG(1200, 1200,
                pmSys.PathMover.SVGDefs,
                pmSys.PathMover.SVG(25, 25, 0)
                );
@@ -65,11 +65,11 @@ namespace O2DESNet.Demos.PathMoverSystem
             var cp2 = pm.CreateControlPoint(paths[0], 40);
 
             paths[0].Description = "M 0 0 L 1000 0";
-            paths[1].Description = "M 1000 0 L 1000 1000";
+            paths[1].Description = "M 1000 0 L 900 250 L 1000 500 L 1100 750 L 1000 1000";
             paths[2].Description = "M 1000 1000 L 0 1000";
             paths[3].Description = "M 0 1000 L 0 0";
             paths[4].Description = "M 500 0 L 500 1000";
-            paths[5].Description = "M 1000 500 L 0 500";
+            paths[5].Description = "M 1000 500 L 900 510 L 800 490 L 700 510 L 600 490 L 500 500 L 400 510 L 300 490 L 200 510 L 100 490 L 0 500";
             return pm;
         }
 

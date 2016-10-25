@@ -100,12 +100,14 @@ namespace O2DESNet
         #region Dynamics
         public PathMover PathMover { get; internal set; }
         public Vehicle At { get; internal set; }
+        public bool Locked { get; private set; } = false;
         /// <summary>
         /// Chech if the control point is accessible via the given path
         /// </summary>
         public bool Accessible (Path via = null)
         {
-            if (At != null) return false;
+            //if (At != null) return false;
+            if (Locked) return false;
             foreach(var path in Config.Positions.Keys.Select(i => PathMover.Paths[i]))
                 if (path != via && path.Vacancy < 1) return false;
             return true;
@@ -128,6 +130,7 @@ namespace O2DESNet
                 if (!ControlPoint.Accessible()) throw new ZeroVacancyException();
                 Vehicle.Log(this);
                 ControlPoint.At = Vehicle;
+                ControlPoint.Locked = true;
                 ControlPoint.HourCounter.ObserveCount(1, ClockTime);
             }
             public override string ToString() { return string.Format("{0}_MoveIn", ControlPoint); }
@@ -145,6 +148,7 @@ namespace O2DESNet
             {
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = Vehicle;
+                ControlPoint.Locked = true;
                 ControlPoint.HourCounter.ObserveCount(1, ClockTime);
             }
             public override string ToString() { return string.Format("{0}_Reach", ControlPoint); }
@@ -164,8 +168,28 @@ namespace O2DESNet
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 ControlPoint.At = null;
                 ControlPoint.HourCounter.ObserveCount(0, ClockTime);
+                Schedule(new ReleaseEvent(ControlPoint), TimeSpan.FromSeconds(1)); //to be revised
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
+        }
+        private class ReleaseEvent : Event
+        {
+            public ControlPoint ControlPoint { get; private set; }
+            internal ReleaseEvent(ControlPoint controlPoint)
+            {
+                ControlPoint = controlPoint;
+            }
+            public override void Invoke()
+            {
+                ControlPoint.Locked = false;
+                /*************** PULL WHEN VEHICLE RESTART TO MOVE ****************/
+                // control point vacancy is released
+                foreach (var seg in ControlPoint.IncomingSegments
+                    .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
+                    .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
+                    Execute(seg.Depart());
+            }
+            public override string ToString() { return string.Format("{0}_Release", ControlPoint); }
         }
         #endregion
 

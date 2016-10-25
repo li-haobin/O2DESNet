@@ -153,7 +153,7 @@ namespace O2DESNet
                         );
                     furthest = distance - veh.Category.Length;
 
-                    veh.LogPosition(time, Path.Config, StartRatio + (distance - veh.Category.Length / 2) / Path.Config.Length * (Forward ? 1 : -1));
+                    veh.LogPosition(time, Path.Config, StartRatio + Math.Max(0, (distance - veh.Category.Length / 2)) / Path.Config.Length * (Forward ? 1 : -1));
                 }
             }
         }

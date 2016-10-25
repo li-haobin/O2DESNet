@@ -172,10 +172,10 @@ namespace O2DESNet
                         Execute(Vehicle.PathToNext.Move(Vehicle));
                         /*************** PULL WHEN VEHICLE RESTART TO MOVE ****************/
                         // control point vacancy is released
-                        foreach (var seg in current.IncomingSegments
-                            .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
-                            .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
-                            Execute(seg.Depart());
+                        //foreach (var seg in current.IncomingSegments
+                        //    .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
+                        //    .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
+                        //    Execute(seg.Depart());
                         Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Travelling));
                     }
                     else Execute(Vehicle.Complete());
