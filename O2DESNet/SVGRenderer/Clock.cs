@@ -55,6 +55,13 @@ namespace O2DESNet.SVGRenderer
             Add(new Text(css, ":", new XAttribute("transform", string.Format("translate({0} 0)", digitWidth * 5.5))));
             Add(CycledDigits(css, digitWidth * 6.5, new List<int> { 0, 1, 2, 3, 4, 5 }, 60 / speed, startTime.Second / speed)); // second x 10
             Add(CycledDigits(css, digitWidth * 7.5, new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 10 / speed, startTime.Second % 10 / speed)); // second x 1
+
+            if (endTime != null) Add(new Group(
+                new Rect(0, -size, digitWidth * 8, size, "white", "white"),
+                new Text(css, "THE END", new XAttribute("transform", string.Format("translate({0} 0)", digitWidth * 4))),
+                new Set("visibility", "visible", (endTime.Value - startTime).TotalSeconds),
+                new XAttribute("visibility", "hidden")
+                ));
         }
     }
 

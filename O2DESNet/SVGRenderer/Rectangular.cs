@@ -7,9 +7,9 @@ using System.Xml.Linq;
 
 namespace O2DESNet.SVGRenderer
 {
-    public class Rectangular : XElement
+    public class Rect : XElement
     {
-        public Rectangular(double x, double y, double width, double height, string stroke, string fill,
+        public Rect(double x, double y, double width, double height, string stroke, string fill,
             params object[] content) :
             base(SVG.Namespace + "rect",
                 new XAttribute("x", x), 

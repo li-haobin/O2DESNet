@@ -41,7 +41,7 @@ namespace O2DESNet
             {
                 string veh_cate_name = "veh_cate#" + Name;
                 var g = new Group(veh_cate_name,
-                    new Rectangular(-Length / 0.2, -Width / 0.2, Length * 10, Width * 10, "black", Color, new XAttribute("fill-opacity", 0.5)),
+                    new Rect(-Length / 0.2, -Width / 0.2, Length * 10, Width * 10, "black", Color, new XAttribute("fill-opacity", 0.5)),
                     new Text(Label, Name, new XAttribute("transform", "translate(0 4.5)"))
                     );
                 var label = new Text(Label, Name, new XAttribute("transform", "translate(0 4.5)"));
@@ -281,10 +281,11 @@ namespace O2DESNet
                 );
 
             g.Add(new Group(
-                new Text(Statics.RedLabel, "PARKING", new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))),
-                StateHistory.Count > 1 ? (XElement)
-                new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")) :
-                new Set("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden", StateHistory.First().Item1)
+                new Text(Statics.RedLabel, "PARKING", 
+                    new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))),
+                    StateHistory.Count > 1 ? (XElement)
+                    new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")) :
+                    new Set("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden", StateHistory.First().Item1)
                 ));
 
             if (Anchors.Count > 0)
