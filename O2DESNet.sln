@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.PathMover", "O2DESNet.PathMover\O2DESNet.PathMover.csproj", "{58765116-A73E-414C-BADF-C8A8AC307F4B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos.PMExample", "O2DESNet.Demos.PMExample\O2DESNet.Demos.PMExample.csproj", "{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Optimizer", "O2DESNet.Optimizer\O2DESNet.Optimizer.csproj", "{B7406337-F0C7-4DAC-931A-8FB09134D12A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos", "O2DESNet.Demos\O2DESNet.Demos.csproj", "{4AB72D0D-D445-43F8-B175-69B6E781E7ED}"
@@ -21,22 +17,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Debug|x64.Build.0 = Debug|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Release|x64.ActiveCfg = Release|Any CPU
-		{58765116-A73E-414C-BADF-C8A8AC307F4B}.Release|x64.Build.0 = Release|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Debug|x64.Build.0 = Debug|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|x64.ActiveCfg = Release|Any CPU
-		{CAC3FFFE-3BEF-45C7-A4FD-79ECBC43DC54}.Release|x64.Build.0 = Release|Any CPU
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|x64.ActiveCfg = Debug|x64
