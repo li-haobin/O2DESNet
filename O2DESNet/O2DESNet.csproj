@@ -101,6 +101,7 @@
     <Compile Include="SVGRenderer\Path.cs" />
     <Compile Include="SVGRenderer\PathMarker.cs" />
     <Compile Include="SVGRenderer\Rectangular.cs" />
+    <Compile Include="SVGRenderer\Set.cs" />
     <Compile Include="SVGRenderer\Style.cs" />
     <Compile Include="SVGRenderer\StyledXElement.cs" />
     <Compile Include="SVGRenderer\SVG.cs" />

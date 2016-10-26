@@ -285,6 +285,7 @@ namespace O2DESNet
             {
                 Vehicle.Log(this);                
                 Execute(Vehicle.Reach());
+                Path.PathMover.LastUpdateTime = ClockTime;
 
                 var seg = Vehicle.Segment;
                 var pathToNext = Vehicle.PathToNext;                

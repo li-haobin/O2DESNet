@@ -39,7 +39,7 @@ namespace O2DESNet.SVGRenderer
             return g;
         }
 
-        public Clock(DateTime startTime, double speed = 1) : base()
+        public Clock(DateTime startTime, DateTime? endTime = null, double speed = 1) : base()
         {
             string color = "black";
             int size = 20, digitWidth = 10;

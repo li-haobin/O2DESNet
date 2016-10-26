@@ -282,6 +282,7 @@ namespace O2DESNet
             //veh.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(clockTime, veh.GetPosture(clockTime)));
         }
         public DateTime StartTime { get; private set; } = DateTime.MinValue;
+        public DateTime LastUpdateTime { get; internal set; }
         #endregion
 
         #region Events
@@ -354,6 +355,7 @@ namespace O2DESNet
             foreach (var path in Paths.Values) path.WarmedUp(clockTime);
             foreach (var cp in ControlPoints.Values) cp.WarmedUp(clockTime);
             StartTime = clockTime;
+            LastUpdateTime = clockTime;
 
             foreach (var veh in Vehicles)
             {
@@ -388,7 +390,7 @@ namespace O2DESNet
             var g = new Group("pm", x: x, y: y, rotate: rotate);
             g.Add(Config.SVG());
             foreach (var veh in Vehicles) g.Add(veh.SVG());
-            g.Add(new Group(x: 100, y: 100, rotate: 0, content: new Clock(StartTime)));
+            g.Add(new Group(x: 100, y: 100, rotate: 0, content: new Clock(StartTime, LastUpdateTime)));
             return g;
         }
 
