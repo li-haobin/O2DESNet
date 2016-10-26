@@ -82,8 +82,6 @@
     <Compile Include="Components\Server.cs" />
     <Compile Include="PathMover\ControlPoint.cs" />
     <Compile Include="PathMover\Dijkstra.cs" />
-    <Compile Include="PathMover\DrawingParams.cs" />
-    <Compile Include="PathMover\LinearTool.cs" />
     <Compile Include="PathMover\Path.cs" />
     <Compile Include="PathMover\PathMover.cs" />
     <Compile Include="PathMover\Vehicle.cs" />

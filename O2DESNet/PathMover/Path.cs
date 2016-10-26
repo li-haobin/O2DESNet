@@ -77,12 +77,7 @@ namespace O2DESNet
                 }
                 return double.PositiveInfinity;
             }
-
-            public virtual void Draw(Graphics g, DrawingParams dParams, Pen pen, double start, double end)
-            {
-                g.DrawLines(pen, LinearTool.GetCoordsInRange(Coordinates, start, end).Select(c => dParams.GetPoint(c)).ToArray());
-            }
-
+            
             #region SVG Output
             /// <summary>
             /// SVG Description
