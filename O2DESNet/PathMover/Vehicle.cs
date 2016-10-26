@@ -42,23 +42,25 @@ namespace O2DESNet
                 string veh_cate_name = "veh_cate#" + Name;
                 var g = new Group(veh_cate_name,
                     new Rectangular(-Length / 0.2, -Width / 0.2, Length * 10, Width * 10, "black", Color, new XAttribute("fill-opacity", 0.5)),
-                    new Text(LabelStyle, Name, new XAttribute("transform", "translate(0 4.5)"))
+                    new Text(Label, Name, new XAttribute("transform", "translate(0 4.5)"))
                     );
-                var label = new Text(LabelStyle, Name, new XAttribute("transform", "translate(0 4.5)"));
+                var label = new Text(Label, Name, new XAttribute("transform", "translate(0 4.5)"));
                 return g;
             }
 
-            public static CSS LabelStyle = new CSS("pm_vehCate_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "black"));
+            public static CSS Label = new CSS("pm_vehCate_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "black"));
+            public static CSS RedLabel = new CSS("pm_vehCate_red_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "red"));
 
             /// <summary>
             /// Including arrows, styles
             /// </summary>
-            public static Definition SVGDefs { get { return new Definition(new Style(LabelStyle)); } }
+            public static Definition SVGDefs { get { return new Definition(new Style(Label, RedLabel)); } }
             #endregion           
         }
         #endregion
 
         #region Dynamics
+        public PathMover PathMover { get; private set; }
         public virtual double Speed { get { return Category.Speed; } }
         public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
         public ControlPoint Current { get; private set; } = null;        
@@ -82,7 +84,9 @@ namespace O2DESNet
         }
         
         public enum State { Travelling, Parking }
-        public List<Tuple<DateTime, State>> StateHistory { get; private set; } = new List<Tuple<DateTime, State>>();
+        public List<Tuple<double, State>> StateHistory { get; private set; } = new List<Tuple<double, State>> { new Tuple<double, State>(0, State.Parking) };
+        public void LogState(DateTime clockTime, State state) { StateHistory.Add(new Tuple<double, State>((clockTime - PathMover.StartTime).TotalSeconds, state)); }
+        public void ResetStateHistory() { StateHistory = new List<Tuple<double, State>> { new Tuple<double, State>(0, StateHistory.Last().Item2) }; }
         #endregion
 
         #region Events
@@ -94,13 +98,14 @@ namespace O2DESNet
             {
                 Vehicle = vehicle;
                 ControlPoint = controlPoint;
+                Vehicle.PathMover = ControlPoint.PathMover;
             }
             public override void Invoke()
             {
                 if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");                
                 Vehicle.Current = ControlPoint;
                 ControlPoint.PathMover.Vehicles.Add(Vehicle);
-                Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Parking));
+                Vehicle.StateHistory.Add(new Tuple<double, State>((ClockTime - ControlPoint.PathMover.StartTime).TotalSeconds, State.Parking));
 
                 // add vehicle posture
                 //Vehicle.Postures.Add(new Tuple<DateTime, Tuple<Point, double>>(ClockTime, Vehicle.GetPosture(ClockTime)));
@@ -121,6 +126,7 @@ namespace O2DESNet
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 Vehicle.Current.PathMover.Vehicles.Remove(Vehicle);
                 Vehicle.Current = null;
+                Vehicle.PathMover = null;
             }
             public override string ToString() { return string.Format("{0}_PutOff", Vehicle); }
         }
@@ -172,13 +178,7 @@ namespace O2DESNet
                     {
                         var current = Vehicle.Current;
                         Execute(Vehicle.PathToNext.Move(Vehicle));
-                        /*************** PULL WHEN VEHICLE RESTART TO MOVE ****************/
-                        // control point vacancy is released
-                        //foreach (var seg in current.IncomingSegments
-                        //    .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
-                        //    .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
-                        //    Execute(seg.Depart());
-                        Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Travelling));
+                        Vehicle.LogState(ClockTime, State.Travelling);
                     }
                     else Execute(Vehicle.Complete());
                 }
@@ -202,7 +202,7 @@ namespace O2DESNet
             public override void Invoke()
             {                
                 foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
-                Vehicle.StateHistory.Add(new Tuple<DateTime, State>(ClockTime, State.Parking));
+                Vehicle.LogState(ClockTime, State.Parking);
             }
             public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
@@ -277,8 +277,13 @@ namespace O2DESNet
         {
             var g = new Group("veh#" + Id,
                 new Use("veh_cate#" + Category.Name),
-                new Text(Statics.LabelStyle, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
+                new Text(Statics.Label, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
                 );
+
+            g.Add(new Group(
+                new Text(Statics.RedLabel, "PARKING", new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))),
+                new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"))
+                ));
 
             if (Anchors.Count > 0)
             {
@@ -340,7 +345,7 @@ namespace O2DESNet
             if (Anchors.Count > 0 && time == Anchors.Last().Item1 && path == Anchors.Last().Item2) Anchors.RemoveAt(Anchors.Count - 1);            
             Anchors.Add(new Tuple<double, Path.Statics, double>(time, path, Math.Min(1, Math.Max(0, ratio))));
         }
-        public void ResetHistory() { Anchors = new List<Tuple<double, Path.Statics, double>>(); }
+        public void ResetAnchors() { Anchors = new List<Tuple<double, Path.Statics, double>>(); }
         #endregion
 }
 }

@@ -355,7 +355,12 @@ namespace O2DESNet
             foreach (var cp in ControlPoints.Values) cp.WarmedUp(clockTime);
             StartTime = clockTime;
 
-            foreach (var veh in Vehicles) veh.ResetHistory();
+            foreach (var veh in Vehicles)
+            {
+                veh.ResetAnchors();
+                veh.ResetStateHistory();
+            }                
+            
             foreach (var cp in ControlPoints.Values.Where(cp => cp.At != null))
                 cp.At.LogAnchor(0, cp.At.Segment.Path.Config, cp.Config.Positions[cp.At.Segment.Path.Config] / cp.At.Segment.Path.Config.Length);
             foreach (var seg in Paths.Values.SelectMany(path => path.ForwardSegments.Concat(path.BackwardSegments))) seg.LogAnchors(null, clockTime);
