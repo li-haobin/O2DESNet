@@ -1,11 +1,12 @@
 ﻿[History]
 
-- Verssion 2.1.3
+- Verssion 2.2.0
 1. In Depart() event of Server, instead of checking the first load in the Served list (and continue only if the first is departed), all loads will be screened for ToDepart condition and depart if respective condition is satisfied.
 2. Implement FIFO Server, as for modelling PathMover system
 3. Add NCoccupied as dynamic property of Server / RestoreServer / FIFOServer, for easy call.
 4. Add StartTimes and FinishTimes in Server, for Loads occupying the Server
 5. WriteToConsole method of Status / Component may take in clockTime:DateTime parameter, as need for determining position of vehicles in PathMover
+6. Include PathMover
 
 - Version 2.1.2
 Allows Load to have Static properties as "Category", considering it's a special type of Component that have life cycles in simulation.
