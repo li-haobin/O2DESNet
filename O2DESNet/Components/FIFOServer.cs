@@ -91,6 +91,8 @@ namespace O2DESNet
                 FIFOServer.Serving.Remove(Load);
                 FIFOServer.Served.Add(Load);
                 FIFOServer.FinishTimes.Add(Load, ClockTime);
+                if (FIFOServer.Sequence.First() != Load)
+                    foreach (var evnt in FIFOServer.OnDelay) Execute(evnt(Load));
                 Execute(new DepartEvent(FIFOServer));
             }
             public override string ToString() { return string.Format("{0}_Finish", FIFOServer); }
@@ -153,11 +155,12 @@ namespace O2DESNet
 
         #region Input Events - Getters
         public Event Start(TLoad load) { return new StartEvent(this, load); }
-        public Event Depart() { return new DepartEvent(this); }        
+        public Event Depart() { return new DepartEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event>> OnDepart { get; private set; }
+        public List<Func<TLoad, Event>> OnDepart { get; private set; } = new List<Func<TLoad, Event>>();
+        public List<Func<TLoad, Event>> OnDelay { get; private set; } = new List<Func<TLoad, Event>>();
         #endregion
         
         #region Exeptions
@@ -182,10 +185,7 @@ namespace O2DESNet
             Served = new HashSet<TLoad>();
             HourCounter = new HourCounter();
             StartTimes = new Dictionary<TLoad, DateTime>();
-            FinishTimes = new Dictionary<TLoad, DateTime>();
-
-            // initialize for output events    
-            OnDepart = new List<Func<TLoad, Event>>();
+            FinishTimes = new Dictionary<TLoad, DateTime>();            
         }
 
         public override void WarmedUp(DateTime clockTime)

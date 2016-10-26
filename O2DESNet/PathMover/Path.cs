@@ -149,6 +149,7 @@ namespace O2DESNet
 
             public void LogAnchors(Vehicle vehicleOnDepart, DateTime clockTime)
             {
+                if (vehicleOnDepart == null) vehicleOnDepart = Path.PathMover.ControlPoints[EndPoint].At;
                 // postures of vehicles on the Segment
                 var time = (clockTime - Path.PathMover.StartTime).TotalSeconds;
                 var furthest = Path.Config.Length * (EndRatio - StartRatio) - 
@@ -162,7 +163,7 @@ namespace O2DESNet
                         );
                     furthest = distance - veh.Category.SafetyLength;
 
-                    veh.LogPosition(time, Path.Config, StartRatio + Math.Max(0, (distance - veh.Category.SafetyLength / 2)) / Path.Config.Length * (Forward ? 1 : -1));
+                    veh.LogAnchor(time, Path.Config, StartRatio + Math.Max(0, (distance - veh.Category.SafetyLength / 2)) / Path.Config.Length * (Forward ? 1 : -1));
                 }
             }
         }
@@ -264,10 +265,10 @@ namespace O2DESNet
                 var time = (ClockTime - Path.PathMover.StartTime).TotalSeconds;
                 if (seg != null)
                 {
-                    Vehicle.LogPosition(time, seg.Path.Config, seg.EndRatio);
+                    Vehicle.LogAnchor(time, seg.Path.Config, seg.EndRatio);
                     seg.LogAnchors(Vehicle, ClockTime);
                 }
-                if (Vehicle.Segment != null) Vehicle.LogPosition(time, Vehicle.Segment.Path.Config, Vehicle.Segment.StartRatio);
+                if (Vehicle.Segment != null) Vehicle.LogAnchor(time, Vehicle.Segment.Path.Config, Vehicle.Segment.StartRatio);
             }
             public override string ToString() { return string.Format("{0}_Move", Path); }
         }
@@ -290,7 +291,7 @@ namespace O2DESNet
                 var time = (ClockTime - Path.PathMover.StartTime).TotalSeconds;
                 if (seg != null)
                 {
-                    Vehicle.LogPosition(time, seg.Path.Config, seg.EndRatio);
+                    Vehicle.LogAnchor(time, seg.Path.Config, seg.EndRatio);
                     seg.LogAnchors(Vehicle, ClockTime);
                 }
 
@@ -370,6 +371,7 @@ namespace O2DESNet
                     },
                     DefaultRS.Next());
                 segment.OnDepart.Add(veh => new ReachEvent(this, veh));
+                segment.OnDelay.Add(veh => veh.UpdatePositionsInSegment());
                 return segment;
             };
             ForwardSegments = Enumerable.Range(0, n - 1).Select(i => getSegment(i, true)).ToArray();

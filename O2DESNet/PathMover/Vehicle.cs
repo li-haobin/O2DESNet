@@ -206,6 +206,12 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
+        private class UpdatePositionsInSegmentEvent : Event
+        {
+            public Vehicle Vehicle { get; private set; }
+            public UpdatePositionsInSegmentEvent(Vehicle vehicle) { Vehicle = vehicle; }
+            public override void Invoke() { Vehicle.Segment.LogAnchors(null, ClockTime); }
+        }
         #endregion
 
         #region Input Events - Getters
@@ -224,6 +230,7 @@ namespace O2DESNet
         internal Event Move() { return new MoveEvent(this); }
         internal Event Reach() { return new ReachEvent(this); }
         internal Event Complete() { return new CompleteEvent(this); }
+        internal Event UpdatePositionsInSegment() { return new UpdatePositionsInSegmentEvent(this); }
         #endregion
 
         #region Output Events - Reference to Getters
@@ -273,30 +280,30 @@ namespace O2DESNet
                 new Text(Statics.LabelStyle, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
                 );
 
-            if (History.Count > 0)
+            if (Anchors.Count > 0)
             {
-                double begin = History.First().Item1;
-                Path.Statics path = History.First().Item2;
-                List<double> keyTimes = new List<double> { 0 }, keyPoints = new List<double> { History.First().Item3 };
+                double begin = Anchors.First().Item1;
+                Path.Statics path = Anchors.First().Item2;
+                List<double> keyTimes = new List<double> { 0 }, keyPoints = new List<double> { Anchors.First().Item3 };
                 List<double> offTimes = new List<double> { 0 }, onTimes = new List<double> { begin };
                 int i = 0;
                 while (true)
                 {
-                    if (++i == History.Count || History[i].Item2 != path)
+                    if (++i == Anchors.Count || Anchors[i].Item2 != path)
                     {
                         g.Add(new AnimateMotion(string.Format("path#{0}_d", path.Index), new XAttribute("begin", string.Format("{0}s", begin)), new XAttribute("dur", string.Format("{0}s", keyTimes.Last())), new XAttribute("rotate", "auto"), new XAttribute("keyTimes", string.Join(";", keyTimes.Select(t => (t - keyTimes.First()) / keyTimes.Last()))), new XAttribute("keyPoints", string.Join(";", keyPoints)), new XAttribute("calcMode", "linear")));
-                        if (i == History.Count) break;
+                        if (i == Anchors.Count) break;
                         offTimes.Add(begin + keyTimes.Last());
-                        onTimes.Add(History[i].Item1);
-                        begin = History[i].Item1;
-                        path = History[i].Item2;
+                        onTimes.Add(Anchors[i].Item1);
+                        begin = Anchors[i].Item1;
+                        path = Anchors[i].Item2;
                         keyTimes = new List<double> { 0 };
-                        keyPoints = new List<double> { History[i].Item3 };
+                        keyPoints = new List<double> { Anchors[i].Item3 };
                     }
                     else
                     {
-                        keyTimes.Add(History[i].Item1 - begin);
-                        keyPoints.Add(History[i].Item3);
+                        keyTimes.Add(Anchors[i].Item1 - begin);
+                        keyPoints.Add(Anchors[i].Item3);
                     }
                 }
 
@@ -321,19 +328,19 @@ namespace O2DESNet
                     keyTimes.Add(onTimes[i]);
                 }
                 values.Add("hidden");
-                keyTimes.Add(History.Last().Item1);
+                keyTimes.Add(Anchors.Last().Item1);
                 g.Add(new Animate("visibility", keyTimes, values, new XAttribute("fill", "freeze")));
             }
             return g;
         }
 
-        private List<Tuple<double, Path.Statics, double>> History { get; set; } = new List<Tuple<double, Path.Statics, double>>();
-        public void LogPosition(double time, Path.Statics path, double ratio)
+        private List<Tuple<double, Path.Statics, double>> Anchors { get; set; } = new List<Tuple<double, Path.Statics, double>>();
+        public void LogAnchor(double time, Path.Statics path, double ratio)
         {
-            //if (History.Count > 0 && time == History.Last().Item1 && path == History.Last().Item2) return;
-            History.Add(new Tuple<double, Path.Statics, double>(time, path, Math.Min(1, Math.Max(0, ratio))));
+            if (Anchors.Count > 0 && time == Anchors.Last().Item1 && path == Anchors.Last().Item2) Anchors.RemoveAt(Anchors.Count - 1);            
+            Anchors.Add(new Tuple<double, Path.Statics, double>(time, path, Math.Min(1, Math.Max(0, ratio))));
         }
-        public void ResetHistory() { History = new List<Tuple<double, Path.Statics, double>>(); }
+        public void ResetHistory() { Anchors = new List<Tuple<double, Path.Statics, double>>(); }
         #endregion
 }
 }
