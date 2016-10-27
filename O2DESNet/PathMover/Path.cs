@@ -80,23 +80,36 @@ namespace O2DESNet
             
             #region SVG Output
             /// <summary>
-            /// SVG Description
+            /// SVG - Path Description
             /// </summary>
-            public string Description { get; set; }
+            public string D { get; set; }
+            /// <summary>
+            /// SVG - X coordinate for translation
+            /// </summary>
+            public double X { get; set; } = 0;
+            /// <summary>
+            /// SVG - Y coordinate for translation
+            /// </summary>
+            public double Y { get; set; } = 0;
+            /// <summary>
+            /// SVG - Rotate degree for transformation
+            /// </summary>
+            public double Rotate { get; set; } = 0;
 
             public Group SVG()
             {
                 string name = "path#" + Index;
-                var g = new Group(name, new O2DESNet.SVGRenderer.Path(LineStyle, Description, new XAttribute("id", name + "_d")));
+                var g = new Group(name, new SVGRenderer.Path(LineStyle, D, new XAttribute("id", name + "_d")));
                 var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -7)"));
                 if (Direction != Direction.Backward) g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional
                 else g.Add(new PathMarker(name + "_marker", name + "_d", 0.667, new Use("arrow", 0, 0, 180), label)); // backwards
                 if (Direction == Direction.TwoWay) g.Add(new PathMarker(name + "_marker2", name + "_d", 0.667, new Use("arrow", 0, 0, 180))); // bi-directional
+                if (X != 0 || Y != 0 || Rotate != 0) g.Add(new XAttribute("transform", string.Format("translate({0} {1}) rotate({2})", X, Y, Rotate)));
                 return g;
             }
 
             public static CSS LineStyle = new CSS("pm_path", new XAttribute("stroke", "black"), new XAttribute("stroke-dasharray", "3,3"), new XAttribute("fill", "none"));
-            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "black"));
+            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "5px"), new XAttribute("fill", "black"));
 
             /// <summary>
             /// Including arrows, styles

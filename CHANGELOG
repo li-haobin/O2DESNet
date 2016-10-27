@@ -1,3 +1,7 @@
+- Version 2.2.1
+1. Change font-size for Path label for displaying dense path network
+2. Add X, Y, Rotate transform to Path SVG description
+
 - Verssion 2.2.0
 1. In Depart() event of Server, instead of checking the first load in the Served list (and continue only if the first is departed), all loads will be screened for ToDepart condition and depart if respective condition is satisfied.
 2. Implement FIFO Server, as for modelling PathMover system
