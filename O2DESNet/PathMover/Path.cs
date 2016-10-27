@@ -32,17 +32,7 @@ namespace O2DESNet
             public double FullSpeed { get; set; }
             public int Capacity { get; set; }
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
-
-            /// <summary>
-            /// For old path mover drawing
-            /// </summary>
-            public List<DenseVector> Coordinates { get; private set; }
-
-            /// <summary>
-            /// For path mover graphical display
-            /// </summary>
-            public List<Point> Coords { get; set; }
-            
+                        
             /// <summary>
             /// Do not change the direction of the vehicle
             /// </summary>
@@ -53,9 +43,7 @@ namespace O2DESNet
                 PathMover = pathMover;
                 Index = PathMover.Paths.Count;
                 Capacity = int.MaxValue;
-
                 ControlPoints = new List<ControlPoint.Statics>();
-                Coordinates = new List<DenseVector>();
             }
 
             internal void Add(ControlPoint.Statics controlPoint, double position)
@@ -100,7 +88,7 @@ namespace O2DESNet
             {
                 string name = "path#" + Index;
                 var g = new Group(name, new SVGRenderer.Path(LineStyle, D, new XAttribute("id", name + "_d")));
-                var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -7)"));
+                var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -4)"));
                 if (Direction != Direction.Backward) g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional
                 else g.Add(new PathMarker(name + "_marker", name + "_d", 0.667, new Use("arrow", 0, 0, 180), label)); // backwards
                 if (Direction == Direction.TwoWay) g.Add(new PathMarker(name + "_marker2", name + "_d", 0.667, new Use("arrow", 0, 0, 180))); // bi-directional
@@ -108,8 +96,8 @@ namespace O2DESNet
                 return g;
             }
 
-            public static CSS LineStyle = new CSS("pm_path", new XAttribute("stroke", "black"), new XAttribute("stroke-dasharray", "3,3"), new XAttribute("fill", "none"));
-            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "5px"), new XAttribute("fill", "black"));
+            public static CSS LineStyle = new CSS("pm_path", new XAttribute("stroke", "black"), new XAttribute("stroke-dasharray", "3,3"), new XAttribute("fill", "none"), new XAttribute("stroke-width", "0.5"));
+            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "4px"), new XAttribute("fill", "black"));
 
             /// <summary>
             /// Including arrows, styles
@@ -119,7 +107,7 @@ namespace O2DESNet
                 get
                 {
                     return new Definition(
-                        new SVGRenderer.Path("M -10 -4 L 0 0 L -10 4", "black", new XAttribute("id", "arrow")),
+                        new SVGRenderer.Path("M -5 -2 L 0 0 L -5 2", "black", new XAttribute("id", "arrow"), new XAttribute("stroke-width", "0.5")),
                         new Style(LineStyle, LabelStyle)
                         );
                 }

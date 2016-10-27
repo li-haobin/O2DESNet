@@ -74,11 +74,13 @@ namespace O2DESNet
                 string cp_name = "cp#" + Index;
                 var path = Positions.Select(i => i.Key).OrderBy(p => p.Index).First();
                 string path_name = "path#" + path.Index;
-                var label = new Text(LabelStyle, string.Format("CP{0}", Index), new XAttribute("transform", "translate(12 15)"));
-                return new PathMarker(cp_name, path_name + "_d", Positions[path] / path.Length, new Use("cross"), label);
+                var label = new Text(LabelStyle, string.Format("CP{0}", Index), new XAttribute("transform", "translate(3 6)"));
+                if (path.X != 0 || path.Y != 0 || path.Rotate != 0)
+                    return new PathMarker(cp_name, path.X, path.Y, path.Rotate, path_name + "_d", Positions[path] / path.Length, new Use("cross"), label);
+                else return new PathMarker(cp_name, path_name + "_d", Positions[path] / path.Length, new Use("cross"), label);
             }
             
-            public static CSS LabelStyle = new CSS("pm_cp_label", new XAttribute("text-anchor", "middle"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "9px"), new XAttribute("fill", "darkred"));
+            public static CSS LabelStyle = new CSS("pm_cp_label", new XAttribute("text-anchor", "left"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "4px"), new XAttribute("fill", "darkred"));
 
             /// <summary>
             /// Including arrows, styles
@@ -88,7 +90,7 @@ namespace O2DESNet
                 get
                 {
                     return new Definition(
-                        new SVGRenderer.Path("M -4 -4 L 4 4 M -4 4 L 4 -4", "darkred", new XAttribute("id", "cross")),
+                        new SVGRenderer.Path("M -2 -2 L 2 2 M -2 2 L 2 -2", "darkred", new XAttribute("id", "cross"), new XAttribute("stroke-width", "0.5")),
                         new Style(LabelStyle)
                         );
                 }
