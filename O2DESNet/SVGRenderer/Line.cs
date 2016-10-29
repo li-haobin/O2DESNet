@@ -15,5 +15,13 @@ namespace O2DESNet.SVGRenderer
                 new XAttribute("fill", "none"),
                 content)
         { }
+
+        public Line(CSS css, params double[][] coords) :
+            base(SVG.Namespace + "path", css,
+                new XAttribute("fill", "none"))
+        {
+            var d = "M " + string.Join("L ", coords.Select(c => string.Format("{0} {1} ", c[0], c[1])));
+            Add(new XAttribute("d", d));
+        }
     }
 }

@@ -86,7 +86,7 @@ namespace O2DESNet
 
             public Group SVG()
             {
-                string name = "path#" + Index;
+                string name = "path#" + PathMover.Index + "_" + Index;
                 var g = new Group(name, new SVGRenderer.Path(LineStyle, D, new XAttribute("id", name + "_d")));
                 var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -4)"));
                 if (Direction != Direction.Backward) g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional

@@ -19,14 +19,16 @@ namespace O2DESNet.SVGRenderer
             content) { }
 
         public PathMarker(string id, double x, double y, double rotate, string pathId, double ratio, params object[] content) :
-            base(id, x: x, y: y, rotate: rotate, content: content)
+            base(id, x: x, y: y, rotate: rotate)
         {
-            Add(new AnimateMotion(pathId,
+            Add(new Group(
+                new AnimateMotion(pathId,
                 new XAttribute("fill", "freeze"),
                 new XAttribute("rotate", "auto"),
                 new XAttribute("keyTimes", "0;1"),
                 new XAttribute("keyPoints", string.Format("{0};{0}", ratio)),
-                new XAttribute("calcMode", "linear")));
+                new XAttribute("calcMode", "linear")),
+                content));
         }
     }
 }

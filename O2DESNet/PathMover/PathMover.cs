@@ -17,6 +17,8 @@ namespace O2DESNet
         #region Statics
         public class Statics : Scenario
         {
+            private static int _count = 0;
+            public int Index { get; private set; } = _count++;
             public List<Path.Statics> Paths { get; private set; }
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
 
@@ -171,11 +173,11 @@ namespace O2DESNet
                 return edges;
             }
             #endregion
-            
+
             #region SVG Output
             public virtual Group SVG(double x = 0, double y = 0, double degree = 0)
             {
-                return new Group(id: "pm", x: x, y: y, rotate: degree,
+                return new Group(id: "pm#" + Index, x: x, y: y, rotate: degree,
                     content: Paths.Select(path => path.SVG()).Concat(ControlPoints.Select(cp => cp.SVG())));
             }
 

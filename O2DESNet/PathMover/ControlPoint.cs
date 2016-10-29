@@ -71,9 +71,9 @@ namespace O2DESNet
             #region SVG Output
             public Group SVG()
             {
-                string cp_name = "cp#" + Index;
+                string cp_name = "cp#" + PathMover.Index + "_" + Index;
                 var path = Positions.Select(i => i.Key).OrderBy(p => p.Index).First();
-                string path_name = "path#" + path.Index;
+                string path_name = "path#" + PathMover.Index + "_" + path.Index;
                 var label = new Text(LabelStyle, string.Format("CP{0}", Index), new XAttribute("transform", "translate(3 6)"));
                 if (path.X != 0 || path.Y != 0 || path.Rotate != 0)
                     return new PathMarker(cp_name, path.X, path.Y, path.Rotate, path_name + "_d", Positions[path] / path.Length, new Use("cross"), label);
