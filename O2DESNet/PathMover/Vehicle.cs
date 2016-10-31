@@ -281,13 +281,13 @@ namespace O2DESNet
                 new Text(Statics.Label, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
                 );
 
-            g.Add(new Group(
+            var parking = new Group(
                 new Text(Statics.RedLabel, "PARKING",
-                    new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))),
-                    StateHistory.Count > 1 ? (XElement)
-                    new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")) :
-                    new Set("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden", StateHistory.First().Item1)
-                ));
+                    new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12)),
+                    new XAttribute("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden")));
+            if (StateHistory.Last().Item1 - StateHistory.First().Item1 > 0) parking.Add(
+                new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")));
+            g.Add(parking);
 
             List<double> begins = new List<double>();
             List<Path.Statics> paths = new List<Path.Statics>();
