@@ -295,8 +295,7 @@ namespace O2DESNet
 
             var parking = new Group(
                 new Text(Statics.RedLabel, "PARKING",
-                    new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12)),
-                    new XAttribute("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden")));
+                    new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))));
             if (StateHistory.Last().Item1 - StateHistory.First().Item1 > 0) parking.Add(
                 new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")));
             g.Add(parking);
