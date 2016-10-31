@@ -208,6 +208,7 @@ namespace O2DESNet
         public Dictionary<ControlPoint.Statics, ControlPoint> ControlPoints { get; private set; }
         public Dictionary<Path.Statics, Path> Paths { get; private set; }
         public HashSet<Vehicle> Vehicles { get; private set; }
+        public HashSet<Vehicle> VehiclesHistory { get; private set; } = new HashSet<Vehicle>();
         public void RecordVehiclePostures(DateTime clockTime)
         {
             //foreach (var veh in Vehicles)
@@ -317,22 +318,22 @@ namespace O2DESNet
         }
 
         #region SVG Output
-        public Group SVG(double x=0, double y=0, double rotate=0)
+        public virtual Group SVG(double x=0, double y=0, double rotate=0)
         {
             var g = new Group("pm", x: x, y: y, rotate: rotate);
             g.Add(Config.SVG());
-            foreach (var veh in Vehicles) g.Add(veh.SVG());
+            foreach (var veh in VehiclesHistory) g.Add(veh.SVG());
             g.Add(new Group(x: 100, y: 100, rotate: 0, content: new Clock(StartTime, LastUpdateTime)));
             return g;
         }
 
-        public Definition SVGDefs
+        public virtual Definition SVGDefs
         {
             get
             {
                 var defs = new Definition();
                 defs.Add(Statics.SVGDefs.Elements());
-                foreach (var vehCate in Vehicles.Select(veh => veh.Category).Distinct()) defs.Add(vehCate.SVG());
+                foreach (var vehCate in VehiclesHistory.Select(veh => veh.Category).Distinct()) defs.Add(vehCate.SVG());
                 return defs;
             }
         }

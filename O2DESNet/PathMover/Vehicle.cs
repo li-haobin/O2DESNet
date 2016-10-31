@@ -37,7 +37,7 @@ namespace O2DESNet
             public Statics() { Name = Guid.NewGuid().ToString().ToUpper().Substring(0, 4); }
 
             #region SVG Output
-            public Group SVG()
+            public virtual Group SVG()
             {
                 string veh_cate_name = "veh_cate#" + Name;
                 var g = new Group(veh_cate_name,
@@ -63,7 +63,7 @@ namespace O2DESNet
         public PathMover PathMover { get; private set; }
         public virtual double Speed { get { return Category.Speed; } }
         public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
-        public ControlPoint Current { get; private set; } = null;        
+        public ControlPoint Current { get; private set; } = null;
         public ControlPoint Next
         {
             get
@@ -82,9 +82,9 @@ namespace O2DESNet
                 else return null;
             }
         }
-        
-        public enum State { Travelling, Parking }
-        public List<Tuple<double, State>> StateHistory { get; private set; } = new List<Tuple<double, State>> { new Tuple<double, State>(0, State.Parking) };
+
+        public enum State { Travelling, Parking, Off }
+        public List<Tuple<double, State>> StateHistory { get; private set; } = new List<Tuple<double, State>> { new Tuple<double, State>(0, State.Off) };
         public void LogState(DateTime clockTime, State state) { StateHistory.Add(new Tuple<double, State>((clockTime - PathMover.StartTime).TotalSeconds, state)); }
         public void ResetStateHistory() { StateHistory = new List<Tuple<double, State>> { new Tuple<double, State>(0, StateHistory.Last().Item2) }; }
         #endregion
@@ -102,9 +102,10 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");                
+                if (Vehicle.Current != null) throw new VehicleStatusException("'Current' must be null on PutOn event.");
                 Vehicle.Current = ControlPoint;
                 ControlPoint.PathMover.Vehicles.Add(Vehicle);
+                if (!ControlPoint.PathMover.VehiclesHistory.Contains(Vehicle)) ControlPoint.PathMover.VehiclesHistory.Add(Vehicle);
                 Vehicle.StateHistory.Add(new Tuple<double, State>((ClockTime - ControlPoint.PathMover.StartTime).TotalSeconds, State.Parking));
 
                 // add vehicle posture
@@ -117,16 +118,16 @@ namespace O2DESNet
         private class PutOffEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public ControlPoint ControlPoint { get; private set; }
             internal PutOffEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
                 if (Vehicle.Targets.Count > 0) throw new VehicleStatusException("'Targets' must be empty on PutOff event.");
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on PutOff event.");
+                Vehicle.StateHistory.Add(new Tuple<double, State>((ClockTime - Vehicle.PathMover.StartTime).TotalSeconds, State.Off));
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
                 Vehicle.Current.PathMover.Vehicles.Remove(Vehicle);
                 Vehicle.Current = null;
-                Vehicle.PathMover = null;
+                Vehicle.PathMover = null;                
             }
             public override string ToString() { return string.Format("{0}_PutOff", Vehicle); }
         }
@@ -152,7 +153,7 @@ namespace O2DESNet
                 Execute(next.Reach(Vehicle));
                 Vehicle.Current = next;
 
-                while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);                
+                while (Vehicle.Current == Vehicle.Targets.FirstOrDefault()) Vehicle.Targets.RemoveAt(0);
             }
             public override string ToString() { return string.Format("{0}_Reach", Vehicle); }
         }
@@ -200,9 +201,9 @@ namespace O2DESNet
             public Vehicle Vehicle { get; private set; }
             internal CompleteEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
-            {                
-                foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
+            {
                 Vehicle.LogState(ClockTime, State.Parking);
+                foreach (var evnt in Vehicle.OnComplete) Execute(evnt());
             }
             public override string ToString() { return string.Format("{0}_Complete", Vehicle); }
         }
@@ -225,7 +226,7 @@ namespace O2DESNet
         /// Clear all targets except the first one which is being executed.
         /// </summary>
         public Event ClearTargets() { return new ClearTargetsEvent(this); }
-        
+
         // Moving from control point to control point
         internal Event Move() { return new MoveEvent(this); }
         internal Event Reach() { return new ReachEvent(this); }
@@ -275,42 +276,49 @@ namespace O2DESNet
         #region SVG Output
         public Group SVG()
         {
-            var g = new Group("veh#" + Id,
+            var g = new Group(
                 new Use("veh_cate#" + Category.Name),
                 new Text(Statics.Label, "VEH#" + Id, new XAttribute("transform", string.Format("translate(0 {0})", -Category.Width / 0.2 - 5)))
                 );
 
             g.Add(new Group(
-                new Text(Statics.RedLabel, "PARKING", 
+                new Text(Statics.RedLabel, "PARKING",
                     new XAttribute("transform", string.Format("translate(0 {0})", Category.Width / 0.2 + 12))),
                     StateHistory.Count > 1 ? (XElement)
                     new Animate("visibility", StateHistory.Select(s => s.Item1), StateHistory.Select(s => s.Item2 == State.Parking ? "visible" : "hidden"), new XAttribute("fill", "freeze")) :
                     new Set("visibility", StateHistory.First().Item2 == State.Parking ? "visible" : "hidden", StateHistory.First().Item1)
                 ));
 
+            List<double> begins = new List<double>();
+            List<Path.Statics> paths = new List<Path.Statics>();
+            
             if (Anchors.Count > 0)
             {
-                double begin = Anchors.First().Item1;
-                Path.Statics path = Anchors.First().Item2;
+                begins.Add(Anchors.First().Item1);
+                paths.Add(Anchors.First().Item2);
                 List<double> keyTimes = new List<double> { 0 }, keyPoints = new List<double> { Anchors.First().Item3 };
-                List<double> offTimes = new List<double> { 0 }, onTimes = new List<double> { begin };
+                List<double> offTimes = new List<double> { 0 }, onTimes = new List<double> { begins.Last() };
                 int i = 0;
                 while (true)
                 {
-                    if (++i == Anchors.Count || Anchors[i].Item2 != path)
+                    if (++i == Anchors.Count || Anchors[i].Item2 != paths.Last())
                     {
-                        g.Add(new AnimateMotion(string.Format("path#{0}_d", path.Index), new XAttribute("begin", string.Format("{0}s", begin)), new XAttribute("dur", string.Format("{0}s", keyTimes.Last())), new XAttribute("rotate", "auto"), new XAttribute("keyTimes", string.Join(";", keyTimes.Select(t => (t - keyTimes.First()) / keyTimes.Last()))), new XAttribute("keyPoints", string.Join(";", keyPoints)), new XAttribute("calcMode", "linear")));
+                        var attributes = new List<XAttribute> { new XAttribute("begin", string.Format("{0}s", begins.Last())), new XAttribute("dur", string.Format("{0}s", keyTimes.Last())), new XAttribute("keyTimes", string.Join(";", keyTimes.Select(t => (t - keyTimes.First()) / keyTimes.Last()))), new XAttribute("keyPoints", string.Join(";", keyPoints)), new XAttribute("calcMode", "linear") };
+                        if (!paths.Last().Crab) attributes.Add(new XAttribute("rotate", "auto"));
+                        g.Add(new AnimateMotion(string.Format("path#{0}_{1}_d", paths.Last().PathMover.Index, paths.Last().Index), attributes));
                         if (i == Anchors.Count) break;
-                        offTimes.Add(begin + keyTimes.Last());
+                        offTimes.Add(begins.Last() + keyTimes.Last());
                         onTimes.Add(Anchors[i].Item1);
-                        begin = Anchors[i].Item1;
-                        path = Anchors[i].Item2;
+
+
+                        begins.Add(Anchors[i].Item1);
+                        paths.Add(Anchors[i].Item2);
                         keyTimes = new List<double> { 0 };
                         keyPoints = new List<double> { Anchors[i].Item3 };
                     }
                     else
                     {
-                        keyTimes.Add(Anchors[i].Item1 - begin);
+                        keyTimes.Add(Anchors[i].Item1 - begins.Last());
                         keyPoints.Add(Anchors[i].Item3);
                     }
                 }
@@ -337,18 +345,23 @@ namespace O2DESNet
                 }
                 values.Add("hidden");
                 keyTimes.Add(Anchors.Last().Item1);
-                g.Add(new Animate("visibility", keyTimes, values, new XAttribute("fill", "freeze")));
+
+                var visibility = new Animate("visibility", keyTimes, values, new XAttribute("fill", "freeze"));
+                var translate = new AnimateTranslate(begins, paths.Select(p => new Tuple<double, double>(p.X, p.Y)));
+                var rotate = new AnimateRotate(begins, paths.Select(p => p.Rotate));
+                return new Group("veh#" + Id, g, visibility, translate, rotate);
             }
-            return g;
+
+            return new Group("veh#" + Id, g);
         }
 
         private List<Tuple<double, Path.Statics, double>> Anchors { get; set; } = new List<Tuple<double, Path.Statics, double>>();
         public void LogAnchor(double time, Path.Statics path, double ratio)
         {
-            if (Anchors.Count > 0 && time == Anchors.Last().Item1 && path == Anchors.Last().Item2) Anchors.RemoveAt(Anchors.Count - 1);            
+            if (Anchors.Count > 0 && time == Anchors.Last().Item1 && path == Anchors.Last().Item2) Anchors.RemoveAt(Anchors.Count - 1);
             Anchors.Add(new Tuple<double, Path.Statics, double>(time, path, Math.Min(1, Math.Max(0, ratio))));
         }
         public void ResetAnchors() { Anchors = new List<Tuple<double, Path.Statics, double>>(); }
         #endregion
-}
+    }
 }
