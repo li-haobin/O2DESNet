@@ -159,9 +159,9 @@ namespace O2DESNet
             }
             protected virtual void ConstructConflictTables()
             {
-                foreach (var path in Paths)
-                    foreach (var conflict in path.ControlPoints.SelectMany(cp => cp.Positions.Keys).Distinct())
-                        if (conflict != path) path.Conflicts.Add(conflict);
+                foreach (var p1 in Paths)
+                    foreach (var p2 in p1.ControlPoints.SelectMany(cp => cp.Positions.Keys).Distinct())
+                        if (p2 != p1) p1.AddConflict(p2);
             }
             /// <summary>
             /// For constructing the graph

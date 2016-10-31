@@ -38,7 +38,12 @@ namespace O2DESNet
             /// </summary>
             public bool Crab { get; set; } = false;
 
-            public List<Statics> Conflicts { get; private set; } = new List<Statics>(); 
+            internal HashSet<Statics> Conflicts { get; private set; } = new HashSet<Statics>();
+            public void AddConflict(Statics path)
+            {
+                if (!Conflicts.Contains(path)) Conflicts.Add(path);
+                if (!path.Conflicts.Contains(this)) path.Conflicts.Add(this);
+            }
 
             public Statics(PathMover.Statics pathMover)
             {

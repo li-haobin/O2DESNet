@@ -174,10 +174,10 @@ namespace O2DESNet
                 ControlPoint.HourCounter.ObserveCount(0, ClockTime);
                 Schedule(new ReleaseEvent(ControlPoint), TimeSpan.FromSeconds(
                     // time delay for releasing the control point
-                    Math.Max(1, // min 1s
+                    //Math.Max(1, // min 1s
                     Vehicle.Category.SafetyLength / Math.Min(Vehicle.Speed, ControlPoint.IncomingSegments.Min(seg => seg.Path.Config.FullSpeed)) 
-                    * 1.5 // safety factor for time
-                    ))); 
+                    //* 1.5) // safety factor for time
+                    )); 
             }
             public override string ToString() { return string.Format("{0}_MoveOut", ControlPoint); }
         }
