@@ -191,7 +191,10 @@ namespace O2DESNet
                 ControlPoint.Locked = false;
                 /*************** PULL WHEN VEHICLE RESTART TO MOVE ****************/
                 // control point vacancy is released
-                foreach (var seg in ControlPoint.IncomingSegments
+                var paths = ControlPoint.Config.Positions.Keys;
+                foreach (var seg in paths.Concat(paths.SelectMany(p=>p.Conflicts)).Distinct().SelectMany(p=>p.ControlPoints).Distinct()
+                    // control points at connected paths and their conflicts
+                    .SelectMany(cp=>ControlPoint.PathMover.ControlPoints[cp].IncomingSegments)
                     .Where(seg => seg.ReadyTime != null) // segment ready for vehicle to depart
                     .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
                     Execute(seg.Depart());

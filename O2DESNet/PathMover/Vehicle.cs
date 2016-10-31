@@ -64,7 +64,7 @@ namespace O2DESNet
         public virtual double Speed { get { return Category.Speed; } }
         public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
         public ControlPoint Current { get; private set; } = null;
-        public ControlPoint Next
+        public ControlPoint NextControlPoint
         {
             get
             {
@@ -73,12 +73,22 @@ namespace O2DESNet
                 else return null;
             }
         }
-        public Path PathToNext
+        public Path PathToNextControlPoint
         {
             get
             {
                 if (Targets.Count > 0 && Targets.First() != Current)
                     return Current.PathMover.Paths[Current.Config.GetPathFor(Targets.First().Config)];
+                else return null;
+            }
+        }
+        public Path NextPath
+        {
+            get
+            {
+                var nextCP = NextControlPoint;
+                if (Targets.Count > 0 && Targets.First() != nextCP)
+                    return Current.PathMover.Paths[nextCP.Config.GetPathFor(Targets.First().Config)];
                 else return null;
             }
         }
@@ -124,10 +134,12 @@ namespace O2DESNet
                 if (Vehicle.Targets.Count > 0) throw new VehicleStatusException("'Targets' must be empty on PutOff event.");
                 if (Vehicle.Current == null) throw new VehicleStatusException("'Current' cannot be null on PutOff event.");
                 Vehicle.StateHistory.Add(new Tuple<double, State>((ClockTime - Vehicle.PathMover.StartTime).TotalSeconds, State.Off));
+                var pm = Vehicle.Current.PathMover;
+                Execute(Vehicle.Current.Move(Vehicle));
                 if (Vehicle.Category.KeepTrack) Vehicle.Log(this);
-                Vehicle.Current.PathMover.Vehicles.Remove(Vehicle);
                 Vehicle.Current = null;
-                Vehicle.PathMover = null;                
+                Vehicle.PathMover = null;
+                pm.Vehicles.Remove(Vehicle);                             
             }
             public override string ToString() { return string.Format("{0}_PutOff", Vehicle); }
         }
@@ -148,7 +160,7 @@ namespace O2DESNet
             internal ReachEvent(Vehicle vehicle) { Vehicle = vehicle; }
             public override void Invoke()
             {
-                var next = Vehicle.Next;
+                var next = Vehicle.NextControlPoint;
                 Vehicle.Log(this);
                 Execute(next.Reach(Vehicle));
                 Vehicle.Current = next;
@@ -178,7 +190,7 @@ namespace O2DESNet
                     if (Vehicle.Targets.Count > 0)
                     {
                         var current = Vehicle.Current;
-                        Execute(Vehicle.PathToNext.Move(Vehicle));
+                        Execute(Vehicle.PathToNextControlPoint.Move(Vehicle));
                         Vehicle.LogState(ClockTime, State.Travelling);
                     }
                     else Execute(Vehicle.Complete());
@@ -262,10 +274,10 @@ namespace O2DESNet
             Console.Write("{0}:\t", this);
             if (Targets.Count > 0 && Targets.First() != Current)
             {
-                Console.Write("{0} - {1}", Current, PathToNext);
+                Console.Write("{0} - {1}", Current, PathToNextControlPoint);
                 //if (Segment.Delayed.Contains(this)) Console.Write("!");
                 if (Segment.Served.Contains(this)) Console.Write("!!");
-                Console.Write(" -> {0}\t", Next);
+                Console.Write(" -> {0}\t", NextControlPoint);
                 Console.Write("*");
                 foreach (var cp in Targets) Console.Write("{0} ", cp);
                 Console.WriteLine();

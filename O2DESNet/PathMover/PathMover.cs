@@ -97,6 +97,7 @@ namespace O2DESNet
                 {
                     ConstructRoutingTables();
                     ConstructPathingTables();
+                    ConstructConflictTables();
                     _initialized = true;
                 }
             }
@@ -155,6 +156,12 @@ namespace O2DESNet
                         for (int i = path.ControlPoints.Count - 1; i > 0; i--)
                             path.ControlPoints[i].PathingTable.Add(path.ControlPoints[i - 1], path);
                 }
+            }
+            protected virtual void ConstructConflictTables()
+            {
+                foreach (var path in Paths)
+                    foreach (var conflict in path.ControlPoints.SelectMany(cp => cp.Positions.Keys).Distinct())
+                        if (conflict != path) path.Conflicts.Add(conflict);
             }
             /// <summary>
             /// For constructing the graph

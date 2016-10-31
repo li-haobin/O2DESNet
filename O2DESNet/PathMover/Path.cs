@@ -38,6 +38,8 @@ namespace O2DESNet
             /// </summary>
             public bool Crab { get; set; } = false;
 
+            public List<Statics> Conflicts { get; private set; } = new List<Statics>(); 
+
             public Statics(PathMover.Statics pathMover)
             {
                 PathMover = pathMover;
@@ -189,6 +191,16 @@ namespace O2DESNet
         public PathMover PathMover { get; internal set; }
         public ControlPoint[] ControlPoints { get { return Config.ControlPoints.Select(cp => PathMover.ControlPoints[cp]).ToArray(); } }
         public int Vacancy { get { return Config.Capacity - ForwardSegments.Concat(BackwardSegments).Sum(seg => seg.NOccupied) - ControlPoints.Count(cp => cp.At != null); } }
+        
+        /// <summary>
+        /// Check if there is any conflicting path has zero vacancy
+        /// </summary>
+        /// <param name="via">the path where the vehicle is on</param>
+        public bool HasConflict(Path via)
+        {
+            foreach (var conflict in Config.Conflicts) if (conflict != via.Config && PathMover.Paths[conflict].Vacancy == 0) return true;
+            return false;
+        }
         public double Utilization
         {
             get
@@ -213,10 +225,12 @@ namespace O2DESNet
             public override void Invoke()
             {
                 Vehicle.Log(this);
-                
+
                 /*************** PULL WHEN VEHICLE EXIT A PATH ****************/
                 // path vacancy is released
-                foreach (var seg in Path.ControlPoints // all Control Points on the Path
+                foreach (var seg in Path.ControlPoints.Concat(
+                    Path.Config.Conflicts.SelectMany(cf => cf.ControlPoints.Select(cp => Path.PathMover.ControlPoints[cp]))).Distinct()
+                    // all Control Points on the Path and its conflicts
                     .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.ReadyTime != null)) // segment ready for vehicle to depart
                     .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
                     Execute(seg.Depart());
@@ -236,7 +250,7 @@ namespace O2DESNet
             {
                 Vehicle.Log(this);
                 var seg = Vehicle.Segment; // record previous segment 
-                var next = Vehicle.Next;
+                var next = Vehicle.NextControlPoint;
                 var startIndex = Path.Indices[Vehicle.Current];
                 var endIndex = Path.Indices[next];
                 if (startIndex < endIndex)
@@ -284,7 +298,7 @@ namespace O2DESNet
                 Path.PathMover.LastUpdateTime = ClockTime;
 
                 var seg = Vehicle.Segment;
-                var pathToNext = Vehicle.PathToNext;                
+                var pathToNext = Vehicle.PathToNextControlPoint;                
                 var time = (ClockTime - Path.PathMover.StartTime).TotalSeconds;
                 if (seg != null)
                 {
@@ -292,7 +306,7 @@ namespace O2DESNet
                     seg.LogAnchors(Vehicle, ClockTime);
                 }
 
-                if (Vehicle.PathToNext != null) Execute(new MoveEvent(pathToNext, Vehicle));
+                if (Vehicle.PathToNextControlPoint != null) Execute(new MoveEvent(pathToNext, Vehicle));
                 if (pathToNext != Path) Execute(new ExitEvent(Path, Vehicle));
                 
                 if (Vehicle.Targets.Count == 0) Execute(Vehicle.Complete());               
@@ -360,7 +374,7 @@ namespace O2DESNet
                     {
                         Capacity = Config.Capacity,
                         ServiceTime = (veh, rs) => TimeSpan.FromSeconds(AbsDistances[i] / Math.Min(Config.FullSpeed, veh.Speed)),
-                        ToDepart = veh => veh.Next.Accessible(via: this),
+                        ToDepart = veh => veh.NextControlPoint.Accessible(via: this) && (veh.NextPath == null || veh.NextPath == this || !veh.NextPath.HasConflict(via: this)),
                         MinInterDepartureTime = (veh1, veh2, rs) => TimeSpan.FromSeconds(
                             (veh1.Category.SafetyLength + veh2.Category.SafetyLength) / 2 // distance between centers of the two consecutive vehicles, i.e., the gap
                             / new double[] { Config.FullSpeed, veh1.Speed, veh2.Speed }.Min() // the speed to fill the gap
