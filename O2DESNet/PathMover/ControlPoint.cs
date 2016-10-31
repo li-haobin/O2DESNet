@@ -65,7 +65,9 @@ namespace O2DESNet
             public Path.Statics GetPathFor(Statics target)
             {
                 if (target == this) return null;
-                return PathingTable[RoutingTable[target]];
+                var nextCP = RoutingTable[target];
+                if (nextCP == null) return null;
+                return PathingTable[nextCP];
             }
 
             #region SVG Output
