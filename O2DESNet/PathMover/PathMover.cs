@@ -103,11 +103,12 @@ namespace O2DESNet
                     _initialized = true;
                 }
             }
-            public void OutputRoutingTables(string file)
+            public void OutputRoutingTables()
             {
+                if (RoutingTablesFile == null) return;
                 if (!_initialized) Initialize();
                 var str = string.Join(";", ControlPoints.Select(cp => string.Format("{0}.{1}", cp.Index, string.Join(",", cp.RoutingTable.Where(i => i.Value != null).Select(i => string.Format("{0}:{1}", i.Key.Index, i.Value.Index))))));
-                using (StreamWriter sw = new StreamWriter(file)) sw.Write(str);
+                using (StreamWriter sw = new StreamWriter(RoutingTablesFile)) sw.Write(str);
             }
             private int _nSources;
             private void ConstructRoutingTables()
