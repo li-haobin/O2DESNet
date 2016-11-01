@@ -138,7 +138,8 @@ namespace O2DESNet
                 while (incompleteSet.Count > 0)
                 {
                     _nSources = incompleteSet.Count;
-                    ConstructRoutingTables(incompleteSet.First().Index, edges);
+                    Parallel.ForEach(incompleteSet.Take(32), cp => ConstructRoutingTables(cp.Index, edges));
+                    //ConstructRoutingTables(incompleteSet.First().Index, edges);
                     incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);                    
                 }
             }
@@ -154,7 +155,7 @@ namespace O2DESNet
                 while (sinkIndices.Count > 0)
                 {
                     Console.Clear();
-                    Console.WriteLine("Construct routing table, {0} sources {1} sinks remaining...", _nSources, sinkIndices.Count);
+                    Console.WriteLine("Construct routing table for source {0}, {1} sinks remaining...", sourceIndex, sinkIndices.Count);
 
                     var sinkIndex = sinkIndices.First();
                     var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
