@@ -110,7 +110,6 @@ namespace O2DESNet
                 var str = string.Join(";", ControlPoints.Select(cp => string.Format("{0}.{1}", cp.Index, string.Join(",", cp.RoutingTable.Where(i => i.Value != null).Select(i => string.Format("{0}:{1}", i.Key.Index, i.Value.Index))))));
                 using (StreamWriter sw = new StreamWriter(RoutingTablesFile)) sw.Write(str);
             }
-            private int _nSources;
             private void ConstructRoutingTables()
             {
                 if (RoutingTablesFile != null)
@@ -137,8 +136,7 @@ namespace O2DESNet
                 var edges = Paths.SelectMany(path => GetEdges(path)).ToList();
                 while (incompleteSet.Count > 0)
                 {
-                    _nSources = incompleteSet.Count;
-                    Parallel.ForEach(incompleteSet.Take(32), cp => ConstructRoutingTables(cp.Index, edges));
+                    Parallel.ForEach(incompleteSet, cp => ConstructRoutingTables(cp.Index, edges));
                     //ConstructRoutingTables(incompleteSet.First().Index, edges);
                     incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);                    
                 }
@@ -154,8 +152,8 @@ namespace O2DESNet
 
                 while (sinkIndices.Count > 0)
                 {
-                    Console.Clear();
-                    Console.WriteLine("Construct routing table for source {0}, {1} sinks remaining...", sourceIndex, sinkIndices.Count);
+                    //Console.Clear();
+                    Console.WriteLine("Construct routing table for source {0}, {1} sinks remaining ({2:F4})...", sourceIndex, sinkIndices.Count, 1.0 * ControlPoints.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
 
                     var sinkIndex = sinkIndices.First();
                     var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
@@ -166,13 +164,13 @@ namespace O2DESNet
                         for (int i = 0; i < path.Count - 1; i++)
                         {
                             for (int j = i + 1; j < path.Count; j++)
-                                ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
+                                lock (ControlPoints) ControlPoints[path[i]].RoutingTable[ControlPoints[path[j]]] = ControlPoints[path[i + 1]];
                             sinkIndices.Remove(path[i + 1]);
                         }
                     }
                     else
                     {
-                        ControlPoints[sourceIndex].RoutingTable[ControlPoints[sinkIndex]] = null;
+                        lock (ControlPoints) ControlPoints[sourceIndex].RoutingTable[ControlPoints[sinkIndex]] = null;
                         sinkIndices.Remove(sinkIndex);
                     }
                 }
