@@ -233,12 +233,13 @@ namespace O2DESNet
 
                 /*************** PULL WHEN VEHICLE EXIT A PATH ****************/
                 // path vacancy is released
-                foreach (var seg in Path.ControlPoints.Concat(
-                    Path.Config.Conflicts.SelectMany(cf => cf.ControlPoints.Select(cp => Path.PathMover.ControlPoints[cp]))).Distinct()
-                    // all Control Points on the Path and its conflicts
-                    .SelectMany(cp => cp.IncomingSegments.Where(seg => seg.ReadyTime != null)) // segment ready for vehicle to depart
+                var controlPoints = Path.ControlPoints.Concat(
+                    Path.Config.Conflicts.SelectMany(cf => cf.ControlPoints.Select(cp => Path.PathMover.ControlPoints[cp])))
+                    .Distinct().ToList(); // all Control Points on the Path and its conflicts
+                foreach (var seg in controlPoints.SelectMany(cp => cp.IncomingSegments.Where(seg => seg.ReadyTime != null)) // segment ready for vehicle to depart
                     .OrderBy(seg => seg.ReadyTime.Value)) // order by finish time
                     Execute(seg.Depart());
+                foreach (var cp in controlPoints) foreach (var evnt in cp.OnRelease) Execute(evnt());
             }
             public override string ToString() { return string.Format("{0}_Exit", Path); }
         }

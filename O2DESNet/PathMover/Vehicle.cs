@@ -247,7 +247,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Event>> OnComplete { get; private set; }
+        public List<Func<Event>> OnComplete { get; private set; } = new List<Func<Event>>();
         #endregion
 
         #region Exeptions
@@ -259,10 +259,7 @@ namespace O2DESNet
 
         public Vehicle(Statics category, int seed, string tag = null) : base(category, seed, tag)
         {
-            Name = "Veh";
-
-            // initialize for output events
-            OnComplete = new List<Func<Event>>();
+            Name = "Veh";            
         }
 
         public override void Log(Event evnt) { if (Category.KeepTrack) base.Log(evnt); }

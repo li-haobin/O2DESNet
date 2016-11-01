@@ -211,6 +211,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
+        public List<Func<Event>> OnRelease { get; private set; } = new List<Func<Event>>();
         #endregion
 
         #region Exeptions
