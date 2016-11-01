@@ -9,6 +9,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using System.Drawing;
 using System.Drawing.Imaging;
 using O2DESNet.SVGRenderer;
+using System.IO;
 
 namespace O2DESNet
 {
@@ -21,6 +22,7 @@ namespace O2DESNet
             public int Index { get; private set; } = _count++;
             public List<Path.Statics> Paths { get; private set; }
             public List<ControlPoint.Statics> ControlPoints { get; private set; }
+            public string RoutingTablesFile { get; set; } = null;
 
             public Statics()
             {
@@ -101,9 +103,34 @@ namespace O2DESNet
                     _initialized = true;
                 }
             }
+            public void OutputRoutingTables(string file)
+            {
+                if (!_initialized) Initialize();
+                var str = string.Join(";", ControlPoints.Select(cp => string.Format("{0}.{1}", cp.Index, string.Join(",", cp.RoutingTable.Where(i => i.Value != null).Select(i => string.Format("{0}:{1}", i.Key.Index, i.Value.Index))))));
+                using (StreamWriter sw = new StreamWriter(file)) sw.Write(str);
+            }
             private int _nSources;
             private void ConstructRoutingTables()
             {
+                if (RoutingTablesFile != null)
+                {
+                    try
+                    {
+                        var str = File.ReadAllText(RoutingTablesFile);
+                        foreach (var rt in str.Split(';'))
+                        {
+                            var ln = rt.Split('.');
+                            int index = Convert.ToInt32(ln[0]);
+                            if (ln[1].Length > 0) ControlPoints[index].RoutingTable = ln[1].Split(',').Select(r => r.Split(':')).ToDictionary(r => ControlPoints[Convert.ToInt32(r[0])], r => ControlPoints[Convert.ToInt32(r[1])]);
+                            else ControlPoints[index].RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
+                            foreach (var cp in ControlPoints)
+                                if (cp != ControlPoints[index] && !ControlPoints[index].RoutingTable.ContainsKey(cp))
+                                    ControlPoints[index].RoutingTable.Add(cp, null);
+                        }
+                        return;
+                    }
+                    catch { }
+                }
                 foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
                 var incompleteSet = ControlPoints.ToList();
                 var edges = Paths.SelectMany(path => GetEdges(path)).ToList();
