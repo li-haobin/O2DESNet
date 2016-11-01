@@ -101,6 +101,7 @@ namespace O2DESNet
                     _initialized = true;
                 }
             }
+            private int _nSources;
             private void ConstructRoutingTables()
             {
                 foreach (var cp in ControlPoints) cp.RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
@@ -108,8 +109,9 @@ namespace O2DESNet
                 var edges = Paths.SelectMany(path => GetEdges(path)).ToList();
                 while (incompleteSet.Count > 0)
                 {
+                    _nSources = incompleteSet.Count;
                     ConstructRoutingTables(incompleteSet.First().Index, edges);
-                    incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
+                    incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);                    
                 }
             }
             private void ConstructRoutingTables(int sourceIndex, List<Tuple<int, int, double>> edges)
@@ -123,6 +125,9 @@ namespace O2DESNet
 
                 while (sinkIndices.Count > 0)
                 {
+                    Console.Clear();
+                    Console.WriteLine("Construct routing table, {0} sources {1} sinks remaining...", _nSources, sinkIndices.Count);
+
                     var sinkIndex = sinkIndices.First();
                     var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
                     if (path.Count > 0)
