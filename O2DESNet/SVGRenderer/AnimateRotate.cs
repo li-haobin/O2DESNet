@@ -25,7 +25,6 @@ namespace O2DESNet.SVGRenderer
 
         private static string GetKeyTimes(IEnumerable<double> keyTimes)
         {
-            if (keyTimes.First() != 0) throw new Exception();
             string str = "";
             foreach (var t in keyTimes) str += string.Format("{0};", (t - keyTimes.First()) / (keyTimes.Last() - keyTimes.First()));
             return str.Substring(0, str.Length - 1);

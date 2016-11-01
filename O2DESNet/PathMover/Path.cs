@@ -201,9 +201,9 @@ namespace O2DESNet
         /// Check if there is any conflicting path has zero vacancy
         /// </summary>
         /// <param name="via">the path where the vehicle is on</param>
-        public bool HasConflict(Path via)
+        public bool HasConflict(Path via = null)
         {
-            foreach (var conflict in Config.Conflicts) if (conflict != via.Config && PathMover.Paths[conflict].Vacancy == 0) return true;
+            foreach (var conflict in Config.Conflicts) if ((via == null || conflict != via.Config) && PathMover.Paths[conflict].Vacancy == 0) return true;
             return false;
         }
         public double Utilization
