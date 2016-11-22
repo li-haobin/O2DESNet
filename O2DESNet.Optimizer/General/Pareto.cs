@@ -40,55 +40,7 @@ namespace O2DESNet.Optimizer
             }
             return paretoSet.ToArray();
         }
-        public static double DominatedArea(IEnumerable<DenseVector> points, DenseVector reference = null)
-        {
-            if (reference == null) reference = GetWorstPoint(points);
-            if (reference.Count < 1) return 0;
-            else if (reference.Count < 2) return reference[0] - points.Min(p => p[0]);
-            double area = 0;
-            var orderedPoints = GetParetoSet(FilterPointsByReference(points, reference)).OrderBy(p => p[0]).ToList();
-            for (int i = 0; i < orderedPoints.Count; i++)
-            {
-                double width;
-                if (i < orderedPoints.Count - 1) width = orderedPoints[i + 1][0] - orderedPoints[i][0];
-                else width = reference[0] - orderedPoints[i][0];
-                double height = reference[1] - orderedPoints[i][1];
-                area += height * width;
-            }
-            return area;
-        }
-        /// <summary>
-        /// The HSO Method
-        /// </summary>
-        public static double DominatedHyperVolume(IEnumerable<DenseVector> points, DenseVector reference = null)
-        {
-            if (reference == null) reference = GetWorstPoint(points);
-            int dimension = reference.Count;
-            if (dimension < 3) return DominatedArea(points, reference);
-
-            // 1. filter by reference
-            // 2. identify the Pareto set 
-            // 3. sort according to the value at sweeping coordinate
-            var orderedPoints = GetParetoSet(FilterPointsByReference(points, reference)).OrderBy(p => p[0]).ToList();
-
-            //calculation
-            double hyperVolume = 0;
-            var reducedPoints = new List<DenseVector>();
-            var reducedReference = reference.Skip(1).ToArray();
-            for (int i = 0; i < orderedPoints.Count; i++)
-            {
-                double depth;
-                if (i < orderedPoints.Count - 1) depth = orderedPoints[i + 1][0] - orderedPoints[i][0];
-                else depth = reference[0] - orderedPoints[i][0];
-                var newPoint = orderedPoints[i].Skip(1).ToArray();
-                reducedPoints.Add(newPoint);
-                double hyperArea;
-                hyperArea = DominatedHyperVolume(reducedPoints.ToArray(), reducedReference);
-                hyperVolume += hyperArea * depth;
-            }
-            return hyperVolume;
-        }
-
+        
         /// <summary>
         /// Cut down volume beyond boundaries set by reference point
         /// </summary>
@@ -140,6 +92,85 @@ namespace O2DESNet.Optimizer
             }
             return 1.0 * countCS / sampleSize;
         }
+
+        #region Hyper-Volume Related Methods
+        public static double DominatedArea(IEnumerable<DenseVector> points, DenseVector reference = null)
+        {
+            if (reference == null) reference = GetWorstPoint(points);
+            if (reference.Count < 1) return 0;
+            else if (reference.Count < 2) return reference[0] - points.Min(p => p[0]);
+            double area = 0;
+            var orderedPoints = GetParetoSet(FilterPointsByReference(points, reference)).OrderBy(p => p[0]).ToList();
+            for (int i = 0; i < orderedPoints.Count; i++)
+            {
+                double width;
+                if (i < orderedPoints.Count - 1) width = orderedPoints[i + 1][0] - orderedPoints[i][0];
+                else width = reference[0] - orderedPoints[i][0];
+                double height = reference[1] - orderedPoints[i][1];
+                area += height * width;
+            }
+            return area;
+        }
+        /// <summary>
+        /// The HSO Method
+        /// </summary>
+        public static double DominatedHyperVolume(IEnumerable<DenseVector> points, DenseVector reference = null)
+        {
+            if (reference == null) reference = GetWorstPoint(points);
+            int dimension = reference.Count;
+            if (dimension < 3) return DominatedArea(points, reference);
+
+            // 1. filter by reference
+            // 2. identify the Pareto set 
+            // 3. sort according to the value at sweeping coordinate
+            var orderedPoints = GetParetoSet(FilterPointsByReference(points, reference)).OrderBy(p => p[0]).ToList();
+
+            //calculation
+            double hyperVolume = 0;
+            var reducedPoints = new List<DenseVector>();
+            var reducedReference = reference.Skip(1).ToArray();
+            for (int i = 0; i < orderedPoints.Count; i++)
+            {
+                double depth;
+                if (i < orderedPoints.Count - 1) depth = orderedPoints[i + 1][0] - orderedPoints[i][0];
+                else depth = reference[0] - orderedPoints[i][0];
+                var newPoint = orderedPoints[i].Skip(1).ToArray();
+                reducedPoints.Add(newPoint);
+                double hyperArea;
+                hyperArea = DominatedHyperVolume(reducedPoints.ToArray(), reducedReference);
+                hyperVolume += hyperArea * depth;
+            }
+            return hyperVolume;
+        }
+        public static Dictionary<DenseVector, DenseVector> UnifiedWeightingVectors(
+            IEnumerable<DenseVector> points, DenseVector reference = null)
+        {
+            if (reference == null) reference = GetWorstPoint(points); // implies that Pareto range is not to be extended
+            var paretoSet = GetParetoSet(FilterPointsByReference(points, reference)).ToList(); // in-case dominated solutions included
+            int m = points.First().Count;
+            var vectors = paretoSet.ToDictionary(p => p, p => new List<double>());
+
+            // get a sub-vector by removing element at i
+            Func<DenseVector, int, DenseVector> subVector = (v, i) => { var l = v.ToList(); l.RemoveAt(i); return l.ToArray(); };
+
+            for (int i = 0; i < m; i++)
+            {
+                // foreach objective i
+                paretoSet = paretoSet.OrderBy(v => v[i]).ToList();
+                var subReference = subVector(reference, i);
+                var subParetoSet = new List<DenseVector>();
+                double lastDHV = 0;
+                foreach(var p in paretoSet)
+                {
+                    subParetoSet.Add(subVector(p, i));
+                    var dhv = DominatedHyperVolume(subParetoSet, subReference);
+                    vectors[p].Add(dhv - lastDHV);
+                    lastDHV = dhv;
+                }
+            }
+            return vectors.ToDictionary(v => v.Key, v => (DenseVector)v.Value.ToArray());
+        }
+        #endregion
     }
 
 }

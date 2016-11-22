@@ -52,6 +52,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>O2DESNet.Optimizer.TestUnifiedGradient</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.13.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.3.13.1\lib\net40\MathNet.Numerics.dll</HintPath>
@@ -106,6 +109,7 @@
     <Compile Include="General\Pareto.cs" />
     <Compile Include="Mo2tos\MoMo2tos.cs" />
     <Compile Include="Mo2tos\TwoFidelitySolution.cs" />
+    <Compile Include="TestUnifiedGradient.cs" />
     <Compile Include="Samplings\Bootstrap.cs" />
     <Compile Include="Samplings\PolarRandom.cs" />
     <Compile Include="General\Solution.cs" />
