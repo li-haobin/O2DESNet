@@ -19,6 +19,9 @@ namespace O2DESNet.Optimizer
             get
             {
                 var dataArray = DataArray.Where(l => l.Count > 0).ToArray();
+                var maxT = dataArray.Max(data => data.Last().Item1);
+                foreach (var data in dataArray) data.Add(new Tuple<double, double>(maxT, data.Last().Item2));
+
                 var pointers = dataArray.Select(l => 0).ToArray();
                 var indices = Enumerable.Range(0, pointers.Length).ToList();
                 var output = new List<Tuple<double, double>>();
@@ -31,6 +34,7 @@ namespace O2DESNet.Optimizer
                     output.Add(new Tuple<double, double>(tCut, indices.Average(i => dataArray[i][pointers[i]].Item2)));
                     indices = indices.Where(i => pointers[i] < dataArray[i].Count - 1).ToList();
                     if (indices.Count == 0) break;
+                    //if (indices.Count(i => pointers[i] < dataArray[i].Count - 1) == 0) break;
                     tCut = indices.Min(i => dataArray[i][pointers[i] + 1].Item1);
                 }
                 return output;
