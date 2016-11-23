@@ -24,11 +24,8 @@ namespace O2DESNet.Optimizer
             if (Objectives != null && Objectives.Count != objectives.Count) throw new Exception_InconsistentDimensions();
             Objectives = objectives;
         }        
-
-        /// <summary>
-        /// A unified gradient for multiple objectives
-        /// </summary>
-        public virtual DenseVector UniGradient { get; set; }
+        
+        public virtual DenseMatrix Gradients { get; set; }
 
         public override string ToString()
         {

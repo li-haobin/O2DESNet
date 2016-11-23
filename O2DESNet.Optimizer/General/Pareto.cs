@@ -146,7 +146,7 @@ namespace O2DESNet.Optimizer
             IEnumerable<DenseVector> points, DenseVector reference = null)
         {
             if (reference == null) reference = GetWorstPoint(points); // implies that Pareto range is not to be extended
-            var paretoSet = GetParetoSet(FilterPointsByReference(points, reference)).ToList(); // in-case dominated solutions included
+            var paretoSet = GetParetoSet(FilterPointsByReference(points, reference)).Distinct().ToList(); // in-case dominated solutions included
             int m = points.First().Count;
             var vectors = paretoSet.ToDictionary(p => p, p => new List<double>());
 

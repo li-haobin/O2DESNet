@@ -91,8 +91,8 @@ namespace O2DESNet.Optimizer
                     }
                 }
                 else { solution = new StochasticSolution(eval.Decisions, eval.Observations); AllSolutions.Add(eval.Decisions, solution); }
-                // always applies the latest uniGradient information is it's available
-                if (eval.UniGradient != null) AllSolutions[eval.Decisions].UniGradient = eval.UniGradient;
+                // always applies the latest Gradients information if it's available
+                if (eval.Gradients != null) AllSolutions[eval.Decisions].Gradients = eval.Gradients;
             }
 
             // identify new Pareto set
@@ -120,7 +120,15 @@ namespace O2DESNet.Optimizer
             }
 
             _paretoDecisions = newParetoDecisions;
+
+            if (SamplingSchemeOption == SamplingScheme.GoPolars)
+            {
+                var paretoSet = ParetoSet;
+                var weightingVectors = Pareto.UnifiedWeightingVectors(AllSolutions.Select(s => s.Value.Objectives));
+                GradientWeightingVector = paretoSet.ToDictionary(s => s.Decisions, s => weightingVectors[s.Objectives]);
+            }
         }
+        internal Dictionary<DenseVector, DenseVector> GradientWeightingVector { get; private set; }
 
         private DenseVector GetFeasibleDecisions()
         {
