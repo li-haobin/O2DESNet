@@ -34,10 +34,7 @@ namespace O2DESNet.Optimizer
 
                 Console.WriteLine("{0:F4}\t{1:F4}\t{2:F4}\t{3:F4}", rns1.PCS, rns2.PCS, rns1.Variance, rns2.Variance);
                 Console.ReadKey();
-            }
-
-
-          
+            }          
         }
 
         static void Test_ForOCBA()
