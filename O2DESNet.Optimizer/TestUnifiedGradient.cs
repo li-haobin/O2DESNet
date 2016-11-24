@@ -36,7 +36,7 @@ namespace O2DESNet.Optimizer
         {
             int dimension = 5;
             int batchSize = 4;
-            var zdt = new Benchmarks.ZDT2(dimension);
+            var zdt = new Benchmarks.ZDT3(dimension);
 
             var stats = new AverageRunningStats(nSeeds);
             Parallel.For(0, nSeeds, seed =>
@@ -70,7 +70,7 @@ namespace O2DESNet.Optimizer
             });
 
             using (var sw = new System.IO.StreamWriter(
-                string.Format("results_{0}_{1}_{2}.csv", samplingScheme, multiGradientScheme, pivotSelectionScheme)))
+                string.Format("results_{0}_{1}_{2}_{3}.csv", zdt, samplingScheme, multiGradientScheme, pivotSelectionScheme)))
                 foreach (var t in stats.Output) sw.WriteLine("{0},{1}", t.Item1, t.Item2);
         }    
     }

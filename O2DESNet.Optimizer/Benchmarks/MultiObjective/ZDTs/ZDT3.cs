@@ -7,22 +7,21 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Optimizer.Benchmarks
 {
-    public class ZDT3 : ZDTx
+    public class ZDT3 : ZDT1
     {
-        public ZDT3(int nDecisions) : base() { NDecisions = nDecisions; }
+        public ZDT3(int nDecisions) : base(nDecisions) { }
         public override string ToString() { return "ZDT3"; }
-        public override DenseVector Evaluate(DenseVector decisions)
+        protected override double Vh(DenseVector x)
         {
-            if (!FeasibilityCheck(decisions))
-                return new double[] { double.PositiveInfinity, double.PositiveInfinity };
-            int m = decisions.Count();
-            double f1, f2, g, h;
-            f1 = decisions.First();
-            g = 1;
-            for (int i = 1; i < m; i++) g += 9 * decisions.ElementAt(i) / (m - 1);
-            h = 1 - Math.Sqrt(f1 / g) - f1 / g * Math.Sin(10.0 * Math.PI * f1);
-            f2 = g * h;
-            return new double[] { f1, f2 };
+            return base.Vh(x) - Vg1(x) / Vf(x) * Math.Sin(Kernel(x));
         }
+        protected override DenseVector Dh(DenseVector x)
+        {
+            double kernel = Kernel(x), f = Vf(x), g1 = Vg1(x);
+            return base.Dh(x) 
+                - (Math.Sin(kernel) + kernel * Math.Cos(kernel)) / f * Dg1(x) 
+                + g1 * Math.Sin(kernel) / (f * f) * Df(x);
+        }
+        private double Kernel(DenseVector x) { return 10 * Math.PI * Vg1(x); }
     }
 }
