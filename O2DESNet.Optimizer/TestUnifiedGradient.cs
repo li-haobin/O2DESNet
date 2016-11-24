@@ -13,34 +13,39 @@ namespace O2DESNet.Optimizer
     {
         static void Main(string[] args)
         {
-            int length = 1000, nSeeds = 30;
-            //Experiment(length, nSeeds, MoCompass.SamplingScheme.CoordinateSampling);
-            //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Unified);
-            //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Averaged);
-            //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Random);
+            int length = 1000, nSeeds = 100;
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.CoordinateSampling, pivotSelectionScheme: MoCompass.PivotSelectionScheme.Uniform);
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Unified, MoCompass.PivotSelectionScheme.Uniform);
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Averaged, MoCompass.PivotSelectionScheme.Uniform);
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Random, MoCompass.PivotSelectionScheme.Uniform);
+
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Unified, MoCompass.PivotSelectionScheme.MultiGradient);
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Averaged, MoCompass.PivotSelectionScheme.MultiGradient);
+            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Random, MoCompass.PivotSelectionScheme.MultiGradient);
 
             //Experiment(length, nSeeds, MoCompass.SamplingScheme.PolarUniform);
-            Experiment(length, nSeeds, MoCompass.SamplingScheme.GoPolars, MoCompass.MultiGradientScheme.Unified);
+            //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoPolars, MoCompass.MultiGradientScheme.Unified);
             //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoPolars, MoCompass.MultiGradientScheme.Averaged);
             //Experiment(length, nSeeds, MoCompass.SamplingScheme.GoPolars, MoCompass.MultiGradientScheme.Random);
         }    
         
         static void Experiment(int length, int nSeeds, 
             MoCompass.SamplingScheme samplingScheme, 
-            MoCompass.MultiGradientScheme multiGradientScheme = MoCompass.MultiGradientScheme.Unified)
+            MoCompass.MultiGradientScheme multiGradientScheme = MoCompass.MultiGradientScheme.Unified,
+            MoCompass.PivotSelectionScheme pivotSelectionScheme = MoCompass.PivotSelectionScheme.Uniform)
         {
             int dimension = 5;
             int batchSize = 4;
-            var zdt = new Benchmarks.ZDT1(dimension);
+            var zdt = new Benchmarks.ZDT2(dimension);
 
             var stats = new AverageRunningStats(nSeeds);
-            for (int seed = 0; seed < nSeeds; seed++)
+            Parallel.For(0, nSeeds, seed =>
             {
                 var rs = new Random(seed);
                 var mocompass = new MoCompass(zdt.DecisionSpace, seed: rs.Next());
                 mocompass.SamplingSchemeOption = samplingScheme;
                 mocompass.MultiGradientSchemeOption = multiGradientScheme;
-                mocompass.PivotSelectionSchemeOption = MoCompass.PivotSelectionScheme.MultiGradient;//.Uniform;
+                mocompass.PivotSelectionSchemeOption = pivotSelectionScheme;
 
                 while (mocompass.AllSolutions.Count < length)
                 {
@@ -54,16 +59,18 @@ namespace O2DESNet.Optimizer
                         sol.Gradients = zdt.Gradients(d);
                         return sol;
                     }));
-                    stats.Log(seed, mocompass.AllSolutions.Count, 
-                        Pareto.DominatedHyperVolume(mocompass.ParetoSet.Select(s => s.Objectives), new double[] { 1, 1 }));
-                    Console.Clear();
+                    lock (stats)
+                    {
+                        stats.Log(seed, mocompass.AllSolutions.Count,
+                            Pareto.DominatedHyperVolume(mocompass.ParetoSet.Select(s => s.Objectives), new double[] { 1, 1 }));
+                    }
+                    //Console.Clear();
                     Console.WriteLine("Seed: {0}, #Samples: {1}", seed, mocompass.AllSolutions.Count);
                 }
-            }
+            });
 
-            using (var sw = new System.IO.StreamWriter(string.Format("results_{0}_{1}.csv", samplingScheme,
-                (samplingScheme == MoCompass.SamplingScheme.GoCS || samplingScheme == MoCompass.SamplingScheme.GoPolars ?
-                multiGradientScheme.ToString() : ""))))
+            using (var sw = new System.IO.StreamWriter(
+                string.Format("results_{0}_{1}_{2}.csv", samplingScheme, multiGradientScheme, pivotSelectionScheme)))
                 foreach (var t in stats.Output) sw.WriteLine("{0},{1}", t.Item1, t.Item2);
         }    
     }

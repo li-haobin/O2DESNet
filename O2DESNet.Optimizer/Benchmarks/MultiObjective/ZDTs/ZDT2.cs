@@ -7,21 +7,17 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Optimizer.Benchmarks
 {
-    public class ZDT2 : ZDTx
+    public class ZDT2 : ZDT1
     {
-        public ZDT2(int nDecisions) : base() { NDecisions = nDecisions; }
+        public ZDT2(int nDecisions) : base(nDecisions) { }
         public override string ToString() { return "ZDT2"; }
-        public override DenseVector Evaluate(DenseVector decisions)
+        protected override double Vh(DenseVector x)
         {
-            if (!FeasibilityCheck(decisions))
-                return new double[] { double.PositiveInfinity, double.PositiveInfinity };
-            int m = decisions.Count();
-            double f1, f2, g, h;
-            f1 = decisions.First();
-            g = 1; for (int i = 1; i < m; i++) g += 9 * decisions.ElementAt(i) / (m - 1);
-            h = 1 - Math.Pow(f1 / g, 2.0);
-            f2 = g * h;
-            return new double[] { f1, f2 };
+            return 1 - Math.Pow(Vg1(x) / Vf(x), 2);
+        }
+        protected override DenseVector Dh(DenseVector x)
+        {
+            return 2 * (Math.Pow(Vg1(x), 2) / Math.Pow(Vf(x), 3) * Df(x) - Vg1(x) / Math.Pow(Vf(x), 2) * Dg1(x));
         }
     }
 }
