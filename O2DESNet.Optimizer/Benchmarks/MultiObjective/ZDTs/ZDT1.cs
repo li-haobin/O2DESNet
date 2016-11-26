@@ -7,9 +7,13 @@ using System.Threading.Tasks;
 
 namespace O2DESNet.Optimizer.Benchmarks
 {
-    public class ZDT1 : ZDTx
+    public class ZDT1 : MultiObjective
     {
-        public ZDT1(int nDecisions) : base() { NDecisions = nDecisions; }
+        public ZDT1(int nDecisions) : base() { NDecisions = nDecisions; NObjectives = 2; }
+        protected bool FeasibilityCheck(DenseVector decisions) { return DecisionSpace.Contains(decisions); }
+        public override ConvexSet DecisionSpace { get { return new ConvexSet(NDecisions, 0, 1); } }
+        public override DenseVector Start(Random rs) { return Enumerable.Range(0, NDecisions).Select(i => rs.NextDouble()).ToArray(); }
+
         public override string ToString() { return "ZDT1"; }
         
         #region Function Values

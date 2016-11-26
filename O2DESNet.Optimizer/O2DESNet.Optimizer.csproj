@@ -87,7 +87,6 @@
     <Compile Include="Benchmarks\MultiObjective\ZDTs\ZDT3.cs" />
     <Compile Include="Benchmarks\MultiObjective\ZDTs\ZDT4.cs" />
     <Compile Include="Benchmarks\MultiObjective\ZDTs\ZDT6.cs" />
-    <Compile Include="Benchmarks\MultiObjective\ZDTs\ZDTx.cs" />
     <Compile Include="Benchmarks\SingleObjective\Ackley.cs" />
     <Compile Include="Benchmarks\SingleObjective\SingleObjective.cs" />
     <Compile Include="Benchmarks\SingleObjective\BukinN6.cs" />
