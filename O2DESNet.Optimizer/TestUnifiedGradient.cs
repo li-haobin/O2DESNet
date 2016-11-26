@@ -13,7 +13,7 @@ namespace O2DESNet.Optimizer
     {
         static void Main(string[] args)
         {
-            int length = 1000, nSeeds = 100;
+            int length = 5000, nSeeds = 100;
             Experiment(length, nSeeds, MoCompass.SamplingScheme.CoordinateSampling, pivotSelectionScheme: MoCompass.PivotSelectionScheme.Uniform);
             Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Unified, MoCompass.PivotSelectionScheme.Uniform);
             Experiment(length, nSeeds, MoCompass.SamplingScheme.GoCS, MoCompass.MultiGradientScheme.Averaged, MoCompass.PivotSelectionScheme.Uniform);
@@ -36,7 +36,7 @@ namespace O2DESNet.Optimizer
         {
             int dimension = 5;
             int batchSize = 4;
-            var zdt = new Benchmarks.ZDT3(dimension);
+            var zdt = new Benchmarks.ZDT4(dimension);
 
             var stats = new AverageRunningStats(nSeeds);
             Parallel.For(0, nSeeds, seed =>
