@@ -68,7 +68,7 @@ namespace O2DESNet.Optimizer
                 case MoCompass.SamplingScheme.GoPolars:
                     uniGradient = MoCompass.UnifiedGradient[Superior];
                     if (uniGradient != null && uniGradient.Count(g => double.IsNaN(g)) < 1)
-                        direction = PolarRandom.Oriented(-uniGradient, 1.0, rs);
+                        direction = PolarRandom.Oriented(-uniGradient, 0.5, rs);
                     else direction = PolarRandom.Uniform(_convexSet.Dimension, rs);
                     break;
                 case MoCompass.SamplingScheme.GoCS:
