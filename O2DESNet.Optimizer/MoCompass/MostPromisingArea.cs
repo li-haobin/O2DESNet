@@ -67,8 +67,8 @@ namespace O2DESNet.Optimizer
                     break;
                 case MoCompass.SamplingScheme.GoPolars:
                     uniGradient = MoCompass.UnifiedGradient[Superior];
-                    if (uniGradient != null && uniGradient.Count(g => double.IsNaN(g)) < 1)
-                        direction = PolarRandom.Oriented(-uniGradient, 0.5, rs);
+                    if (uniGradient != null && uniGradient.Count(g => double.IsNaN(g)) < 1 && uniGradient.L2Norm() > 0)
+                        direction = PolarRandom.Oriented(-uniGradient, 1.0, rs);
                     else direction = PolarRandom.Uniform(_convexSet.Dimension, rs);
                     break;
                 case MoCompass.SamplingScheme.GoCS:
@@ -76,7 +76,7 @@ namespace O2DESNet.Optimizer
                     var directions = DenseMatrix.CreateIdentity(_convexSet.Dimension).ToRowArrays().Concat(
                         (DenseMatrix.CreateIdentity(_convexSet.Dimension) * (-1)).ToRowArrays())
                         .OrderBy(dir => uniGradient.DotProduct((DenseVector)dir));
-                    direction = TruncatedGeometric.Sample(directions, 0.2, rs);
+                    direction = TruncatedGeometric.Sample(directions, 0.1, rs);
                     break;
                 default: throw new Exception("Non-specified sampling scheme.");
             }

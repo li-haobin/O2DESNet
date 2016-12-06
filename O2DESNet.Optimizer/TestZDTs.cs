@@ -68,10 +68,6 @@ namespace O2DESNet.Optimizer
                     Console.WriteLine("Seed: {0}, #Samples: {1}", seed, mocompass.AllSolutions.Count);
                 }
             });
-
-            using (var sw = new System.IO.StreamWriter(
-                string.Format("results_{0}_{1}_{2}_{3}.csv", zdt, samplingScheme, multiGradientScheme, pivotSelectionScheme)))
-                foreach (var t in stats.Output) sw.WriteLine("{0},{1}", t.Item1, t.Item2);
         }    
     }
 }

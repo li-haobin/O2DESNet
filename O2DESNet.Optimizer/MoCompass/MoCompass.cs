@@ -14,9 +14,9 @@ namespace O2DESNet.Optimizer
         internal Dictionary<DenseVector, MostPromisingArea> MostPromisingAreas { get; private set; }
         internal ConstraintGE[] DynamicLowerBounds { get; set; }
         internal ConstraintLE[] DynamicUpperBounds { get; set; }
-        internal SamplingScheme SamplingSchemeOption { get; set; } = SamplingScheme.CoordinateSampling;
-        internal MultiGradientScheme MultiGradientSchemeOption { get; set; } = MultiGradientScheme.Unified;
-        internal PivotSelectionScheme PivotSelectionSchemeOption { get; set; } = PivotSelectionScheme.Uniform;
+        public SamplingScheme SamplingSchemeOption { get; set; } = SamplingScheme.CoordinateSampling;
+        public MultiGradientScheme MultiGradientSchemeOption { get; set; } = MultiGradientScheme.Unified;
+        public PivotSelectionScheme PivotSelectionSchemeOption { get; set; } = PivotSelectionScheme.Uniform;
         private Random _rs;
 
         private HashSet<DenseVector> _paretoDecisions;
@@ -70,7 +70,7 @@ namespace O2DESNet.Optimizer
                             p = TruncatedGeometric.Sample(_paretoDecisions.OrderByDescending(d => crowdDistances[AllSolutions[d].Objectives]), 0.2, _rs);
                             break;
                         case PivotSelectionScheme.MultiGradient:
-                            p = TruncatedGeometric.Sample(_paretoDecisions.OrderByDescending(d => UnifiedGradient[d].L2Norm()), 0.2, _rs);
+                            p = TruncatedGeometric.Sample(_paretoDecisions.OrderByDescending(d => UnifiedGradient[d].L2Norm()), 0.1, _rs);
                             break;
                     }
 

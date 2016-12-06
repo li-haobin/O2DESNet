@@ -1,0 +1,13 @@
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\TestForMoCompassGo.exe.config
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\obj\Debug\TestForMoCompassGo.csprojResolveAssemblyReference.cache
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\TestForMoCompassGo.exe
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\TestForMoCompassGo.pdb
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\MathNet.Numerics.dll
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\O2DESNet.dll
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\O2DESNet.Optimizer.exe
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\SimpleModel.exe
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\SimpleModel.pdb
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\O2DESNet.Optimizer.pdb
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\bin\Debug\MathNet.Numerics.xml
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\obj\Debug\TestForMoCompassGo.exe
+C:\Users\Haobin\Source\Repos\O2DES.Net\TestForMoCompassGo\TestForMoCompassGo\obj\Debug\TestForMoCompassGo.pdb
