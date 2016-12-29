@@ -51,12 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FIFOQueues\Program.cs" />
-    <Compile Include="FIFOQueues\TwoFIFOServers.cs" />
     <Compile Include="GGnQueue\GGnQueueSystem.cs" />
     <Compile Include="GGnQueue\Program.cs" />
-    <Compile Include="PathMoverSystem\PathMoverSystem.cs" />
-    <Compile Include="PathMoverSystem\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwoRestoreServer\Program.cs" />
     <Compile Include="TwoRestoreServer\TwoRestoreServerSystem.cs" />

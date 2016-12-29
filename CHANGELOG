@@ -1,5 +1,6 @@
 - Version 2.3.0
 1. Revise Queue and Server for higher modularity, and comply with DEVS standards.
+2. Temporarily remove FIFOServer, Resource, RestoreServer, and PathMover, due to unstable performance.
 
 - Version 2.2.1
 1. Change font-size for Path label for displaying dense path network

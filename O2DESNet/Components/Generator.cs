@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace O2DESNet
 {
     public class Generator<TLoad> : Component<Generator<TLoad>.Statics>
-        where TLoad : Load
     {
         #region Statics
         public class Statics : Scenario
@@ -54,7 +53,6 @@ namespace O2DESNet
                 if (Generator.On)
                 {
                     var load = Generator.Config.Create(Generator.DefaultRS);
-                    load.Log(this);
                     Generator.Count++;
                     Schedule(new ArriveEvent(Generator), Generator.Config.InterArrivalTime(Generator.DefaultRS));
                     foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
