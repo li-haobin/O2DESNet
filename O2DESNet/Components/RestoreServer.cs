@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace O2DESNet
 {
     public class RestoreServer<TLoad> : Component<RestoreServer<TLoad>.Statics>
-        where TLoad : Load
     {
         #region Sub-Components
         internal Server<TLoad> H_Server { get; private set; }
@@ -22,7 +21,6 @@ namespace O2DESNet
 
             public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; } }
             public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
-            //public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
             public int Capacity { get; set; }
         }
         #endregion
@@ -31,11 +29,12 @@ namespace O2DESNet
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public HashSet<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get { return Config.Capacity - NOccupied; } }
+        public int Vancancy { get; private set; } = int.MaxValue;
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
-        public int NOccupied { get { return Serving.Count + Served.Count + Restoring.Count; } }
+        public int NOccupied { get; private set; } = 0;
         public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / Config.Capacity; } }
         public double EffectiveHourlyRate { get { return H_Server.HourCounter.DecrementRate; } }
+        public bool ToDepart { get { return H_Server.ToDepart; } }
         #endregion
 
         #region Events
@@ -51,43 +50,42 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (RestoreServer.Vancancy < 1) throw new HasZeroVacancyException();
-                Load.Log(this);
                 Execute(RestoreServer.H_Server.Start(Load));
+                Execute(new UpdateVacancyEvent(RestoreServer));
             }
             public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
         }
-        private class RestoreEvent : Event
+        private class UpdateVacancyEvent : Event
         {
             public RestoreServer<TLoad> RestoreServer { get; private set; }
-            public TLoad Load { get; private set; }
-            internal RestoreEvent(RestoreServer<TLoad> restoreServer, TLoad load)
-            {
-                RestoreServer = restoreServer;
-                Load = load;
-            }
+            internal UpdateVacancyEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
             public override void Invoke()
             {
-                Load.Log(this);
-                foreach (var evnt in RestoreServer.OnRestore) Execute(evnt());
+                bool hadVacancy = RestoreServer.Vancancy > 0;
+
+                RestoreServer.NOccupied = RestoreServer.Serving.Count + RestoreServer.Served.Count + RestoreServer.Restoring.Count;
+                RestoreServer.Vancancy = RestoreServer.Config.Capacity - RestoreServer.NOccupied;
+                if (hadVacancy && RestoreServer.Vancancy == 0) foreach (var evnt in RestoreServer.OnReady) Execute(evnt(false));
+                if (!hadVacancy && RestoreServer.Vancancy > 0) foreach (var evnt in RestoreServer.OnReady) Execute(evnt(true));
             }
-            public override string ToString() { return string.Format("{0}_Restore", RestoreServer); }
+            public override string ToString() { return string.Format("{0}_UpdateVacancy", RestoreServer); }
         }
         #endregion
 
         #region Input Events - Getters
-        //public Event Depart() { return H_Server.Depart(); }
         public Event Start(TLoad load)
         {            
             if (Config.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
             if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            //if (Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
             return new StartEvent(this, load);
         }
+        public Event UpdateToDepart(bool toDepart) { return H_Server.UpdateToDepart(toDepart); }
         #endregion
                
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
-        public List<Func<Event>> OnRestore { get; private set; }
+        public List<Func<TLoad, Event>> OnRestore { get { return R_Server.OnDepart; } }
+        public List<Func<bool, Event>> OnReady { get { return H_Server.OnReady; } }
         #endregion
 
         #region Exeptions
@@ -103,10 +101,6 @@ namespace O2DESNet
         {
             public RestoringTimeNotSpecifiedException() : base("Set RestoringTime as a random generator.") { }
         }
-        public class DepartConditionNotSpecifiedException : Exception
-        {
-            public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
-        }
         #endregion
 
         public RestoreServer(Statics config, int seed, string tag = null) : base(config, seed, tag)
@@ -117,11 +111,7 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            //R_Server.Config.ToDepart = (load) => true;
-            R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
-
-            // initialize for output events
-            OnRestore = new List<Func<Event>>();
+            OnRestore.Add(load => new UpdateVacancyEvent(this));
         }
 
         public override void WarmedUp(DateTime clockTime)

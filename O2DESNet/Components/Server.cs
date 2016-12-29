@@ -121,7 +121,7 @@ namespace O2DESNet
                 // in case the start / finish times are used in OnDepart events
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
-                if (Server.Served.Count > 0) Execute(new DepartEvent(Server));
+                if (Server.ToDepart && Server.Served.Count > 0) Execute(new DepartEvent(Server));
                 else Execute(new UpdateVacancyEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
