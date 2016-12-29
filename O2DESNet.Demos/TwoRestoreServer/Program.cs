@@ -27,7 +27,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
                 HandlingTime2 = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 7)),
                 RestoringTime2 = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, 10)),
 
-                ToDepart = load => true,
+                //ToDepart = load => true,
             };
 
             var sim = new Simulator(new TwoRestoreServerSystem(scenario));

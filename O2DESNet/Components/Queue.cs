@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace O2DESNet
 {
     public class Queue<TLoad> : Component<Queue<TLoad>.Statics>
-        where TLoad : Load
     {
         #region Static Properties
         public class Statics : Scenario
@@ -16,18 +15,15 @@ namespace O2DESNet
             /// Maximum number of loads in the queue
             /// </summary>
             public int Capacity { get; set; } = int.MaxValue;
-            /// <summary>
-            /// Dequeuing condition for each load
-            /// </summary>
-            public Func<TLoad, bool> ToDequeue { get; set; }
         }
         #endregion
 
         #region Dynamic Properties
-        public List<TLoad> Waiting { get; private set; }
-        public int Vancancy { get { return Config.Capacity - Waiting.Count; } }
+        public List<TLoad> Waiting { get; private set; } = new List<TLoad>();
+        public int Vancancy { get; private set; } = int.MaxValue;
+        public bool ToDequeue { get; private set; } = true;
 
-        public HourCounter HourCounter { get; private set; } // statistics    
+        public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }    
         #endregion
 
@@ -48,15 +44,45 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (Queue.Vancancy == 0) throw new HasZeroVacancyException();
-                Load.Log(this);
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
-                Execute(Queue.Dequeue());
+                if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
+                else Execute(new UpdateVacancyEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
+        }        
+        private class UpdateToDequeueEvent : Event
+        {
+            public Queue<TLoad> Queue { get; private set; }
+            public bool ToDequeue { get; private set; }
+
+            internal UpdateToDequeueEvent(Queue<TLoad> queue, bool toDequeue)
+            {
+                Queue = queue;
+                ToDequeue = toDequeue;
+            }
+            public override void Invoke()
+            {
+                Queue.ToDequeue = ToDequeue;
+                if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
+            }
+            public override string ToString() { return string.Format("{0}_UpdateToDequeue", Queue); }
+        }
+        private class UpdateVacancyEvent : Event
+        {
+            public Queue<TLoad> Queue { get; private set; }
+            internal UpdateVacancyEvent(Queue<TLoad> queue) { Queue = queue; }
+            public override void Invoke()
+            {
+                bool hadVacancy = Queue.Vancancy > 0;
+                Queue.Vancancy = Queue.Config.Capacity - Queue.Waiting.Count;
+                if (hadVacancy && Queue.Vancancy == 0) foreach (var evnt in Queue.OnReady) Execute(evnt(false));
+                if (!hadVacancy && Queue.Vancancy > 0) foreach (var evnt in Queue.OnReady) Execute(evnt(true));
+            }
+            public override string ToString() { return string.Format("{0}_UpdateVacancy", Queue); }
         }
         /// <summary>
-        /// Attempt to dequeue the first load
+        /// Dequeue the first load
         /// </summary>
         private class DequeueEvent : Event
         {
@@ -68,16 +94,12 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Queue.Config.ToDequeue == null) throw new DequeueConditionNotSpecifiedException();
-                var load = Queue.Waiting.FirstOrDefault();
-                if (load == null) return;
-                if (Queue.Config.ToDequeue(load))
-                {
-                    load.Log(this);
-                    Queue.Waiting.RemoveAt(0);
-                    Queue.HourCounter.ObserveChange(-1, ClockTime);
-                    foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
-                }
+                TLoad load = Queue.Waiting.FirstOrDefault();
+                Queue.Waiting.RemoveAt(0);
+                Queue.HourCounter.ObserveChange(-1, ClockTime);
+                foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
+                if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
+                else Execute(new UpdateVacancyEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }
@@ -85,32 +107,24 @@ namespace O2DESNet
 
         #region Input Events - Getters
         public Event Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
-        public Event Dequeue() { return new DequeueEvent(this); }
+        public Event UpdateToDequeue(bool toDequeue) { return new UpdateToDequeueEvent(this, toDequeue); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event>> OnDequeue { get; private set; }
+        public List<Func<TLoad, Event>> OnDequeue { get; private set; } = new List<Func<TLoad, Event>>();
+        public List<Func<bool, Event>> OnReady { get; private set; } = new List<Func<bool, Event>>();
         #endregion
 
         #region Exeptions
         public class HasZeroVacancyException : Exception
         {
-            public HasZeroVacancyException() : base("Check vacancy of the queue before execute Enqueue event.") { }
-        }
-        public class DequeueConditionNotSpecifiedException : Exception
-        {
-            public DequeueConditionNotSpecifiedException() : base("Set ToDequeue for the dequeue condition.") { }
+            public HasZeroVacancyException() : base("Make sure the vacancy of the queue is updated before execute Enqueue event.") { }
         }
         #endregion
 
         public Queue(Statics config, string tag = null) : base(config, tag: tag)
         {
             Name = "Queue";
-            Waiting = new List<TLoad>();
-            HourCounter = new HourCounter();
-
-            // initialize for output events
-            OnDequeue = new List<Func<TLoad, Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime)

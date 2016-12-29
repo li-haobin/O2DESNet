@@ -22,7 +22,7 @@ namespace O2DESNet
 
             public Func<TLoad, Random, TimeSpan> HandlingTime { get { return H_Server.ServiceTime; } set { H_Server.ServiceTime = value; } }
             public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
-            public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
+            //public Func<TLoad, bool> ToDepart { get { return H_Server.ToDepart; } set { H_Server.ToDepart = value; } }
             public int Capacity { get; set; }
         }
         #endregion
@@ -75,12 +75,12 @@ namespace O2DESNet
         #endregion
 
         #region Input Events - Getters
-        public Event Depart() { return H_Server.Depart(); }
+        //public Event Depart() { return H_Server.Depart(); }
         public Event Start(TLoad load)
         {            
             if (Config.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
             if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            if (Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
+            //if (Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
             return new StartEvent(this, load);
         }
         #endregion
@@ -117,7 +117,7 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            R_Server.Config.ToDepart = (load) => true;
+            //R_Server.Config.ToDepart = (load) => true;
             R_Server.OnDepart.Add(l => new RestoreEvent(this, l));
 
             // initialize for output events

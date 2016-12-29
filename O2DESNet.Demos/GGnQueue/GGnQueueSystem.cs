@@ -34,13 +34,25 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Events
-        private class ArchiveEvent : Event
+        private class EnterEvent : Event
         {
             public GGnQueueSystem GGnQueueSystem { get; private set; }
             public Load Load { get; private set; }
-            public ArchiveEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            public EnterEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
             public override void Invoke()
             {
+                Load.Log(this);
+                Execute(GGnQueueSystem.Queue.Enqueue(Load));
+            }
+        }
+        private class ExitEvent : Event
+        {
+            public GGnQueueSystem GGnQueueSystem { get; private set; }
+            public Load Load { get; private set; }
+            public ExitEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            public override void Invoke()
+            {
+                Load.Log(this);
                 GGnQueueSystem.Processed.Add(Load);
             }
         }
@@ -67,21 +79,21 @@ namespace O2DESNet.Demos.GGnQueue
             Generator = new Generator<Load>(
                 config: Config.Generator,
                 seed: DefaultRS.Next());
-            Generator.OnArrive.Add(load => Queue.Enqueue(load));
+            Generator.OnArrive.Add(load => new EnterEvent(this, load));
 
             Queue = new Queue<Load>(
                 config: Config.Queue,
                 tag: "Queue");
-            Queue.Config.ToDequeue = load => Server.Vancancy > 0;
+            //Queue.Config.ToDequeue = load => Server.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server.Start(load));
 
             Server = new Server<Load>(
                config: Config.Server,
                seed: DefaultRS.Next(),
                tag: "Server");
-            Server.Config.ToDepart = load => true;
-            Server.OnDepart.Add(load => Queue.Dequeue());
-            Server.OnDepart.Add(load => new ArchiveEvent(this, load));
+            //Server.Config.ToDepart = load => true;
+            Server.OnReady.Add(b => Queue.UpdateToDequeue(b));
+            Server.OnDepart.Add(load => new ExitEvent(this, load));
 
             InitEvents.Add(Generator.Start());
         }

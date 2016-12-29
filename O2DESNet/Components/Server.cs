@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace O2DESNet
 {
     public class Server<TLoad> : Component<Server<TLoad>.Statics>
-        where TLoad : Load
     {
         #region Statics
         public class Statics : Scenario
@@ -20,20 +19,20 @@ namespace O2DESNet
             /// Random generator for service time
             /// </summary>
             public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
-            public Func<TLoad, bool> ToDepart { get; set; }
         }
         #endregion
 
         #region Dynamics
-        public HashSet<TLoad> Serving { get; private set; }
-        public HashSet<TLoad> Served { get; private set; }
-        public int Vancancy { get { return Config.Capacity - NOccupied; } }
-        public HourCounter HourCounter { get; private set; } // statistics    
+        public HashSet<TLoad> Serving { get; private set; } = new HashSet<TLoad>();
+        public HashSet<TLoad> Served { get; private set; } = new HashSet<TLoad>();
+        public int Vancancy { get; private set; } = int.MaxValue;
+        public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
-        public int NOccupied { get { return Serving.Count + Served.Count; } }
+        public int NOccupied { get; private set; } = 0;
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
-        public Dictionary<TLoad, DateTime> StartTimes { get; private set; }
-        public Dictionary<TLoad, DateTime> FinishTimes { get; private set; }
+        public Dictionary<TLoad, DateTime> StartTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
+        public Dictionary<TLoad, DateTime> FinishTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
+        public bool ToDepart { get; private set; } = true;
         #endregion
 
         #region Events
@@ -49,11 +48,11 @@ namespace O2DESNet
             public override void Invoke()
             {
                 if (Server.Vancancy < 1) throw new HasZeroVacancyException();
-                Load.Log(this);
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
                 Server.StartTimes.Add(Load, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
+                Execute(new UpdateVacancyEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
@@ -68,13 +67,43 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                Load.Log(this);
                 Server.Serving.Remove(Load);
                 Server.Served.Add(Load);
                 Server.FinishTimes.Add(Load, ClockTime);
-                Execute(new DepartEvent(Server));
+                if (Server.ToDepart) Execute(new DepartEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
+        }
+        private class UpdateToDepartEvent : Event
+        {
+            public Server<TLoad> Server { get; private set; }
+            public bool ToDepart { get; private set; }
+
+            internal UpdateToDepartEvent(Server<TLoad> server, bool toDepart)
+            {
+                Server = server;
+                ToDepart = toDepart;
+            }
+            public override void Invoke()
+            {
+                Server.ToDepart = ToDepart;
+                if (Server.ToDepart && Server.Served.Count > 0) Execute(new DepartEvent(Server));
+            }
+            public override string ToString() { return string.Format("{0}_UpdateToDepart", Server); }
+        }
+        private class UpdateVacancyEvent : Event
+        {
+            public Server<TLoad> Server { get; private set; }
+            internal UpdateVacancyEvent(Server<TLoad> server) { Server = server; }
+            public override void Invoke()
+            {
+                bool hadVacancy = Server.Vancancy > 0;
+                Server.NOccupied = Server.Serving.Count + Server.Served.Count;
+                Server.Vancancy = Server.Config.Capacity - Server.NOccupied;
+                if (hadVacancy && Server.Vancancy == 0) foreach (var evnt in Server.OnReady) Execute(evnt(false));
+                if (!hadVacancy && Server.Vancancy > 0) foreach (var evnt in Server.OnReady) Execute(evnt(true));
+            }
+            public override string ToString() { return string.Format("{0}_UpdateVacancy", Server); }
         }
         private class DepartEvent : Event
         {
@@ -85,21 +114,15 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Server.Config.ToDepart == null) throw new DepartConditionNotSpecifiedException();
-                bool updated = false;
-                foreach (var load in Server.Served.ToList())
-                    if (Server.Config.ToDepart(load))
-                    {
-                        load.Log(this);
-                        Server.Served.Remove(load);                        
-                        Server.HourCounter.ObserveChange(-1, ClockTime);
-                        foreach (var evnt in Server.OnDepart) Execute(evnt(load));
-                        // in case the start / finish times are used in OnDepart events
-                        Server.StartTimes.Remove(load);
-                        Server.FinishTimes.Remove(load);
-                        updated = true;
-                    }
-                if (updated) Execute(new DepartEvent(Server));
+                TLoad load = Server.Served.First();
+                Server.Served.Remove(load);
+                Server.HourCounter.ObserveChange(-1, ClockTime);
+                foreach (var evnt in Server.OnDepart) Execute(evnt(load));
+                // in case the start / finish times are used in OnDepart events
+                Server.StartTimes.Remove(load);
+                Server.FinishTimes.Remove(load);
+                if (Server.Served.Count > 0) Execute(new DepartEvent(Server));
+                else Execute(new UpdateVacancyEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
@@ -107,13 +130,14 @@ namespace O2DESNet
 
         #region Input Events - Getters
         public Event Start(TLoad load) { return new StartEvent(this, load); }
-        public Event Depart() { return new DepartEvent(this); }        
+        public Event UpdateToDepart(bool toDepart) { return new UpdateToDepartEvent(this, toDepart); }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<TLoad, Event>> OnDepart { get; private set; }
+        public List<Func<TLoad, Event>> OnDepart { get; private set; } = new List<Func<TLoad, Event>>();
+        public List<Func<bool, Event>> OnReady { get; private set; } = new List<Func<bool, Event>>();
         #endregion
-        
+
         #region Exeptions
         public class HasZeroVacancyException : Exception
         {
@@ -123,23 +147,11 @@ namespace O2DESNet
         {
             public ServiceTimeNotSpecifiedException() : base("Set ServiceTime as a random generator.") { }
         }
-        public class DepartConditionNotSpecifiedException : Exception
-        {
-            public DepartConditionNotSpecifiedException() : base("Set ToDepart as depart condition.") { }
-        }
         #endregion
         
         public Server(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Server";
-            Serving = new HashSet<TLoad>();
-            Served = new HashSet<TLoad>();
-            HourCounter = new HourCounter();
-            StartTimes = new Dictionary<TLoad, DateTime>();
-            FinishTimes = new Dictionary<TLoad, DateTime>();
-
-            // initialize for output events    
-            OnDepart = new List<Func<TLoad, Event>>();
         }
 
         public override void WarmedUp(DateTime clockTime)

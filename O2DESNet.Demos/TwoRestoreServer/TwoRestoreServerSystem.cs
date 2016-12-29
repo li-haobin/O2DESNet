@@ -39,7 +39,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
             public int ServerCapacity2 { get { return Server2.Capacity; } set { Server2.Capacity = value; } }
             public Func<Load, Random, TimeSpan> HandlingTime2 { get { return Server2.HandlingTime; } set { Server2.HandlingTime = value; } }
             public Func<Load, Random, TimeSpan> RestoringTime2 { get { return Server2.RestoringTime; } set { Server2.RestoringTime = value; } }
-            public Func<Load, bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
+            //public Func<Load, bool> ToDepart { get { return Server2.ToDepart; } set { Server2.ToDepart = value; } }            
         }
         #endregion
 
@@ -97,31 +97,31 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Queue = new Queue<Load>(
                  config: Config.Queue,
                  tag: "Queue");
-            Queue.Config.ToDequeue = load => Server1.Vancancy > 0;
+            //Queue.Config.ToDequeue = load => Server1.Vancancy > 0;
             Queue.OnDequeue.Add(load => Server1.Start(load));
 
             Server1 = new RestoreServer<Load>(
                config: Config.Server1,
                seed: DefaultRS.Next(),
                tag: "1st Server");
-            Server1.Config.ToDepart = load => Buffer.Vancancy > 0;
+            //Server1.Config.ToDepart = load => Buffer.Vancancy > 0;
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
-            Server1.OnRestore.Add(() => Queue.Dequeue());
+            //Server1.OnRestore.Add(() => Queue.Dequeue());
 
             Buffer = new Queue<Load>(
                  config: Config.Buffer,
                  tag: "Buffer");
-            Buffer.Config.ToDequeue = load => Server2.Vancancy > 0;
+            //Buffer.Config.ToDequeue = load => Server2.Vancancy > 0;
             Buffer.OnDequeue.Add(load => Server2.Start(load));
-            Buffer.OnDequeue.Add(load => Server1.Depart());
+            //Buffer.OnDequeue.Add(load => Server1.Depart());
 
             Server2 = new RestoreServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
-            Server2.Config.ToDepart = load => true;
+            //Server2.Config.ToDepart = load => true;
             Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
-            Server2.OnRestore.Add(() => Buffer.Dequeue());
+            //Server2.OnRestore.Add(() => Buffer.Dequeue());
 
             InitEvents.Add(Generator.Start());
         }
