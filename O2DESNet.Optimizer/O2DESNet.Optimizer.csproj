@@ -53,7 +53,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>O2DESNet.Optimizer.TestZDTs</StartupObject>
+    <StartupObject>O2DESNet.Optimizer.TestOCBA_AgeOfInformation</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.13.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -109,6 +109,7 @@
     <Compile Include="Mo2tos\MoMo2tos.cs" />
     <Compile Include="Mo2tos\TwoFidelitySolution.cs" />
     <Compile Include="TestMultiSphere.cs" />
+    <Compile Include="TestOCBA_AgeOfInformation.cs" />
     <Compile Include="TestZDTs.cs" />
     <Compile Include="Samplings\Bootstrap.cs" />
     <Compile Include="Samplings\PolarRandom.cs" />
