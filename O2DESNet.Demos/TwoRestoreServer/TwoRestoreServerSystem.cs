@@ -104,20 +104,20 @@ namespace O2DESNet.Demos.TwoRestoreServer
                seed: DefaultRS.Next(),
                tag: "1st Server");
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
-            Server1.OnReady.Add(b => Queue.UpdateToDequeue(b));
+            Server1.OnStateChange.Add(s => Queue.UpdToDequeue(s.Vancancy > 0));
 
             Buffer = new Queue<Load>(
                  config: Config.Buffer,
                  tag: "Buffer");
             Buffer.OnDequeue.Add(load => Server2.Start(load));
-            Buffer.OnReady.Add(b => Server1.UpdateToDepart(b));
+            Buffer.OnStateChange.Add(b => Server1.UpdateToDepart(b.Vancancy > 0));
 
             Server2 = new RestoreServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
             Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
-            Server2.OnReady.Add(b => Buffer.UpdateToDequeue(b));
+            Server2.OnStateChange.Add(s => Buffer.UpdToDequeue(s.Vancancy > 0));
 
             InitEvents.Add(Generator.Start());
         }

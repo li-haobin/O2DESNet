@@ -51,24 +51,21 @@ namespace O2DESNet
             {
                 if (RestoreServer.Vancancy < 1) throw new HasZeroVacancyException();
                 Execute(RestoreServer.H_Server.Start(Load));
-                Execute(new UpdateVacancyEvent(RestoreServer));
+                Execute(new StateChangeEvent(RestoreServer));
             }
             public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
         }
-        private class UpdateVacancyEvent : Event
+        private class StateChangeEvent : Event
         {
             public RestoreServer<TLoad> RestoreServer { get; private set; }
-            internal UpdateVacancyEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
+            internal StateChangeEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
             public override void Invoke()
             {
-                bool hadVacancy = RestoreServer.Vancancy > 0;
-
                 RestoreServer.NOccupied = RestoreServer.Serving.Count + RestoreServer.Served.Count + RestoreServer.Restoring.Count;
                 RestoreServer.Vancancy = RestoreServer.Config.Capacity - RestoreServer.NOccupied;
-                if (hadVacancy && RestoreServer.Vancancy == 0) foreach (var evnt in RestoreServer.OnReady) Execute(evnt(false));
-                if (!hadVacancy && RestoreServer.Vancancy > 0) foreach (var evnt in RestoreServer.OnReady) Execute(evnt(true));
+                foreach (var evnt in RestoreServer.OnStateChange) Execute(evnt(RestoreServer));
             }
-            public override string ToString() { return string.Format("{0}_UpdateVacancy", RestoreServer); }
+            public override string ToString() { return string.Format("{0}_StateChange", RestoreServer); }
         }
         #endregion
 
@@ -79,13 +76,13 @@ namespace O2DESNet
             if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
             return new StartEvent(this, load);
         }
-        public Event UpdateToDepart(bool toDepart) { return H_Server.UpdateToDepart(toDepart); }
+        public Event UpdateToDepart(bool toDepart) { return H_Server.UpdToDepart(toDepart); }
         #endregion
                
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
         public List<Func<TLoad, Event>> OnRestore { get { return R_Server.OnDepart; } }
-        public List<Func<bool, Event>> OnReady { get { return H_Server.OnReady; } }
+        public List<Func<RestoreServer<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<RestoreServer<TLoad>, Event>>();
         #endregion
 
         #region Exeptions
@@ -111,7 +108,7 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            OnRestore.Add(load => new UpdateVacancyEvent(this));
+            OnRestore.Add(load => new StateChangeEvent(this));
         }
 
         public override void WarmedUp(DateTime clockTime)

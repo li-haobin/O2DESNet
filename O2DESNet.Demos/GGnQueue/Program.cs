@@ -34,6 +34,7 @@ namespace O2DESNet.Demos.GGnQueue
             }
 
             /// Validate by Little's Law
+            /// Theoretical Output: 3.2 & 1.0
             //while (sim.Run(300000))
             //{
             //    Console.WriteLine("{0}\t{1}",

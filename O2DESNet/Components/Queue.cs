@@ -20,6 +20,7 @@ namespace O2DESNet
 
         #region Dynamic Properties
         public List<TLoad> Waiting { get; private set; } = new List<TLoad>();
+        public int Occupancy { get; private set; } = 0;
         public int Vancancy { get; private set; } = int.MaxValue;
         public bool ToDequeue { get; private set; } = true;
 
@@ -47,16 +48,16 @@ namespace O2DESNet
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
                 if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
-                else Execute(new UpdateVacancyEvent(Queue));
+                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
         }        
-        private class UpdateToDequeueEvent : Event
+        private class UpdToDequeueEvent : Event
         {
             public Queue<TLoad> Queue { get; private set; }
             public bool ToDequeue { get; private set; }
 
-            internal UpdateToDequeueEvent(Queue<TLoad> queue, bool toDequeue)
+            internal UpdToDequeueEvent(Queue<TLoad> queue, bool toDequeue)
             {
                 Queue = queue;
                 ToDequeue = toDequeue;
@@ -66,20 +67,19 @@ namespace O2DESNet
                 Queue.ToDequeue = ToDequeue;
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
             }
-            public override string ToString() { return string.Format("{0}_UpdateToDequeue", Queue); }
+            public override string ToString() { return string.Format("{0}_UpdToDequeue", Queue); }
         }
-        private class UpdateVacancyEvent : Event
+        private class StateChangeEvent : Event
         {
             public Queue<TLoad> Queue { get; private set; }
-            internal UpdateVacancyEvent(Queue<TLoad> queue) { Queue = queue; }
+            internal StateChangeEvent(Queue<TLoad> queue) { Queue = queue; }
             public override void Invoke()
             {
-                bool hadVacancy = Queue.Vancancy > 0;
-                Queue.Vancancy = Queue.Config.Capacity - Queue.Waiting.Count;
-                if (hadVacancy && Queue.Vancancy == 0) foreach (var evnt in Queue.OnReady) Execute(evnt(false));
-                if (!hadVacancy && Queue.Vancancy > 0) foreach (var evnt in Queue.OnReady) Execute(evnt(true));
+                Queue.Occupancy = Queue.Waiting.Count;
+                Queue.Vancancy = Queue.Config.Capacity - Queue.Occupancy;
+                foreach (var evnt in Queue.OnStateChange) Execute(evnt(Queue));
             }
-            public override string ToString() { return string.Format("{0}_UpdateVacancy", Queue); }
+            public override string ToString() { return string.Format("{0}_StateChange", Queue); }
         }
         /// <summary>
         /// Dequeue the first load
@@ -99,7 +99,7 @@ namespace O2DESNet
                 Queue.HourCounter.ObserveChange(-1, ClockTime);
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
-                else Execute(new UpdateVacancyEvent(Queue));
+                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }
@@ -107,12 +107,12 @@ namespace O2DESNet
 
         #region Input Events - Getters
         public Event Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
-        public Event UpdateToDequeue(bool toDequeue) { return new UpdateToDequeueEvent(this, toDequeue); }
+        public Event UpdToDequeue(bool toDequeue) { return new UpdToDequeueEvent(this, toDequeue); }
         #endregion
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDequeue { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<bool, Event>> OnReady { get; private set; } = new List<Func<bool, Event>>();
+        public List<Func<Queue<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Queue<TLoad>, Event>>();
         #endregion
 
         #region Exeptions

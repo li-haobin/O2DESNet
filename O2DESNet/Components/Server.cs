@@ -25,10 +25,10 @@ namespace O2DESNet
         #region Dynamics
         public HashSet<TLoad> Serving { get; private set; } = new HashSet<TLoad>();
         public HashSet<TLoad> Served { get; private set; } = new HashSet<TLoad>();
-        public int Vancancy { get; private set; } = int.MaxValue;
+        public int Vacancy { get; private set; } = int.MaxValue;
+        public int Occupancy { get; private set; } = 0;
         public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
-        public int NOccupied { get; private set; } = 0;
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
         public Dictionary<TLoad, DateTime> StartTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
         public Dictionary<TLoad, DateTime> FinishTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
@@ -47,12 +47,12 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Server.Vancancy < 1) throw new HasZeroVacancyException();
+                if (Server.Vacancy < 1) throw new HasZeroVacancyException();
                 Server.Serving.Add(Load);
                 Server.HourCounter.ObserveChange(1, ClockTime);
                 Server.StartTimes.Add(Load, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
-                Execute(new UpdateVacancyEvent(Server));
+                Execute(new StateChangeEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
@@ -74,12 +74,12 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
         }
-        private class UpdateToDepartEvent : Event
+        private class UpdToDepartEvent : Event
         {
             public Server<TLoad> Server { get; private set; }
             public bool ToDepart { get; private set; }
 
-            internal UpdateToDepartEvent(Server<TLoad> server, bool toDepart)
+            internal UpdToDepartEvent(Server<TLoad> server, bool toDepart)
             {
                 Server = server;
                 ToDepart = toDepart;
@@ -89,21 +89,19 @@ namespace O2DESNet
                 Server.ToDepart = ToDepart;
                 if (Server.ToDepart && Server.Served.Count > 0) Execute(new DepartEvent(Server));
             }
-            public override string ToString() { return string.Format("{0}_UpdateToDepart", Server); }
+            public override string ToString() { return string.Format("{0}_UpdToDepart", Server); }
         }
-        private class UpdateVacancyEvent : Event
+        private class StateChangeEvent : Event
         {
             public Server<TLoad> Server { get; private set; }
-            internal UpdateVacancyEvent(Server<TLoad> server) { Server = server; }
+            internal StateChangeEvent(Server<TLoad> server) { Server = server; }
             public override void Invoke()
             {
-                bool hadVacancy = Server.Vancancy > 0;
-                Server.NOccupied = Server.Serving.Count + Server.Served.Count;
-                Server.Vancancy = Server.Config.Capacity - Server.NOccupied;
-                if (hadVacancy && Server.Vancancy == 0) foreach (var evnt in Server.OnReady) Execute(evnt(false));
-                if (!hadVacancy && Server.Vancancy > 0) foreach (var evnt in Server.OnReady) Execute(evnt(true));
+                Server.Occupancy = Server.Serving.Count + Server.Served.Count;
+                Server.Vacancy = Server.Config.Capacity - Server.Occupancy;
+                foreach (var evnt in Server.OnStateChange) Execute(evnt(Server));
             }
-            public override string ToString() { return string.Format("{0}_UpdateVacancy", Server); }
+            public override string ToString() { return string.Format("{0}_StateChange", Server); }
         }
         private class DepartEvent : Event
         {
@@ -122,7 +120,7 @@ namespace O2DESNet
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
                 if (Server.ToDepart && Server.Served.Count > 0) Execute(new DepartEvent(Server));
-                else Execute(new UpdateVacancyEvent(Server));
+                else Execute(new StateChangeEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
@@ -130,12 +128,12 @@ namespace O2DESNet
 
         #region Input Events - Getters
         public Event Start(TLoad load) { return new StartEvent(this, load); }
-        public Event UpdateToDepart(bool toDepart) { return new UpdateToDepartEvent(this, toDepart); }
+        public Event UpdToDepart(bool toDepart) { return new UpdToDepartEvent(this, toDepart); }
         #endregion
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<bool, Event>> OnReady { get; private set; } = new List<Func<bool, Event>>();
+        public List<Func<Server<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Server<TLoad>, Event>>();
         #endregion
 
         #region Exeptions

@@ -92,7 +92,7 @@ namespace O2DESNet.Demos.GGnQueue
                seed: DefaultRS.Next(),
                tag: "Server");
             //Server.Config.ToDepart = load => true;
-            Server.OnReady.Add(b => Queue.UpdateToDequeue(b));
+            Server.OnStateChange.Add(s => Queue.UpdToDequeue(s.Vacancy > 0));
             Server.OnDepart.Add(load => new ExitEvent(this, load));
 
             InitEvents.Add(Generator.Start());
