@@ -1,6 +1,7 @@
 - Version 2.3.0
 1. Revise Queue and Server for higher modularity, and comply with DEVS standards.
 2. Temporarily remove FIFOServer, Resource, RestoreServer, and PathMover, due to unstable performance.
+3. Include Synchronizer, that checks multiple conditions and triggers events when all conditions are satisfied or unsatisfied.
 
 - Version 2.2.1
 1. Change font-size for Path label for displaying dense path network

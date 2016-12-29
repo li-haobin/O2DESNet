@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public abstract class Component : Status<Scenario>        
+    public abstract class Component : State<Scenario>        
     {
         protected static int _count = 0;
         public int Id { get; protected set; }

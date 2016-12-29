@@ -3,22 +3,22 @@ using System.IO;
 
 namespace O2DESNet
 {
-    public abstract class Status<TScenario> where TScenario : Scenario
+    public abstract class State<TScenario> where TScenario : Scenario
     {
         internal protected TScenario Scenario { get; private set; }
         internal protected Random DefaultRS { get; private set; }
         private int _seed;
         public int Seed { get { return _seed; } set { _seed = value; DefaultRS = new Random(_seed); } }
         
-        public Status(TScenario scenario, int seed = 0)
+        public State(TScenario scenario, int seed = 0)
         {
             Scenario = scenario;
             Seed = seed;
             Display = false;
         }
 
-        public abstract void WarmedUp(DateTime clockTime);
-        public abstract void WriteToConsole(DateTime? clockTime = null);
+        public virtual void WarmedUp(DateTime clockTime) { throw new NotImplementedException(); }
+        public virtual void WriteToConsole(DateTime? clockTime = null) { throw new NotImplementedException(); }
 
         #region For Logging
         private string _logFile;

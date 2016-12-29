@@ -71,6 +71,7 @@ namespace O2DESNet
                 Server.Served.Add(Load);
                 Server.FinishTimes.Add(Load, ClockTime);
                 if (Server.ToDepart) Execute(new DepartEvent(Server));
+                else Execute(new StateChangeEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
         }

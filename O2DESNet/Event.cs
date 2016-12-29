@@ -6,7 +6,7 @@ namespace O2DESNet
 {
     public abstract class Event<TScenario, TStatus>
         where TScenario : Scenario
-        where TStatus : Status<TScenario>
+        where TStatus : State<TScenario>
     {
         internal protected Simulator<TScenario, TStatus> Simulator { get; set; }
         protected TStatus Status { get { return Simulator.Status; } }
@@ -27,5 +27,5 @@ namespace O2DESNet
     /// <summary>
     /// A generic event using default Scenario and Status class
     /// </summary>
-    public abstract class Event : Event<Scenario, Status<Scenario>> { }
+    public abstract class Event : Event<Scenario, State<Scenario>> { }
 }

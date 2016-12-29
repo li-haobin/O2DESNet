@@ -7,7 +7,7 @@ namespace O2DESNet
 {
     public abstract class Simulator<TScenario, TStatus>
         where TScenario : Scenario
-        where TStatus : Status<TScenario>
+        where TStatus : State<TScenario>
     {
         public TStatus Status { get; private set; }
         public TScenario Scenario { get { return Status.Scenario; } }
@@ -139,7 +139,7 @@ namespace O2DESNet
 
     public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
             where TScenario : Scenario
-            where TStatus : Status<TScenario>
+            where TStatus : State<TScenario>
     {
         public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
         {
@@ -149,7 +149,7 @@ namespace O2DESNet
         }
     }
 
-    public class Simulator : Simulator<Scenario, Status<Scenario>> 
+    public class Simulator : Simulator<Scenario, State<Scenario>> 
 {
         public Component Assembly { get { return (Component)Status; } }
         public Simulator(Component assembly) : base(assembly)
