@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Component.cs" />
+    <Compile Include="Components\FIFOServer.cs" />
     <Compile Include="Components\Synchronizer.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="Components\Generator.cs" />
