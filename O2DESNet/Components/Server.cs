@@ -20,6 +20,7 @@ namespace O2DESNet
             /// </summary>
             public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
         }
+        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamics

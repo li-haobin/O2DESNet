@@ -16,6 +16,7 @@ namespace O2DESNet
             /// </summary>
             public int Capacity { get; set; } = int.MaxValue;
         }
+        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamic Properties

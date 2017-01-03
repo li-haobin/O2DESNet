@@ -36,10 +36,12 @@ namespace O2DESNet
             if (Display) Console.WriteLine(format, args);
             if (LogFile != null) using (var sw = new StreamWriter(LogFile, true)) sw.WriteLine(format, args);
         }
-        public void Log(params object[] args)
+        public void Log(DateTime clockTime, params object[] args)
         {
+            var timeStr = clockTime.ToString("y/M/d H:mm:ss.fff");
             if (Display)
             {
+                Console.Write("{0}\t", timeStr);
                 foreach (var arg in args) Console.Write("{0}\t", arg);
                 Console.WriteLine();
             }
@@ -47,6 +49,7 @@ namespace O2DESNet
             if (LogFile != null)
                 using (var sw = new StreamWriter(LogFile, true))
                 {
+                    Console.Write("{0},", timeStr);
                     foreach (var arg in args) sw.Write("{0},", arg);
                     sw.WriteLine();
                 }

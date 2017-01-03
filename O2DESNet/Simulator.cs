@@ -9,15 +9,15 @@ namespace O2DESNet
         where TScenario : Scenario
         where TStatus : State<TScenario>
     {
-        public TStatus Status { get; private set; }
-        public TScenario Scenario { get { return Status.Scenario; } }
-        public Random DefaultRS { get { return Status.DefaultRS; } }
+        public TStatus State { get; private set; }
+        public TScenario Scenario { get { return State.Scenario; } }
+        public Random DefaultRS { get { return State.DefaultRS; } }
         internal SortedSet<Event<TScenario, TStatus>> FutureEventList;
         public DateTime ClockTime { get; protected set; }
 
         public Simulator(TStatus status)
         {
-            Status = status;
+            State = status;
             ClockTime = DateTime.MinValue;
             FutureEventList = new SortedSet<Event<TScenario, TStatus>>(new FutureEventComparer<TScenario, TStatus>());
 
@@ -81,10 +81,10 @@ namespace O2DESNet
         }
         public bool WarmUp(TimeSpan duration) {
             var r = Run(duration);
-            Status.WarmedUp(ClockTime);
+            State.WarmedUp(ClockTime);
             return r; // to be continued
         }
-        public void WriteToConsole() { Status.WriteToConsole(ClockTime); }
+        public void WriteToConsole() { State.WriteToConsole(ClockTime); }
 
         #region For Time Dilation
         private DateTime _realTimeAtDilationReset;
@@ -151,7 +151,7 @@ namespace O2DESNet
 
     public class Simulator : Simulator<Scenario, State<Scenario>> 
 {
-        public Component Assembly { get { return (Component)Status; } }
+        public Component Assembly { get { return (Component)State; } }
         public Simulator(Component assembly) : base(assembly)
         {
             if (Assembly.InitEvents.Count == 0) throw new InitEventsNotFound();

@@ -15,8 +15,9 @@ namespace O2DESNet
             public int Size { get; private set; }
             public Statics(int size) { Size = size; }
         }
+        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
-        
+
         #region Dynamics
         public HashSet<int> TrueIndices { get; private set; } = new HashSet<int>();
         public bool AllTrue { get; private set; } = false;

@@ -15,6 +15,7 @@ namespace O2DESNet
             public bool SkipFirst { get; set; } = true;
             public Func<Random, TLoad> Create { get; set; }
         }
+        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamics
