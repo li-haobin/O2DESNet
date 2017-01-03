@@ -28,10 +28,10 @@ namespace O2DESNet
     public abstract class Component<TStatics> : Component
         where TStatics : Scenario
     {
-        public TStatics StaticProperty { get; private set; }
+        public TStatics Config { get; private set; }
         public Component(TStatics config, int seed = 0, string tag = null) : base(seed, tag)
         {
-            StaticProperty = config;
+            Config = config;
         }
     }
 }

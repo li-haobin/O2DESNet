@@ -23,7 +23,6 @@ namespace O2DESNet
             public Func<TLoad, Random, TimeSpan> RestoringTime { get { return R_Server.ServiceTime; } set { R_Server.ServiceTime = value; } }
             public int Capacity { get; set; }
         }
-        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamics

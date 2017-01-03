@@ -16,7 +16,6 @@ namespace O2DESNet
             /// </summary>
             public int Capacity { get; set; } = int.MaxValue;
         }
-        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamic Properties
@@ -98,9 +97,10 @@ namespace O2DESNet
                 TLoad load = Queue.Waiting.FirstOrDefault();
                 Queue.Waiting.RemoveAt(0);
                 Queue.HourCounter.ObserveChange(-1, ClockTime);
+                Execute(new StateChangeEvent(Queue));
+
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
-                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }

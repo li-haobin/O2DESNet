@@ -20,7 +20,6 @@ namespace O2DESNet
             /// </summary>
             public Func<TLoad, Random, TimeSpan> ServiceTime { get; set; }
         }
-        private Statics Config { get { return (Statics)StaticProperty; } }
         #endregion
 
         #region Dynamics
@@ -124,9 +123,9 @@ namespace O2DESNet
                 // in case the start / finish times are used in OnDepart events
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
+                Execute(new StateChangeEvent(Server));
                 foreach (var evnt in Server.OnDepart) Execute(evnt(load));
                 if (Server.ChkToDepart()) Execute(new DepartEvent(Server));
-                else Execute(new StateChangeEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
@@ -156,6 +155,7 @@ namespace O2DESNet
         public Server(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Server";
+            Vacancy = Config.Capacity;
         }
 
         public override void WarmedUp(DateTime clockTime)
