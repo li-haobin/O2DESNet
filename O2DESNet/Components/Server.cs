@@ -74,8 +74,8 @@ namespace O2DESNet
                 Server.Serving.Remove(Load);
                 Server.Served.Add(Load);
                 Server.FinishTimes.Add(Load, ClockTime);
-                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));
-                else Execute(new StateChangeEvent(Server));
+                Execute(new StateChangeEvent(Server));
+                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
         }
@@ -121,10 +121,10 @@ namespace O2DESNet
                 // in case the start / finish times are used in OnDepart events
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
-                
+                                
+                Execute(new StateChangeEvent(Server));
                 foreach (var evnt in Server.OnDepart) Execute(evnt(load));
-                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));
-                else Execute(new StateChangeEvent(Server));
+                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }

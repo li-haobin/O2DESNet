@@ -47,8 +47,8 @@ namespace O2DESNet
                 if (Queue.Vacancy == 0) throw new HasZeroVacancyException();
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
+                Execute(new StateChangeEvent(Queue));
                 if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
-                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
         }        
@@ -97,8 +97,8 @@ namespace O2DESNet
                 Queue.HourCounter.ObserveChange(-1, ClockTime);
                 
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
+                Execute(new StateChangeEvent(Queue));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
-                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }

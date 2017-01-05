@@ -106,7 +106,8 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            OnRestore.Add(load => new StateChangeEvent(this));
+            H_Server.OnStateChange.Add(s => new StateChangeEvent(this));
+            R_Server.OnStateChange.Add(s => new StateChangeEvent(this));
         }
 
         public override void WarmedUp(DateTime clockTime)
