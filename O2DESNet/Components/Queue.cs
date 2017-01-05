@@ -94,9 +94,9 @@ namespace O2DESNet
             {
                 TLoad load = Queue.Waiting.FirstOrDefault();
                 Queue.Waiting.RemoveAt(0);
-                Queue.HourCounter.ObserveChange(-1, ClockTime);
-                
+                Queue.HourCounter.ObserveChange(-1, ClockTime);                
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
+
                 Execute(new StateChangeEvent(Queue));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
             }
