@@ -20,8 +20,8 @@ namespace O2DESNet
 
         #region Dynamic Properties
         public List<TLoad> Waiting { get; private set; } = new List<TLoad>();
-        public int Occupancy { get; private set; } = 0;
-        public int Vancancy { get; private set; } = int.MaxValue;
+        public int Occupancy { get { return Waiting.Count; } }
+        public int Vacancy { get { return Config.Capacity - Occupancy; } }
         public bool ToDequeue { get; private set; } = true;
 
         public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
@@ -44,7 +44,7 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (Queue.Vancancy == 0) throw new HasZeroVacancyException();
+                if (Queue.Vacancy == 0) throw new HasZeroVacancyException();
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
                 if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
@@ -75,8 +75,6 @@ namespace O2DESNet
             internal StateChangeEvent(Queue<TLoad> queue) { Queue = queue; }
             public override void Invoke()
             {
-                Queue.Occupancy = Queue.Waiting.Count;
-                Queue.Vancancy = Queue.Config.Capacity - Queue.Occupancy;
                 foreach (var evnt in Queue.OnStateChange) Execute(evnt(Queue));
             }
             public override string ToString() { return string.Format("{0}_StateChange", Queue); }
@@ -97,10 +95,10 @@ namespace O2DESNet
                 TLoad load = Queue.Waiting.FirstOrDefault();
                 Queue.Waiting.RemoveAt(0);
                 Queue.HourCounter.ObserveChange(-1, ClockTime);
-                Execute(new StateChangeEvent(Queue));
-
+                
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
+                else Execute(new StateChangeEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
         }
@@ -123,10 +121,8 @@ namespace O2DESNet
         }
         #endregion
 
-        public Queue(Statics config, string tag = null) : base(config, tag: tag)
-        {
-            Name = "Queue";
-        }
+        public Queue() : base(new Statics()) { Name = "Queue"; }
+        public Queue(Statics config, string tag = null) : base(config, tag: tag) { Name = "Queue"; }
 
         public override void WarmedUp(DateTime clockTime)
         {

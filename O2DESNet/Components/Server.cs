@@ -25,8 +25,8 @@ namespace O2DESNet
         #region Dynamics
         public HashSet<TLoad> Serving { get; private set; } = new HashSet<TLoad>();
         public HashSet<TLoad> Served { get; private set; } = new HashSet<TLoad>();
-        public int Vacancy { get; protected set; } = int.MaxValue;
-        public int Occupancy { get; protected set; } = 0;
+        public int Vacancy { get { return Config.Capacity - Occupancy; } }
+        public int Occupancy { get { return Serving.Count + Served.Count; } }
         public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
         public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
         public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
@@ -102,8 +102,6 @@ namespace O2DESNet
             internal StateChangeEvent(Server<TLoad> server) { Server = server; }
             public override void Invoke()
             {
-                Server.Occupancy = Server.Serving.Count + Server.Served.Count;
-                Server.Vacancy = Server.Config.Capacity - Server.Occupancy;
                 foreach (var evnt in Server.OnStateChange) Execute(evnt(Server));
             }
             public override string ToString() { return string.Format("{0}_StateChange", Server); }
@@ -123,9 +121,10 @@ namespace O2DESNet
                 // in case the start / finish times are used in OnDepart events
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
-                Execute(new StateChangeEvent(Server));
+                
                 foreach (var evnt in Server.OnDepart) Execute(evnt(load));
                 if (Server.ChkToDepart()) Execute(new DepartEvent(Server));
+                else Execute(new StateChangeEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }
         }
@@ -155,7 +154,6 @@ namespace O2DESNet
         public Server(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
             Name = "Server";
-            Vacancy = Config.Capacity;
         }
 
         public override void WarmedUp(DateTime clockTime)

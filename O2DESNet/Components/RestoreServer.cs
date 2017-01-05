@@ -29,9 +29,9 @@ namespace O2DESNet
         public HashSet<TLoad> Serving { get { return H_Server.Serving; } }
         public HashSet<TLoad> Served { get { return H_Server.Served; } }
         public HashSet<TLoad> Restoring { get { return R_Server.Serving; } }
-        public int Vancancy { get; private set; } = int.MaxValue;
+        public int Vacancy { get { return Config.Capacity - Occupancy; } }
         public int NCompleted { get { return (int)H_Server.HourCounter.TotalDecrementCount; } }
-        public int NOccupied { get; private set; } = 0;
+        public int Occupancy { get { return Serving.Count + Served.Count + Restoring.Count; } }
         public double Utilization { get { return (H_Server.HourCounter.AverageCount + R_Server.HourCounter.AverageCount) / Config.Capacity; } }
         public double EffectiveHourlyRate { get { return H_Server.HourCounter.DecrementRate; } }
         public bool ToDepart { get { return H_Server.ToDepart; } }
@@ -49,7 +49,7 @@ namespace O2DESNet
             }
             public override void Invoke()
             {
-                if (RestoreServer.Vancancy < 1) throw new HasZeroVacancyException();
+                if (RestoreServer.Vacancy < 1) throw new HasZeroVacancyException();
                 Execute(RestoreServer.H_Server.Start(Load));
                 Execute(new StateChangeEvent(RestoreServer));
             }
@@ -61,8 +61,6 @@ namespace O2DESNet
             internal StateChangeEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
             public override void Invoke()
             {
-                RestoreServer.NOccupied = RestoreServer.Serving.Count + RestoreServer.Served.Count + RestoreServer.Restoring.Count;
-                RestoreServer.Vancancy = RestoreServer.Config.Capacity - RestoreServer.NOccupied;
                 foreach (var evnt in RestoreServer.OnStateChange) Execute(evnt(RestoreServer));
             }
             public override string ToString() { return string.Format("{0}_StateChange", RestoreServer); }
@@ -76,7 +74,7 @@ namespace O2DESNet
             if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
             return new StartEvent(this, load);
         }
-        public Event UpdateToDepart(bool toDepart) { return H_Server.UpdToDepart(toDepart); }
+        public Event UpdToDepart(bool toDepart) { return H_Server.UpdToDepart(toDepart); }
         #endregion
                
         #region Output Events - Reference to Getters
