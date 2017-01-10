@@ -11,7 +11,7 @@ namespace O2DESNet.Demos.GGnQueue
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
-        public Queue<Load> Queue { get; private set; }
+        public Queuing<Load> Queue { get; private set; }
         public Server<Load> Server { get; private set; }
         #endregion
 
@@ -19,7 +19,7 @@ namespace O2DESNet.Demos.GGnQueue
         public class Statics : Scenario
         {
             internal Generator<Load>.Statics Generator { get; private set; } = new Generator<Load>.Statics();
-            internal Queue<Load>.Statics Queue { get; private set; } = new Queue<Load>.Statics();
+            internal Queuing<Load>.Statics Queue { get; private set; } = new Queuing<Load>.Statics();
             internal Server<Load>.Statics Server { get; private set; } = new Server<Load>.Statics();
             
             public Func<Random, TimeSpan> InterArrivalTime { get { return Generator.InterArrivalTime; } set { Generator.InterArrivalTime = value; } }
@@ -81,7 +81,7 @@ namespace O2DESNet.Demos.GGnQueue
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => new EnterEvent(this, load));
 
-            Queue = new Queue<Load>(
+            Queue = new Queuing<Load>(
                 config: Config.Queue,
                 tag: "Queue");
             //Queue.Config.ToDequeue = load => Server.Vancancy > 0;

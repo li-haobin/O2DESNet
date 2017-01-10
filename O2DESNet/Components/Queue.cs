@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Queue<TLoad> : Component<Queue<TLoad>.Statics>
+    public class Queuing<TLoad> : Component<Queuing<TLoad>.Statics>
     {
         #region Static Properties
         public class Statics : Scenario
@@ -34,10 +34,10 @@ namespace O2DESNet
         /// </summary>
         private class EnqueueEvent : Event
         {
-            public Queue<TLoad> Queue { get; private set; }
+            public Queuing<TLoad> Queue { get; private set; }
             public TLoad Load { get; private set; }
 
-            internal EnqueueEvent(Queue<TLoad> queue, TLoad load)
+            internal EnqueueEvent(Queuing<TLoad> queue, TLoad load)
             {
                 Queue = queue;
                 Load = load;
@@ -54,10 +54,10 @@ namespace O2DESNet
         }        
         private class UpdToDequeueEvent : Event
         {
-            public Queue<TLoad> Queue { get; private set; }
+            public Queuing<TLoad> Queue { get; private set; }
             public bool ToDequeue { get; private set; }
 
-            internal UpdToDequeueEvent(Queue<TLoad> queue, bool toDequeue)
+            internal UpdToDequeueEvent(Queuing<TLoad> queue, bool toDequeue)
             {
                 Queue = queue;
                 ToDequeue = toDequeue;
@@ -71,8 +71,8 @@ namespace O2DESNet
         }
         private class StateChangeEvent : Event
         {
-            public Queue<TLoad> Queue { get; private set; }
-            internal StateChangeEvent(Queue<TLoad> queue) { Queue = queue; }
+            public Queuing<TLoad> Queue { get; private set; }
+            internal StateChangeEvent(Queuing<TLoad> queue) { Queue = queue; }
             public override void Invoke()
             {
                 foreach (var evnt in Queue.OnStateChange) Execute(evnt(Queue));
@@ -84,9 +84,9 @@ namespace O2DESNet
         /// </summary>
         private class DequeueEvent : Event
         {
-            public Queue<TLoad> Queue { get; private set; }
+            public Queuing<TLoad> Queue { get; private set; }
 
-            internal DequeueEvent(Queue<TLoad> queue)
+            internal DequeueEvent(Queuing<TLoad> queue)
             {
                 Queue = queue;
             }
@@ -111,7 +111,7 @@ namespace O2DESNet
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDequeue { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Queue<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Queue<TLoad>, Event>>();
+        public List<Func<Queuing<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Queuing<TLoad>, Event>>();
         #endregion
 
         #region Exeptions
@@ -121,8 +121,8 @@ namespace O2DESNet
         }
         #endregion
 
-        public Queue() : base(new Statics()) { Name = "Queue"; }
-        public Queue(Statics config, string tag = null) : base(config, tag: tag) { Name = "Queue"; }
+        public Queuing() : base(new Statics()) { Name = "Queue"; }
+        public Queuing(Statics config, string tag = null) : base(config, tag: tag) { Name = "Queue"; }
 
         public override void WarmedUp(DateTime clockTime)
         {

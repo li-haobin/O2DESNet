@@ -11,9 +11,9 @@ namespace O2DESNet.Demos.TwoRestoreServer
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
-        public Queue<Load> Queue { get; private set; }
+        public Queuing<Load> Queue { get; private set; }
         public RestoreServer<Load> Server1 { get; private set; }
-        public Queue<Load> Buffer { get; private set; }
+        public Queuing<Load> Buffer { get; private set; }
         public RestoreServer<Load> Server2 { get; private set; }
         #endregion
 
@@ -22,12 +22,12 @@ namespace O2DESNet.Demos.TwoRestoreServer
         {
             internal Generator<Load>.Statics Generator { get; private set; } 
                 = new Generator<Load>.Statics();
-            internal Queue<Load>.Statics Queue { get; private set; } 
-                = new Queue<Load>.Statics();
+            internal Queuing<Load>.Statics Queue { get; private set; } 
+                = new Queuing<Load>.Statics();
             internal RestoreServer<Load>.Statics Server1 { get; private set; } 
                 = new RestoreServer<Load>.Statics();
-            internal Queue<Load>.Statics Buffer { get; private set; }
-                = new Queue<Load>.Statics();
+            internal Queuing<Load>.Statics Buffer { get; private set; }
+                = new Queuing<Load>.Statics();
             internal RestoreServer<Load>.Statics Server2 { get; private set; } 
                 = new RestoreServer<Load>.Statics();
             
@@ -94,7 +94,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
                 seed: DefaultRS.Next());
             Generator.OnArrive.Add(load => Queue.Enqueue(load));
 
-            Queue = new Queue<Load>(
+            Queue = new Queuing<Load>(
                  config: Config.Queue,
                  tag: "Queue");
             Queue.OnDequeue.Add(load => Server1.Start(load));
@@ -106,7 +106,7 @@ namespace O2DESNet.Demos.TwoRestoreServer
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
             Server1.OnStateChange.Add(s => Queue.UpdToDequeue(s.Vancancy > 0));
 
-            Buffer = new Queue<Load>(
+            Buffer = new Queuing<Load>(
                  config: Config.Buffer,
                  tag: "Buffer");
             Buffer.OnDequeue.Add(load => Server2.Start(load));
