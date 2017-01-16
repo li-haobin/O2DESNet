@@ -42,7 +42,7 @@ namespace O2DESNet
                 if (!Value && Synchronizer.TrueIndices.Contains(Index)) Synchronizer.TrueIndices.Remove(Index);
                 Synchronizer.AllTrue = Synchronizer.TrueIndices.Count == Synchronizer.Config.Size;
                 Synchronizer.AllFalse = Synchronizer.TrueIndices.Count == 0;
-                foreach (var evnt in Synchronizer.OnStateChange) Execute(evnt(Synchronizer));
+                foreach (var evnt in Synchronizer.OnStateChg) Execute(evnt(Synchronizer));
             }
             public override string ToString() { return string.Format("{0}_UpdState", Synchronizer); }
         }
@@ -59,7 +59,7 @@ namespace O2DESNet
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Synchronizer, Event>> OnStateChange { get; private set; } = new List<Func<Synchronizer, Event>>();
+        public List<Func<Synchronizer, Event>> OnStateChg { get; private set; } = new List<Func<Synchronizer, Event>>();
         #endregion
         
         public Synchronizer(Statics config, string tag = null) : base(config, 0, tag)

@@ -102,7 +102,7 @@ namespace O2DESNet
             internal StateChangeEvent(Server<TLoad> server) { Server = server; }
             public override void Invoke()
             {
-                foreach (var evnt in Server.OnStateChange) Execute(evnt(Server));
+                foreach (var evnt in Server.OnStateChg) Execute(evnt(Server));
             }
             public override string ToString() { return string.Format("{0}_StateChange", Server); }
         }
@@ -137,7 +137,7 @@ namespace O2DESNet
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Server<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Server<TLoad>, Event>>();
+        public List<Func<Server<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<Server<TLoad>, Event>>();
         #endregion
 
         #region Exeptions

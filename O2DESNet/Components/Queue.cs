@@ -75,7 +75,7 @@ namespace O2DESNet
             internal StateChangeEvent(Queuing<TLoad> queue) { Queue = queue; }
             public override void Invoke()
             {
-                foreach (var evnt in Queue.OnStateChange) Execute(evnt(Queue));
+                foreach (var evnt in Queue.OnStateChg) Execute(evnt(Queue));
             }
             public override string ToString() { return string.Format("{0}_StateChange", Queue); }
         }
@@ -111,7 +111,7 @@ namespace O2DESNet
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDequeue { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Queuing<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<Queuing<TLoad>, Event>>();
+        public List<Func<Queuing<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<Queuing<TLoad>, Event>>();
         #endregion
 
         #region Exeptions

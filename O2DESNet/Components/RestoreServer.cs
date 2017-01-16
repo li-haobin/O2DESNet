@@ -51,17 +51,17 @@ namespace O2DESNet
             {
                 if (RestoreServer.Vacancy < 1) throw new HasZeroVacancyException();
                 Execute(RestoreServer.H_Server.Start(Load));
-                Execute(new StateChangeEvent(RestoreServer));
+                Execute(new StateChgEvent(RestoreServer));
             }
             public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
         }
-        private class StateChangeEvent : Event
+        private class StateChgEvent : Event
         {
             public RestoreServer<TLoad> RestoreServer { get; private set; }
-            internal StateChangeEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
+            internal StateChgEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
             public override void Invoke()
             {
-                foreach (var evnt in RestoreServer.OnStateChange) Execute(evnt(RestoreServer));
+                foreach (var evnt in RestoreServer.OnStateChg) Execute(evnt(RestoreServer));
             }
             public override string ToString() { return string.Format("{0}_StateChange", RestoreServer); }
         }
@@ -80,7 +80,7 @@ namespace O2DESNet
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
         public List<Func<TLoad, Event>> OnRestore { get { return R_Server.OnDepart; } }
-        public List<Func<RestoreServer<TLoad>, Event>> OnStateChange { get; private set; } = new List<Func<RestoreServer<TLoad>, Event>>();
+        public List<Func<RestoreServer<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<RestoreServer<TLoad>, Event>>();
         #endregion
 
         #region Exeptions
@@ -106,8 +106,8 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            H_Server.OnStateChange.Add(s => new StateChangeEvent(this));
-            R_Server.OnStateChange.Add(s => new StateChangeEvent(this));
+            H_Server.OnStateChg.Add(s => new StateChgEvent(this));
+            R_Server.OnStateChg.Add(s => new StateChgEvent(this));
         }
 
         public override void WarmedUp(DateTime clockTime)
