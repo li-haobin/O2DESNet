@@ -56,7 +56,7 @@ namespace O2DESNet
                 Server.HourCounter.ObserveChange(1, ClockTime);
                 Server.StartTimes.Add(Load, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
-                Execute(new StateChangeEvent(Server));
+                Execute(new StateChgEvent(Server));
             }
             public override string ToString() { return string.Format("{0}_Start", Server); }
         }
@@ -74,7 +74,7 @@ namespace O2DESNet
                 Server.Serving.Remove(Load);
                 Server.Served.Add(Load);
                 Server.FinishTimes.Add(Load, ClockTime);
-                Execute(new StateChangeEvent(Server));
+                Execute(new StateChgEvent(Server));
                 if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
             }
             public override string ToString() { return string.Format("{0}_Finish", Server); }
@@ -96,10 +96,10 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_UpdToDepart", Server); }
         }
-        private class StateChangeEvent : Event
+        private class StateChgEvent : Event
         {
             public Server<TLoad> Server { get; private set; }
-            internal StateChangeEvent(Server<TLoad> server) { Server = server; }
+            internal StateChgEvent(Server<TLoad> server) { Server = server; }
             public override void Invoke()
             {
                 foreach (var evnt in Server.OnStateChg) Execute(evnt(Server));
@@ -123,7 +123,7 @@ namespace O2DESNet
                 Server.FinishTimes.Remove(load);
                 foreach (var evnt in Server.OnDepart) Execute(evnt(load));
 
-                Execute(new StateChangeEvent(Server));
+                Execute(new StateChgEvent(Server));
                 if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
             }
             public override string ToString() { return string.Format("{0}_Depart", Server); }

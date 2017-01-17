@@ -47,7 +47,7 @@ namespace O2DESNet
                 if (Queue.Vacancy == 0) throw new HasZeroVacancyException();
                 Queue.Waiting.Add(Load);
                 Queue.HourCounter.ObserveChange(1, ClockTime);
-                Execute(new StateChangeEvent(Queue));
+                Execute(new StateChgEvent(Queue));
                 if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
             }
             public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
@@ -69,10 +69,10 @@ namespace O2DESNet
             }
             public override string ToString() { return string.Format("{0}_UpdToDequeue", Queue); }
         }
-        private class StateChangeEvent : Event
+        private class StateChgEvent : Event
         {
             public Queuing<TLoad> Queue { get; private set; }
-            internal StateChangeEvent(Queuing<TLoad> queue) { Queue = queue; }
+            internal StateChgEvent(Queuing<TLoad> queue) { Queue = queue; }
             public override void Invoke()
             {
                 foreach (var evnt in Queue.OnStateChg) Execute(evnt(Queue));
@@ -97,7 +97,7 @@ namespace O2DESNet
                 Queue.HourCounter.ObserveChange(-1, ClockTime);                
                 foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
 
-                Execute(new StateChangeEvent(Queue));
+                Execute(new StateChgEvent(Queue));
                 if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
             }
             public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
