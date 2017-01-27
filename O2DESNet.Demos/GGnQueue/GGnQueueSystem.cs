@@ -30,7 +30,7 @@ namespace O2DESNet.Demos.GGnQueue
 
         #region Dynamics
         public List<Load> Processed { get; private set; }
-        public int NCompleted { get { return (int)Server.HourCounter.TotalDecrementCount; } }
+        public int NCompleted { get { return (int)Server.UtilizationCounter.TotalDecrementCount; } }
         #endregion
 
         #region Events

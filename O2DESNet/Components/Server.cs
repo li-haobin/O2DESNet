@@ -27,9 +27,14 @@ namespace O2DESNet
         public HashSet<TLoad> Served { get; private set; } = new HashSet<TLoad>();
         public int Vacancy { get { return Config.Capacity - Occupancy; } }
         public int Occupancy { get { return Serving.Count + Served.Count; } }
-        public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
-        public int NCompleted { get { return (int)HourCounter.TotalDecrementCount; } }
-        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
+        public HourCounter UtilizationCounter { get; private set; } = new HourCounter(); // for utilization    
+        public HourCounter OccupationCounter { get; private set; } = new HourCounter(); // for occupation
+        /// <summary>
+        /// Number of loads processed by the server, including those have not departed
+        /// </summary>
+        public int NCompleted { get { return (int)UtilizationCounter.TotalDecrementCount; } }
+        public double Utilization { get { return UtilizationCounter.AverageCount / Config.Capacity; } }
+        public double Occupation { get { return OccupationCounter.AverageCount / Config.Capacity; } }
         public Dictionary<TLoad, DateTime> StartTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
         public Dictionary<TLoad, DateTime> FinishTimes { get; private set; } = new Dictionary<TLoad, DateTime>();
         public bool ToDepart { get; protected set; } = true;
@@ -53,7 +58,8 @@ namespace O2DESNet
             {
                 if (Server.Vacancy < 1) throw new HasZeroVacancyException();
                 Server.PushIn(Load);
-                Server.HourCounter.ObserveChange(1, ClockTime);
+                Server.UtilizationCounter.ObserveChange(1, ClockTime);
+                Server.OccupationCounter.ObserveChange(1, ClockTime);
                 Server.StartTimes.Add(Load, ClockTime);
                 Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
                 Execute(new StateChgEvent(Server));
@@ -74,6 +80,7 @@ namespace O2DESNet
                 Server.Serving.Remove(Load);
                 Server.Served.Add(Load);
                 Server.FinishTimes.Add(Load, ClockTime);
+                Server.UtilizationCounter.ObserveChange(-1, ClockTime);
                 Execute(new StateChgEvent(Server));
                 if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
             }
@@ -117,7 +124,7 @@ namespace O2DESNet
             {
                 TLoad load = Server.GetToDepart();
                 Server.Served.Remove(load);
-                Server.HourCounter.ObserveChange(-1, ClockTime);
+                Server.OccupationCounter.ObserveChange(-1, ClockTime);
                 // in case the start / finish times are used in OnDepart events
                 Server.StartTimes.Remove(load);
                 Server.FinishTimes.Remove(load);
@@ -158,7 +165,7 @@ namespace O2DESNet
 
         public override void WarmedUp(DateTime clockTime)
         {
-            HourCounter.WarmedUp(clockTime);
+            UtilizationCounter.WarmedUp(clockTime);
         }
 
         public override void WriteToConsole(DateTime? clockTime = null)
