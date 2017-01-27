@@ -62,7 +62,7 @@ namespace O2DESNet.Demos.SynchronizedProcess
                 sim.Run(1);
                 Console.WriteLine("=====================================");
                 Console.WriteLine(sim.ClockTime);
-                sim.Status.WriteToConsole();
+                sim.State.WriteToConsole();
                 Console.ReadKey();
             }
         }

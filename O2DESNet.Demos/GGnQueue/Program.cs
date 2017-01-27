@@ -29,7 +29,7 @@ namespace O2DESNet.Demos.GGnQueue
                 sim.Run(speed: 1000);
                 Console.Clear();
                 Console.WriteLine(sim.ClockTime);
-                sim.Status.WriteToConsole();
+                sim.State.WriteToConsole();
                 System.Threading.Thread.Sleep(100);
             }
 

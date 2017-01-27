@@ -28,7 +28,7 @@ namespace O2DESNet.Demos.FIFOQueues
                 //Console.Clear();
                 Console.WriteLine("\n=========================\n");
                 Console.WriteLine(sim.ClockTime);
-                sim.Status.WriteToConsole();
+                sim.State.WriteToConsole();
                 Console.ReadKey();
                 //System.Threading.Thread.Sleep(1000);
             }
