@@ -12,29 +12,8 @@ namespace Test
         #region Statics
         public class Statics : Scenario
         {
-            //public new Statics Config { get { return (Statics)base.Config; } } // for inheritated component
-
-            /// <summary>
-            /// The PathMover system it belongs to
-            /// </summary>
-            public PathMover.Statics PathMover { get; private set; }
-            //<summery>
-            //The index in the path mover system
-            //</summery>
-            public int Index { get; private set; }
-            /// <summary>
-            /// Check for the position on each path
-            /// </summary>
-            public Dictionary<Segment.Statics, double> Positions { get; internal set; } // have not well defined yet
-
-            public Statics(PathMover.Statics pathMover)
-            {
-                PathMover = pathMover;
-                Index = PathMover.ControlPoints.Count;
-                Positions = new Dictionary<Segment.Statics, double>();
-            }
+            public int index;
         }
-
         #endregion
 
         #region Sub-Components
@@ -43,19 +22,11 @@ namespace Test
 
         #region Dynamics
         //public int Occupancy { get { return Server.Occupancy; } }  
-        public PathMover PathMover { get; internal set; }
-        public bool Locked { get; private set; } = false;// needed?
-        public Vehicle At { get; internal set; }
-        public HourCounter HourCounter { get; private set; }
+        //public PathMover PathMover { get; internal set; }
+                
         internal HashSet<Vehicle> Outgoing { get; private set; }
         internal HashSet<Vehicle> Incoming { get; private set; }
-        internal HashSet<Vehicle> Onposition { get; private set; }
-        /// <summary>
-        /// Check if the control point is accessible via the given path
-        /// </summary>
-        public bool Accessible() { return true; }// have not defined yet
-        internal List<Segment> IncomingSegments { get; private set; }
-        internal List<Segment> OutgoingSegments { get; private set; }
+        internal HashSet<Vehicle> Onposition { get; private set; }        
         #endregion
 
         #region Events
@@ -150,7 +121,7 @@ namespace Test
 
         #region Output Events - Reference to Getters
         //public List<Func<TLoad, Event>> OnOutput { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Event>> OnRelease { get; private set; } = new List<Func<Event>>();
+        //public List<Func<Event>> OnRelease { get; private set; } = new List<Func<Event>>();
         #endregion
 
         #region Exeptions
@@ -174,12 +145,7 @@ namespace Test
 
         public ControlPoint(Statics config, int seed, string tag = null) : base(config, seed, tag)
         {
-            Name = "ControlPoint";
-            At = null;
-            IncomingSegments = new List<Segment>();
-            OutgoingSegments = new List<Segment>();
-            HourCounter = new HourCounter();
-
+            Name = "ControlPoint";            
         }
 
         public override void WarmedUp(DateTime clockTime)
