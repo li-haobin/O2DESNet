@@ -15,7 +15,7 @@ namespace Test
             public ControlPoint Start { get; set; }
             public ControlPoint End { get; set; }
             public double Length { get; set; }
-            public int index;
+            public int Id;
         }
         //public new Statics Config { get { return (Statics)base.Config; } } // for inheritated component       
         #endregion

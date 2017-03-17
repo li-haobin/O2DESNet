@@ -12,7 +12,7 @@ namespace Test
         #region Statics
         public class Statics : Scenario
         {
-            public int index;
+            public int Id;
         }
         #endregion
 

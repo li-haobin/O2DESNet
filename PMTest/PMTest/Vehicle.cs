@@ -14,7 +14,7 @@ namespace Test
         #region Statics
         public class Statics : Scenario
         {
-            public int index;
+            public int Id;
         }
         
         //public new Statics Config { get { return (Statics)base.Config; } } // for inheritated component
@@ -33,7 +33,7 @@ namespace Test
         public virtual double Speed { get; set; } = 5;
         public virtual double Acceleration { get; set; } = 0;      
         public ControlPoint Position { get; set; } = null;
-        public Dictionary<int, double> Mileage { get; set; } = new Dictionary<int, double>() { { 0, 0 } };
+        public Dictionary<int, double> Mileage { get; set; } =  new Dictionary<int, double>() { { 1, 0 }, { 2,0}, { 3,0} };
         public Path TravellingOn { get; set; } = null;
         public DateTime TimeStamp { get; set; } = new DateTime(2017, 1, 1, 0, 0, 0);
 
@@ -110,15 +110,18 @@ namespace Test
         private class SetMileageEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public Dictionary<int, double> Mileage { get; set; }
-            internal SetMileageEvent(Dictionary<int, double> mileage, Vehicle vehicle)
+            public int Index { get; set; }
+            public double NewMileage { get; set; }
+            internal SetMileageEvent(int index, double newmileage, Vehicle vehicle)
             {
                 Vehicle = vehicle;
-                Mileage = mileage;
+                Index = index;
+                NewMileage = newmileage;
+                this.Invoke();
             }
             public override void Invoke()
             {
-                Vehicle.Mileage = Mileage;
+                Vehicle.Mileage[Index] = NewMileage;
             }
             public override string ToString()
             {
@@ -126,37 +129,40 @@ namespace Test
             }
         }
 
-        private class ResetMileageEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            internal ResetMileageEvent(Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                this.Invoke();
-            }
-            public override void Invoke()
-            {
-                Vehicle.Mileage = new Dictionary<int, double>() { { 0,0} };
-            }
-            public override string ToString()
-            {
-                return string.Format("{0}_ResetMileage",Vehicle);
-            }
-        }
+        // ResetMileageEvent removed
+        //private class ResetMileageEvent : Event
+        //{
+        //    public Vehicle Vehicle { get; private set; }
+        //    internal ResetMileageEvent(Vehicle vehicle)
+        //    {
+        //        Vehicle = vehicle;
+        //        this.Invoke();
+        //    }
+        //    public override void Invoke()
+        //    {
+        //        Vehicle.Mileage = new Dictionary<int, double>() { { 0,0} };
+        //    }
+        //    public override string ToString()
+        //    {
+        //        return string.Format("{0}_ResetMileage",Vehicle);
+        //    }
+        //}
 
         private class UpdateMileageEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
-            public double Mileage { get; set; }
-            internal UpdateMileageEvent(double mileage, Vehicle vehicle)
+            public int Index { get; set; }
+            public double NewMileage { get; set; }            
+            internal UpdateMileageEvent(int index, double newmileage, Vehicle vehicle)
             {
                 Vehicle = vehicle;
-                Mileage = mileage;
+                NewMileage = newmileage;
+                Index = index;
                 this.Invoke();            
             }
             public override void Invoke()
             {               
-                Vehicle.Mileage.Add(Vehicle.Mileage.Count, Mileage);
+                Vehicle.Mileage[Index] = Vehicle.Mileage[Index]+NewMileage;
             }
             public override string ToString()
             {
@@ -254,9 +260,9 @@ namespace Test
         public Event SetAcceleration(double Acceleration) { return new SetAccelerationEvent(Acceleration, this); }
         public Event SetSpeed(double Speed) { return new SetSpeedEvent(Speed, this); }
         public Event SetTargets(List<ControlPoint> Targets) { return new SetTargetsEvent(Targets, this); }
-        public Event SetMileage(Dictionary<int, double> Mileage) { return new SetMileageEvent(Mileage, this); }
-        public Event ResetMileage() { return new ResetMileageEvent(this); }
-        public Event UpdateMileage(double Mileage) { return new UpdateMileageEvent(Mileage, this); }
+        public Event SetMileage(int Index, double NewMileage) { return new SetMileageEvent(Index, NewMileage, this); }
+        //public Event ResetMileage() { return new ResetMileageEvent(this); }
+        public Event UpdateMileage(int Index,double NewMileage) { return new UpdateMileageEvent(Index, NewMileage, this); }
         public Event AddTargets(ControlPoint NewControlpoint) { return new AddTargetsEvent(NewControlpoint, this); }
         public Event SetTimeStamp(DateTime TimeStamp) { return new SetTimeStampEvent(TimeStamp, this); }
         public Event SetPosition(ControlPoint Position) { return new SetPositionEvent(Position, this); }
