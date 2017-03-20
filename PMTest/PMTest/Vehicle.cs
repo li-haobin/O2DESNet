@@ -14,7 +14,6 @@ namespace Test
         #region Statics
         public class Statics : Scenario
         {
-            public int Id;
         }
         
         //public new Statics Config { get { return (Statics)base.Config; } } // for inheritated component
@@ -28,226 +27,123 @@ namespace Test
         #region Dynamics
         //public int Occupancy { get { return Server.Occupancy; } }  
         //public PathMover PathMover { get; private set; }
-
         public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
         public virtual double Speed { get; set; } = 5;
         public virtual double Acceleration { get; set; } = 0;      
         public ControlPoint Position { get; set; } = null;
-        public Dictionary<int, double> Mileage { get; set; } =  new Dictionary<int, double>() { { 1, 0 }, { 2,0}, { 3,0} };
+        public Dictionary<int, double> Mileage { get; set; } = new Dictionary<int, double>() { { 0, 0 } }; // mileage with index 0, can't be reset
         public Path TravellingOn { get; set; } = null;
-        public DateTime TimeStamp { get; set; } = new DateTime(2017, 1, 1, 0, 0, 0);
-
+        public DateTime TimeStamp { get; set; } = DateTime.MinValue;
         #endregion
 
         #region Events
         private abstract class EventOfVehicle : Event { internal Vehicle This { get; set; } } // event adapter 
-                                                                                              //private class InternalEvent : EventOfVehicle
-                                                                                              //{
-                                                                                              //    internal TLoad Load { get; set; }
-                                                                                              //    public override void Invoke() {  }
-                                                                                              //}
-
-        private class SetAccelerationEvent : Event
+        private class SetAccelerationEvent : EventOfVehicle
         {
-            public Vehicle Vehicle { get; private set; }
-            public double Acceleration { get; set; }
-            internal SetAccelerationEvent(double acceleration, Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                Acceleration = acceleration;
-                this.Invoke();
-            }
+            public double Acceleration { get; set; }            
             public override void Invoke()
             {
-                Vehicle.Acceleration = Acceleration;
+                This.Acceleration = Acceleration;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetAcceleration",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetAcceleration", This); }
         }
 
-        private class SetSpeedEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            public double Speed { get; set; }
-            public SetSpeedEvent(double speed, Vehicle vehicle)
-            {
-                Speed = speed;
-                Vehicle = vehicle;
-                this.Invoke();
-            }
+        private class SetSpeedEvent : EventOfVehicle
+        {  
+            public double Speed { get; set; }   
             public override void Invoke()
             {
-                Vehicle.Speed = Speed;
+                This.Speed = Speed;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetSpeed",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetSpeed", This); }
         }
 
-        private class SetTargetsEvent : Event
+        private class SetTargetsEvent : EventOfVehicle
         {
-            public Vehicle Vehicle { get; private set; }
             public List<ControlPoint> Targets { get; set; }
-            public SetTargetsEvent(List<ControlPoint> targets, Vehicle vehicle)
-            {
-                Targets = targets;
-                Vehicle = vehicle;
-                this.Invoke();
-            }
             public override void Invoke()
             {
-                Vehicle.Targets = Targets;
+                This.Targets = Targets;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetTargets",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetTargets", This); }
         }
 
-        private class SetMileageEvent : Event
+        private class ResetMileageEvent : EventOfVehicle
         {
-            public Vehicle Vehicle { get; private set; }
             public int Index { get; set; }
-            public double NewMileage { get; set; }
-            internal SetMileageEvent(int index, double newmileage, Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                Index = index;
-                NewMileage = newmileage;
-                this.Invoke();
-            }
             public override void Invoke()
             {
-                Vehicle.Mileage[Index] = NewMileage;
+                if (Index == 0) throw new Exception("Mileage with Index 0 cannot be reset.");
+                if (!This.Mileage.ContainsKey(Index)) This.Mileage.Add(Index, 0);
+                else This.Mileage[Index] = 0;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetMileage",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_ResetMileage", This); }
         }
 
-        private class UpdateMileageEvent : Event
+        private class UpdateMileageEvent : EventOfVehicle
         {
-            public Vehicle Vehicle { get; private set; }
-            public int Index { get; set; }
-            public double NewMileage { get; set; }            
-            internal UpdateMileageEvent(int index, double newmileage, Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                NewMileage = newmileage;
-                Index = index;
-                this.Invoke();            
-            }
+            public double Increment { get; set; }               
             public override void Invoke()
-            {               
-                Vehicle.Mileage[Index] = Vehicle.Mileage[Index]+NewMileage;
-            }
-            public override string ToString()
             {
-                return string.Format("{0}_UpdateMileage",Vehicle);
+                foreach (var idx in This.Mileage.Keys) This.Mileage[idx] += Increment;
             }
+            public override string ToString() { return string.Format("{0}_UpdateMileage", This); }
         }
 
-        private class AddTargetsEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            public ControlPoint NewControlpoint { get; set; }
-            internal AddTargetsEvent(ControlPoint newcontrolpoint, Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                NewControlpoint = newcontrolpoint;
-                this.Invoke();
-            }
+        private class AddTargetsEvent : EventOfVehicle
+        {            
+            public List<ControlPoint> Targets { get; set; }
             public override void Invoke()
             {
-                if (Vehicle.Targets == null){ Vehicle.Targets = new List<ControlPoint>(); }
-                Vehicle.Targets.Add(NewControlpoint);
+                if (This.Targets == null) { This.Targets = new List<ControlPoint>(Targets); }
+                else This.Targets.AddRange(Targets);
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_AddTargets",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_AddTargets", This); }
         }
 
-        private class SetTimeStampEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            public DateTime TimeStamp { get; set; }
-            internal SetTimeStampEvent(DateTime timestamp, Vehicle vehicle)
-            {
-                TimeStamp = timestamp;
-                Vehicle = vehicle;
-                this.Invoke();
-            }
+        private class SetTimeStampEvent : EventOfVehicle
+        {           
+            public DateTime TimeStamp { get; set; }           
             public override void Invoke()
             {
-                Vehicle.TimeStamp = TimeStamp;
+                This.TimeStamp = TimeStamp;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetTimeStamp",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetTimeStamp", This); }
         }
 
-        private class SetPositionEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            public ControlPoint Position { get; set; }
-            internal SetPositionEvent(ControlPoint position, Vehicle vehicle)
-            {
-                Position = position;
-                Vehicle = vehicle;
-                this.Invoke();
-            }
+        private class SetPositionEvent : EventOfVehicle
+        {           
+            public ControlPoint Position { get; set; }           
             public override void Invoke()
             {
-                Vehicle.Position = Position;
-                if (Vehicle.Targets.Contains(Position)) Vehicle.Targets.Remove(Position);
+                This.Position = Position;
+                if (This.Targets.Contains(Position)) This.Targets.Remove(Position);
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetPosition",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetPosition", This); }
         }
 
-        private class SetTravellingPathEvent : Event
-        {
-            public Vehicle Vehicle { get; private set; }
-            public Path TravellingOn { get; set; }
-            internal SetTravellingPathEvent(Path travellingon, Vehicle vehicle)
-            {
-                Vehicle = vehicle;
-                TravellingOn = travellingon;
-                this.Invoke();
-            }
+        private class SetTravellingPathEvent : EventOfVehicle
+        {          
+            public Path TravellingOn { get; set; }           
             public override void Invoke()
             {
-                Vehicle.TravellingOn = TravellingOn;
+                This.TravellingOn = TravellingOn;
             }
-            public override string ToString()
-            {
-                return string.Format("{0}_SetTravellingPath",Vehicle);
-            }
+            public override string ToString() { return string.Format("{0}_SetTravellingPath", This); }
         }
 
         #endregion
 
         #region Input Events - Getters
-        //public Event Input(TLoad load) { return new InternalEvent { This = this, Load = load }; }
-
-        public Event SetAcceleration(double Acceleration) { return new SetAccelerationEvent(Acceleration, this); }
-        public Event SetSpeed(double Speed) { return new SetSpeedEvent(Speed, this); }
-        public Event SetTargets(List<ControlPoint> Targets) { return new SetTargetsEvent(Targets, this); }
-        public Event SetMileage(int Index, double NewMileage) { return new SetMileageEvent(Index, NewMileage, this); }
-        public Event UpdateMileage(int Index,double NewMileage) { return new UpdateMileageEvent(Index, NewMileage, this); }
-        public Event AddTargets(ControlPoint NewControlpoint) { return new AddTargetsEvent(NewControlpoint, this); }
-        public Event SetTimeStamp(DateTime TimeStamp) { return new SetTimeStampEvent(TimeStamp, this); }
-        public Event SetPosition(ControlPoint Position) { return new SetPositionEvent(Position, this); }
-        public Event SetTravellingPath(Path TravellingOn) { return new SetTravellingPathEvent(TravellingOn, this); }
-       
+        public Event SetAcceleration(double acceleration) { return new SetAccelerationEvent { This = this, Acceleration = acceleration }; }
+        public Event SetSpeed(double speed) { return new SetSpeedEvent { This = this, Speed = speed }; }
+        public Event SetTargets(List<ControlPoint> targets) { return new SetTargetsEvent { This = this, Targets = targets }; }
+        public Event ResetMileage(int index) { return new ResetMileageEvent { This = this, Index = index }; }
+        public Event UpdateMileage(double increment) { return new UpdateMileageEvent { This = this, Increment = increment }; }
+        public Event AddTargets(List<ControlPoint> targets) { return new AddTargetsEvent { This = this, Targets = targets }; }
+        public Event SetTimeStamp(DateTime timeStamp) { return new SetTimeStampEvent { This = this, TimeStamp = timeStamp }; }
+        public Event SetPosition(ControlPoint position) { return new SetPositionEvent { This = this, Position = position }; }
+        public Event SetTravellingPath(Path travellingOn) { return new SetTravellingPathEvent { This = this, TravellingOn = travellingOn }; }       
         #endregion
 
         #region Output Events - Reference to Getters
@@ -275,6 +171,10 @@ namespace Test
 
         public override void Log(Event evnt) { }
 
-        public override void WriteToConsole(DateTime? clockTime) { }
+        public override void WriteToConsole(DateTime? clockTime)
+        {
+            Console.WriteLine("Id:\t#{0}", Id);
+            Console.WriteLine("Speed:\t{0}", Speed);
+        }
     }
 }

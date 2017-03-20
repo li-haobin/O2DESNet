@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Test.VehicleTestbed</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=3.17.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.3.17.0\lib\net40\MathNet.Numerics.dll</HintPath>
@@ -52,11 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ControlPoint.cs" />
-    <Compile Include="PathMover.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="Vehicle.cs" />
+    <Compile Include="VehicleTestbed.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
