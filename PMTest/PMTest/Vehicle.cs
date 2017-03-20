@@ -129,25 +129,6 @@ namespace Test
             }
         }
 
-        // ResetMileageEvent removed
-        //private class ResetMileageEvent : Event
-        //{
-        //    public Vehicle Vehicle { get; private set; }
-        //    internal ResetMileageEvent(Vehicle vehicle)
-        //    {
-        //        Vehicle = vehicle;
-        //        this.Invoke();
-        //    }
-        //    public override void Invoke()
-        //    {
-        //        Vehicle.Mileage = new Dictionary<int, double>() { { 0,0} };
-        //    }
-        //    public override string ToString()
-        //    {
-        //        return string.Format("{0}_ResetMileage",Vehicle);
-        //    }
-        //}
-
         private class UpdateMileageEvent : Event
         {
             public Vehicle Vehicle { get; private set; }
@@ -261,7 +242,6 @@ namespace Test
         public Event SetSpeed(double Speed) { return new SetSpeedEvent(Speed, this); }
         public Event SetTargets(List<ControlPoint> Targets) { return new SetTargetsEvent(Targets, this); }
         public Event SetMileage(int Index, double NewMileage) { return new SetMileageEvent(Index, NewMileage, this); }
-        //public Event ResetMileage() { return new ResetMileageEvent(this); }
         public Event UpdateMileage(int Index,double NewMileage) { return new UpdateMileageEvent(Index, NewMileage, this); }
         public Event AddTargets(ControlPoint NewControlpoint) { return new AddTargetsEvent(NewControlpoint, this); }
         public Event SetTimeStamp(DateTime TimeStamp) { return new SetTimeStampEvent(TimeStamp, this); }

@@ -16,6 +16,7 @@ namespace PMTest
             Console.WriteLine("vehicle index: {0}", vehicle.Category.Id);
             Console.WriteLine();
 
+
             //Console.WriteLine("speed of current vehicle {0}", vehicle.Speed);
             //vehicle.SetSpeed(1);
             //Console.WriteLine("speed of current vehicle {0}", vehicle.Speed);
@@ -25,6 +26,7 @@ namespace PMTest
             //Console.WriteLine("speed of current vehicle {0}", vehicle.Speed);
             //vehicle.SetSpeed(4);
             //Console.WriteLine("speed of current vehicle {0}", vehicle.Speed);
+
 
             //Console.WriteLine();
             //Console.WriteLine("acceleration is : {0}", vehicle.Acceleration);
@@ -37,48 +39,51 @@ namespace PMTest
             //vehicle.SetAcceleration(6);
             //Console.WriteLine("acceleration is : {0}", vehicle.Acceleration);
 
-            Console.WriteLine();
-            Console.WriteLine("Mileage situation:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
-            vehicle.UpdateMileage(1,10);
-            Console.WriteLine();
-            Console.WriteLine("Mileage situation:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
-            vehicle.UpdateMileage(2,5);
-            Console.WriteLine();
-            Console.WriteLine("Mileage situation:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
-            vehicle.UpdateMileage(3,18);
-            Console.WriteLine();
-            Console.WriteLine("Mileage situation:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
-            vehicle.UpdateMileage(1,20);
-            Console.WriteLine();
-            Console.WriteLine("Mileage situation:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
 
-            vehicle.SetMileage(1,0);
-            Console.WriteLine();
-            Console.WriteLine("after set the mileage [1] to 0, the mileage is:");
-            foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
-            {
-                Console.WriteLine("Mileage situation: No. {0} distance:{1}", kvp.Key, kvp.Value);
-            }
+            //Console.WriteLine();
+            //Console.WriteLine("Mileage situation:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+            //vehicle.UpdateMileage(1,10);
+            //Console.WriteLine();
+            //Console.WriteLine("Mileage situation:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+            //vehicle.UpdateMileage(2,5);
+            //Console.WriteLine();
+            //Console.WriteLine("Mileage situation:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+            //vehicle.UpdateMileage(3,18);
+            //Console.WriteLine();
+            //Console.WriteLine("Mileage situation:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+            //vehicle.UpdateMileage(1,20);
+            //Console.WriteLine();
+            //Console.WriteLine("Mileage situation:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine(" No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+
+
+            //vehicle.SetMileage(1,0);
+            //Console.WriteLine();
+            //Console.WriteLine("after set the mileage [1] to 0, the mileage is:");
+            //foreach (KeyValuePair<int, double> kvp in vehicle.Mileage)
+            //{
+            //    Console.WriteLine("Mileage situation: No. {0} distance:{1}", kvp.Key, kvp.Value);
+            //}
+
 
             //Console.WriteLine();
             //Console.WriteLine("Current timestamp is {0}", vehicle.TimeStamp);
@@ -94,6 +99,7 @@ namespace PMTest
             //vehicle.SetTimeStamp(vehicle.TimeStamp + new TimeSpan(12, 1, 0));
             //Console.WriteLine();
             //Console.WriteLine("After add a timespan, Current time stamp is {0}", vehicle.TimeStamp);
+
 
             //ControlPoint controlpoint1 = new ControlPoint(new ControlPoint.Statics { Id = 1 }, seed: 0);
             //ControlPoint controlpoint2 = new ControlPoint(new ControlPoint.Statics { Id = 2 }, seed: 0);
@@ -119,6 +125,7 @@ namespace PMTest
             //foreach (ControlPoint controlpoint in vehicle.Targets)
             //    Console.WriteLine(controlpoint.Config.Id);
 
+
             //vehicle.SetPosition(controlpoint3);
             //Console.WriteLine();
             //Console.WriteLine("set the controlpoint 3 to be the current position, the targets list become:");
@@ -134,17 +141,21 @@ namespace PMTest
             //Console.WriteLine("current position become:");
             //Console.WriteLine(vehicle.Position.Config.Id);
 
-            //Path path1 = new Path(new Path.Statics { Id = 1 }, seed: 0);
-            //Path path2 = new Path(new Path.Statics { Id = 2 }, seed: 0);
-            //vehicle.SetTravellingPath(path1);
-            //Console.WriteLine();
-            //Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
-            //vehicle.SetTravellingPath(path2);
-            //Console.WriteLine();
-            //Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
-            //vehicle.SetTravellingPath(path1);
-            //Console.WriteLine();
-            //Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
+
+            Path path1 = new Path(new Path.Statics { Id = 1, Length = 10}, seed: 0);
+            Path path2 = new Path(new Path.Statics { Id = 2, Length = 20}, seed: 0);
+            vehicle.SetTravellingPath(path1);
+            Console.WriteLine();
+            Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
+            Console.WriteLine("Currently the length of the path vehicle is travelling on is: {0}", vehicle.TravellingOn.Config.Length);
+            vehicle.SetTravellingPath(path2);
+            Console.WriteLine();
+            Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
+            Console.WriteLine("Currently the length of the path vehicle is travelling on is: {0}", vehicle.TravellingOn.Config.Length);
+            vehicle.SetTravellingPath(path1);
+            Console.WriteLine();
+            Console.WriteLine("current the vehicle is travelling on the path: {0}", vehicle.TravellingOn.Config.Id);
+            Console.WriteLine("Currently the length of the path vehicle is travelling on is: {0}", vehicle.TravellingOn.Config.Length);
 
 
             Console.ReadKey();
