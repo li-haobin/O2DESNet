@@ -1,3 +1,7 @@
+-Version 2.3.1
+1. Include Histogram and Percentile methods in HourCounter, to facilitate the statistics on the distribution of the observed count
+2. Differentiate "Utilization" (when the load is being processed by the server) and "Occupation" (when the load is occupying server's capacity, i.e., both being served and stucked) for the server statistics.
+
 - Version 2.3.0
 1. Revise Queue and Server for higher modularity, and comply with DEVS standards.
 2. Temporarily remove FIFOServer, Resource, RestoreServer, and PathMover, due to unstable performance.
