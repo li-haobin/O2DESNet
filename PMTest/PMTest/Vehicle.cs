@@ -63,7 +63,7 @@ namespace Test
             public List<ControlPoint> Targets { get; set; }
             public override void Invoke()
             {
-                This.Targets = Targets;
+                This.Targets = new List<ControlPoint>(Targets.ToArray());
             }
             public override string ToString() { return string.Format("{0}_SetTargets", This); }
         }
@@ -85,7 +85,7 @@ namespace Test
             public double Increment { get; set; }               
             public override void Invoke()
             {
-                foreach (var idx in This.Mileage.Keys) This.Mileage[idx] += Increment;
+                foreach (var idx in This.Mileage.Keys.ToArray()) This.Mileage[idx] += Increment;
             }
             public override string ToString() { return string.Format("{0}_UpdateMileage", This); }
         }
@@ -174,7 +174,19 @@ namespace Test
         public override void WriteToConsole(DateTime? clockTime)
         {
             Console.WriteLine("Id:\t#{0}", Id);
-            Console.WriteLine("Speed:\t{0}", Speed);
+            //Console.WriteLine("Speed:\t{0}", Speed);
+            //Console.WriteLine("Acceleration:\t{0}", Acceleration);
+            //Console.WriteLine("Size of Targets:\t{0}", Targets.Count);
+            //Console.WriteLine("Targets are: ");
+            //foreach (ControlPoint target in Targets)
+            //    Console.Write("{0} ", target.Id);
+            //Console.WriteLine("Current path:\t{0}",TravellingOn.Id);
+            //Console.WriteLine("TimeStamp:\t{0}", TimeStamp);            
+            //Console.WriteLine("Position:\t{0}",Position.Id);
+
+            foreach (var idx in Mileage.Keys)
+                Console.WriteLine("mileage index:{0}, mileage:{1}",idx,Mileage[idx]);
+            Console.WriteLine();
         }
     }
 }

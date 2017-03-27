@@ -12,7 +12,6 @@ namespace Test
         #region Statics
         public class Statics : Scenario
         {
-            public int Id;
         }
         #endregion
 
