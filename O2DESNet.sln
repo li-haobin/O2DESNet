@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Optimizer", "O2DESNet.Optimizer\O2DESNet.Optimizer.csproj", "{B7406337-F0C7-4DAC-931A-8FB09134D12A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet.Demos", "O2DESNet.Demos\O2DESNet.Demos.csproj", "{4AB72D0D-D445-43F8-B175-69B6E781E7ED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2DESNet", "O2DESNet\O2DESNet.csproj", "{B956A1F8-1241-4CD7-9D3D-74C97BDE3438}"
@@ -22,14 +20,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|x64.ActiveCfg = Debug|x64
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Debug|x64.Build.0 = Debug|x64
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|x64.ActiveCfg = Release|x64
-		{B7406337-F0C7-4DAC-931A-8FB09134D12A}.Release|x64.Build.0 = Release|x64
 		{4AB72D0D-D445-43F8-B175-69B6E781E7ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4AB72D0D-D445-43F8-B175-69B6E781E7ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AB72D0D-D445-43F8-B175-69B6E781E7ED}.Debug|x64.ActiveCfg = Debug|Any CPU

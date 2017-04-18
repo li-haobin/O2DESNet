@@ -10,6 +10,7 @@
     <description>$description$</description>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>http://www.o2des.net</projectUrl>
+    <iconUrl>http://www.o2des.net/wp-content/uploads/2016/10/o2des.png</iconUrl>
     <copyright>Copyright 2015 - 2016</copyright>
     <tags>O2DES Discrete-Event Simulation</tags>
   </metadata>
