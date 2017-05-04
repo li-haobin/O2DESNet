@@ -49,7 +49,7 @@ namespace O2DESNet
             if (LogFile != null)
                 using (var sw = new StreamWriter(LogFile, true))
                 {
-                    Console.Write("{0},", timeStr);
+                    sw.Write("{0},", timeStr);
                     foreach (var arg in args) sw.Write("{0},", arg);
                     sw.WriteLine();
                 }

@@ -144,7 +144,7 @@ namespace O2DESNet
         public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
         {
             int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
-            if (compare == 0) return x.GetHashCode().CompareTo(y.GetHashCode());
+            if (compare == 0) return x.Index.CompareTo(y.Index);
             return compare;
         }
     }

@@ -8,6 +8,8 @@ namespace O2DESNet
         where TScenario : Scenario
         where TState : State<TScenario>
     {
+        private static int _count = 0;
+        internal int Index { get; private set; } = _count++;
         internal protected Simulator<TScenario, TState> Simulator { get; set; }
         protected TState State { get { return Simulator.State; } }
         protected TScenario Scenario { get { return State.Scenario; } }

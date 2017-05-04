@@ -1,4 +1,8 @@
--Version 2.3.1
+- Version 2.3.2
+1. [Important Fix] All events generated are uniquely indexed. Revise the sorting mechanism the FEL (future event list) such that same time events are ordered based on the sequence they are generated. This prevents untraceable distortion of simulation results, i.e., it guarantees that the single random seed always leads to the same sample path.
+2. Remove conosle display if only log to file in Event. 
+
+- Version 2.3.1
 1. Include Histogram and Percentile methods in HourCounter, to facilitate the statistics on the distribution of the observed count
 2. Differentiate "Utilization" (when the load is being processed by the server) and "Occupation" (when the load is occupying server's capacity, i.e., both being served and stucked) for the server statistics.
 
