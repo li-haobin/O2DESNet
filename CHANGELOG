@@ -1,3 +1,7 @@
+- Version 2.4
+1. Include a dynamic server based PathMover (Zhou et al. 2017, WSC) module for simulating traffic network.
+2. Include customized Empirical and Gamma random generators, with parameters fitting simulation studies.
+
 - Version 2.3.2
 1. [Important Fix] All events generated are uniquely indexed. Revise the sorting mechanism the FEL (future event list) such that same time events are ordered based on the sequence they are generated. This prevents untraceable distortion of simulation results, i.e., it guarantees that the single random seed always leads to the same sample path.
 2. Remove conosle display if only log to file in Event. 
