@@ -1,3 +1,6 @@
+- Version 2.4.1
+Include Uniform and Exponential for the random generators.
+
 - Version 2.4
 1. Include a dynamic server based PathMover (Zhou et al. 2017, WSC) module for simulating traffic network.
 2. Include customized Empirical and Gamma random generators, with parameters fitting simulation studies.
