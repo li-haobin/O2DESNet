@@ -22,8 +22,8 @@ namespace O2DESNet.Demos.SynchronizedProcess
                     Create = rs => new Load(),
                     InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, 8)),
                 },
-                QueueA = new Queuing<Load>.Statics(),
-                QueueB = new Queuing<Load>.Statics(),
+                QueueA = new Queueing<Load>.Statics(),
+                QueueB = new Queueing<Load>.Statics(),
                 ServerA1 = new Server<Load>.Statics
                 {
                     Capacity = 2,

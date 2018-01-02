@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace O2DESNet.Traffic
 {
-    public class ControlPoint : Component<ControlPoint.Statics>
+    public class ControlPoint : Module<ControlPoint.Statics>
     {
         #region Statics
         public class Statics : Scenario

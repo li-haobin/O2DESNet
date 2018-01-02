@@ -7,15 +7,15 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.SynchronizedProcess
 {
-    public class SynchronizedProcess : Component<SynchronizedProcess.Statics>
+    public class SynchronizedProcess : Module<SynchronizedProcess.Statics>
     {
         #region Statics
         public class Statics : Scenario
         {
             public Generator<Load>.Statics GeneratorA { get; set; }
             public Generator<Load>.Statics GeneratorB { get; set; }
-            public Queuing<Load>.Statics QueueA { get; set; }
-            public Queuing<Load>.Statics QueueB { get; set; }
+            public Queueing<Load>.Statics QueueA { get; set; }
+            public Queueing<Load>.Statics QueueB { get; set; }
             public Server<Load>.Statics ServerA1 { get; set; }
             public Server<Load>.Statics ServerA2 { get; set; }
             public Server<Load>.Statics ServerB1 { get; set; }
@@ -26,8 +26,8 @@ namespace O2DESNet.Demos.SynchronizedProcess
         #region Sub-Components
         public Generator<Load> GeneratorA { get; private set; }
         public Generator<Load> GeneratorB { get; private set; }
-        public Queuing<Load> QueueA { get; private set; }
-        public Queuing<Load> QueueB { get; private set; }
+        public Queueing<Load> QueueA { get; private set; }
+        public Queueing<Load> QueueB { get; private set; }
         public Server<Load> ServerA1 { get; private set;}
         public Server<Load> ServerA2 { get; private set; }
         public Server<Load> ServerB1 { get; private set; }
@@ -45,10 +45,10 @@ namespace O2DESNet.Demos.SynchronizedProcess
             GeneratorB = new Generator<Load>(config.GeneratorB, DefaultRS.Next());
             GeneratorB.OnArrive.Add(load => QueueB.Enqueue(load));
 
-            QueueA = new Queuing<Load>(config.QueueA, "Queue A");
+            QueueA = new Queueing<Load>(config.QueueA, "Queue A");
             QueueA.OnDequeue.Add(load => ServerA1.Start(load));
 
-            QueueB = new Queuing<Load>(config.QueueB, "Queue B");
+            QueueB = new Queueing<Load>(config.QueueB, "Queue B");
             QueueB.OnDequeue.Add(load => ServerB1.Start(load));
 
             ServerA1 = new Server<Load>(config.ServerA1, DefaultRS.Next(), "Server A1");

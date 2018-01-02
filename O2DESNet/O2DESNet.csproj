@@ -71,19 +71,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\Component.cs" />
-    <Compile Include="Components\FIFOServer.cs" />
-    <Compile Include="Components\Synchronizer.cs" />
+    <Compile Include="Modules\Module.cs" />
+    <Compile Include="Modules\FIFOServer.cs" />
+    <Compile Include="Modules\Synchronizer.cs" />
     <Compile Include="Distributions\Empirical.cs" />
     <Compile Include="Distributions\Exponential.cs" />
     <Compile Include="Distributions\Gamma.cs" />
     <Compile Include="Distributions\Uniform.cs" />
     <Compile Include="Event.cs" />
-    <Compile Include="Components\Generator.cs" />
-    <Compile Include="Components\Load.cs" />
-    <Compile Include="Components\Queue.cs" />
-    <Compile Include="Components\RestoreServer.cs" />
-    <Compile Include="Components\Server.cs" />
+    <Compile Include="Modules\Generator.cs" />
+    <Compile Include="Modules\Load.cs" />
+    <Compile Include="Modules\Queueing.cs" />
+    <Compile Include="Modules\RestoreServer.cs" />
+    <Compile Include="Modules\Server.cs" />
     <Compile Include="Traffic\ControlPoint.cs" />
     <Compile Include="Traffic\Dijkstra.cs" />
     <Compile Include="Traffic\Path.cs" />

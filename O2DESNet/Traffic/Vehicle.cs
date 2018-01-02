@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace O2DESNet.Traffic
 {
-    public class Vehicle : Component<Vehicle.Statics>
+    public class Vehicle : Module<Vehicle.Statics>
     {
         #region Statics
         public class Statics : Scenario

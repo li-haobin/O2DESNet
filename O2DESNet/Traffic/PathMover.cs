@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace O2DESNet.Traffic
 {
-    public class PathMover : Component<PathMover.Statics>
+    public class PathMover : Module<PathMover.Statics>
     {
         #region Statics
         public class Statics : Scenario

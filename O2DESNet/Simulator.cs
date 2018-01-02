@@ -151,8 +151,8 @@ namespace O2DESNet
 
     public class Simulator : Simulator<Scenario, State<Scenario>> 
 {
-        public Component Assembly { get { return (Component)State; } }
-        public Simulator(Component assembly) : base(assembly)
+        public Module Assembly { get { return (Module)State; } }
+        public Simulator(Module assembly) : base(assembly)
         {
             if (Assembly.InitEvents.Count == 0) throw new InitEventsNotFound();
             foreach (var evnt in Assembly.InitEvents) Execute(evnt);

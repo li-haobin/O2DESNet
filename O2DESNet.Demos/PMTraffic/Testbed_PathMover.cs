@@ -7,7 +7,7 @@ using O2DESNet.Traffic;
 
 namespace O2DESNet.Demos.PMTraffic
 {
-    public class Testbed_PathMover : Component<Testbed_PathMover.Statics>
+    public class Testbed_PathMover : Module<Testbed_PathMover.Statics>
     {
         #region Statics
         public class Statics : Scenario
