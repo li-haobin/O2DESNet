@@ -5,36 +5,31 @@ using System.Linq;
 
 namespace O2DESNet
 {
-    public abstract class Simulator<TScenario, TStatus>
-        where TScenario : Scenario
-        where TStatus : State<TScenario>
+    public class Simulator
     {
-        public TStatus State { get; private set; }
-        public TScenario Scenario { get { return State.Scenario; } }
-        public Random DefaultRS { get { return State.DefaultRS; } }
-        internal SortedSet<Event<TScenario, TStatus>> FutureEventList;
-        public DateTime ClockTime { get; protected set; }
+        internal SortedSet<Event> FutureEventList { get; } = new SortedSet<Event>(new FutureEventComparer());
+        public DateTime ClockTime { get; protected set; } = DateTime.MinValue;
+        public State State { get; private set; }
 
-        public Simulator(TStatus status)
+        public Simulator(State state)
         {
-            State = status;
-            ClockTime = DateTime.MinValue;
-            FutureEventList = new SortedSet<Event<TScenario, TStatus>>(new FutureEventComparer<TScenario, TStatus>());
-
             #region For Time Dilation
             _realTimeAtDilationReset = ClockTime;
             TimeDilationScale = 1.0;
             #endregion
-        }
-        internal protected void Schedule(Event<TScenario, TStatus> evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
-        internal protected void Schedule(Event<TScenario, TStatus> evnt, DateTime time)
+
+            State = state;
+            if (State.InitEvents.Count == 0) throw new InitEventsNotFound();
+            foreach (var evnt in State.InitEvents) Schedule(evnt, ClockTime);
+        }                
+        internal protected void Schedule(Event evnt, DateTime time)
         {
             if (evnt.Simulator == null) evnt.Simulator = this;
             if (time < ClockTime) throw new Exception("Event cannot be scheduled before ClockTime.");
             evnt.ScheduledTime = time;
             FutureEventList.Add(evnt);
         }
-        internal protected void Execute(Event<TScenario, TStatus> evnt)
+        internal protected void Execute(Event evnt)
         {
             evnt.Simulator = this;
             evnt.Invoke();
@@ -58,7 +53,8 @@ namespace O2DESNet
             {
                 if (FutureEventList.Count < 1) return false; // cannot continue
                 if (FutureEventList.First().ScheduledTime <= terminate) ExecuteHeadEvent();
-                else {
+                else
+                {
                     ClockTime = terminate;
                     return true; // to be continued
                 }
@@ -79,7 +75,8 @@ namespace O2DESNet
             _realTimeForLastRun = DateTime.Now;
             return rtn;
         }
-        public bool WarmUp(TimeSpan duration) {
+        public bool WarmUp(TimeSpan duration)
+        {
             var r = Run(duration);
             State.WarmedUp(ClockTime);
             return r; // to be continued
@@ -117,7 +114,7 @@ namespace O2DESNet
         }
         private DateTime DilatedScheduledTimeForHeadEvent { get { return GetDilatedTime(FutureEventList.First().ScheduledTime); } }
 
-        static private bool ExecuteHeadEvent_withTimeDilation(Simulator<TScenario, TStatus>[] simulations)
+        static private bool ExecuteHeadEvent_withTimeDilation(Simulator[] simulations)
         {
             var toExecute = simulations.Where(s => s.FutureEventList.Count > 0)
                 .OrderBy(s => s.DilatedScheduledTimeForHeadEvent).FirstOrDefault();
@@ -129,38 +126,26 @@ namespace O2DESNet
             }
             return false;
         }
-        static public void Run_withTimeDilation(Simulator<TScenario, TStatus>[] simulations, int eventCount)
+        static public void Run_withTimeDilation(Simulator[] simulations, int eventCount)
         {
             while (eventCount > 0 && ExecuteHeadEvent_withTimeDilation(simulations)) eventCount--;
         }
 
         #endregion   
-    }
-
-    public class FutureEventComparer<TScenario, TStatus> : IComparer<Event<TScenario, TStatus>>
-            where TScenario : Scenario
-            where TStatus : State<TScenario>
-    {
-        public int Compare(Event<TScenario, TStatus> x, Event<TScenario, TStatus> y)
-        {
-            int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
-            if (compare == 0) return x.Index.CompareTo(y.Index);
-            return compare;
-        }
-    }
-
-    public class Simulator : Simulator<Scenario, State<Scenario>> 
-{
-        public Module Assembly { get { return (Module)State; } }
-        public Simulator(Module assembly) : base(assembly)
-        {
-            if (Assembly.InitEvents.Count == 0) throw new InitEventsNotFound();
-            foreach (var evnt in Assembly.InitEvents) Execute(evnt);
-        }
 
         public class InitEventsNotFound : Exception
         {
             public InitEventsNotFound() : base("The Assembly Component must have at least one initial events.") { }
+        }        
+    }
+
+    public class FutureEventComparer : IComparer<Event>
+    {
+        public int Compare(Event x, Event y)
+        {
+            int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
+            if (compare == 0) return x.Index.CompareTo(y.Index);
+            return compare;
         }
     }
 }

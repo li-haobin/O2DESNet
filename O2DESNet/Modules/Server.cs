@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Server<TLoad> : Module<Server<TLoad>.Statics>
+    public class Server<TLoad> : State<Server<TLoad>.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -45,109 +45,81 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        protected class StartEvent : Event
+        private abstract class InternalEvent : Event<Server<TLoad>, Statics> { }
+        private class StartEvent : InternalEvent
         {
-            public Server<TLoad> Server { get; private set; }
-            public TLoad Load { get; private set; }
-            internal StartEvent(Server<TLoad> server, TLoad load)
-            {
-                Server = server;
-                Load = load;
-            }
+            internal TLoad Load { get; set; }
             public override void Invoke()
             {
-                if (Server.Vacancy < 1) throw new HasZeroVacancyException();
-                Server.PushIn(Load);
-                Server.UtilizationCounter.ObserveChange(1, ClockTime);
-                Server.OccupationCounter.ObserveChange(1, ClockTime);
-                Server.StartTimes.Add(Load, ClockTime);
-                Schedule(new FinishEvent(Server, Load), Server.Config.ServiceTime(Load, Server.DefaultRS));
-                Execute(new StateChgEvent(Server));
+                if (This.Vacancy < 1) throw new HasZeroVacancyException();
+                This.PushIn(Load);
+                This.UtilizationCounter.ObserveChange(1, ClockTime);
+                This.OccupationCounter.ObserveChange(1, ClockTime);
+                This.StartTimes.Add(Load, ClockTime);
+                Schedule(new FinishEvent { Load = Load }, Config.ServiceTime(Load, DefaultRS));
+                Execute(new StateChgEvent());
             }
-            public override string ToString() { return string.Format("{0}_Start", Server); }
+            public override string ToString() { return string.Format("{0}_Start", This); }
         }
-        private class FinishEvent : Event
+        private class FinishEvent : InternalEvent
         {
-            public Server<TLoad> Server { get; private set; }
-            public TLoad Load { get; private set; }
-            internal FinishEvent(Server<TLoad> server, TLoad load)
-            {
-                Server = server;
-                Load = load;
-            }
+            internal TLoad Load { get; set; }
             public override void Invoke()
             {
-                Server.Serving.Remove(Load);
-                Server.Served.Add(Load);
-                Server.FinishTimes.Add(Load, ClockTime);
-                Server.UtilizationCounter.ObserveChange(-1, ClockTime);
-                Execute(new StateChgEvent(Server));
-                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
+                This.Serving.Remove(Load);
+                This.Served.Add(Load);
+                This.FinishTimes.Add(Load, ClockTime);
+                This.UtilizationCounter.ObserveChange(-1, ClockTime);
+                Execute(new StateChgEvent());
+                if (This.ChkToDepart()) Execute(new DepartEvent());                
             }
-            public override string ToString() { return string.Format("{0}_Finish", Server); }
+            public override string ToString() { return string.Format("{0}_Finish", This); }
         }
-        private class UpdToDepartEvent : Event
+        private class UpdToDepartEvent : InternalEvent
         {
-            public Server<TLoad> Server { get; private set; }
-            public bool ToDepart { get; private set; }
-
-            internal UpdToDepartEvent(Server<TLoad> server, bool toDepart)
-            {
-                Server = server;
-                ToDepart = toDepart;
-            }
+            internal bool ToDepart { get; set; }
             public override void Invoke()
             {
-                Server.ToDepart = ToDepart;
-                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));
+                This.ToDepart = ToDepart;
+                if (This.ChkToDepart()) Execute(new DepartEvent());
             }
-            public override string ToString() { return string.Format("{0}_UpdToDepart", Server); }
+            public override string ToString() { return string.Format("{0}_UpdToDepart", This); }
         }
-        private class StateChgEvent : Event
+        private class StateChgEvent : InternalEvent
         {
-            public Server<TLoad> Server { get; private set; }
-            internal StateChgEvent(Server<TLoad> server) { Server = server; }
-            public override void Invoke()
-            {
-                foreach (var evnt in Server.OnStateChg) Execute(evnt(Server));
-            }
-            public override string ToString() { return string.Format("{0}_StateChange", Server); }
+            public override void Invoke() { Execute(This.OnStateChg, e => e()); }
+            public override string ToString() { return string.Format("{0}_StateChange", This); }
         }
-        private class DepartEvent : Event
+        private class DepartEvent : InternalEvent
         {
-            public Server<TLoad> Server { get; private set; }
-            internal DepartEvent(Server<TLoad> server)
-            {
-                Server = server;
-            }
             public override void Invoke()
             {
-                TLoad load = Server.GetToDepart();
-                Server.Served.Remove(load);
-                Server.OccupationCounter.ObserveChange(-1, ClockTime);
+                TLoad load = This.GetToDepart();
+                This.Served.Remove(load);
+                This.OccupationCounter.ObserveChange(-1, ClockTime);
                 // in case the start / finish times are used in OnDepart events
-                Server.StartTimes.Remove(load);
-                Server.FinishTimes.Remove(load);
-                foreach (var evnt in Server.OnDepart) Execute(evnt(load));
+                This.StartTimes.Remove(load);
+                This.FinishTimes.Remove(load);
+                foreach (var evnt in This.OnDepart) Execute(evnt(load));
 
-                Execute(new StateChgEvent(Server));
-                if (Server.ChkToDepart()) Execute(new DepartEvent(Server));                
+                Execute(new StateChgEvent());
+                if (This.ChkToDepart()) Execute(new DepartEvent());                
             }
-            public override string ToString() { return string.Format("{0}_Depart", Server); }
+            public override string ToString() { return string.Format("{0}_Depart", This); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event Start(TLoad load) { return new StartEvent(this, load); }
-        public Event UpdToDepart(bool toDepart) { return new UpdToDepartEvent(this, toDepart); }
+        public Event Start(TLoad load) { return new StartEvent { This = this, Load = load }; }
+        public Event UpdToDepart(bool toDepart) { return new UpdToDepartEvent { This = this, ToDepart = toDepart }; }
         #endregion
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Server<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<Server<TLoad>, Event>>();
+        public List<Func<Event>> OnStateChg { get; private set; } = new List<Func<Event>>();
         #endregion
 
-        #region Exeptions
+        #region Exceptions
         public class HasZeroVacancyException : Exception
         {
             public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
@@ -157,11 +129,8 @@ namespace O2DESNet
             public ServiceTimeNotSpecifiedException() : base("Set ServiceTime as a random generator.") { }
         }
         #endregion
-        
-        public Server(Statics config, int seed, string tag = null) : base(config, seed, tag)
-        {
-            Name = "Server";
-        }
+
+        public Server(Statics config, int seed, string tag = null) : base(config, seed, tag) { Name = "Server"; }
 
         public override void WarmedUp(DateTime clockTime)
         {

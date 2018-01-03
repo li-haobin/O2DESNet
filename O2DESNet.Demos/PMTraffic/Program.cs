@@ -86,7 +86,7 @@ namespace O2DESNet.Demos.PMTraffic
 
         static void Output(Simulator sim, string tag, Stopwatch stopwatch)
         {
-            var state = (Testbed_PathMover)sim.Assembly;
+            var state = (Testbed_PathMover)sim.State;
 
             Console.WriteLine("{0}\t{1:F4}\t{2:F4}\t{3:F4}\t{4:F4}\t{5:F4}\t{6:F4}\t{7:F4}\t{8:F4}\t{9:F4}\t{10:F2}",
                 state.Config.NVehicles,

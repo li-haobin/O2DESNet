@@ -7,7 +7,7 @@ using O2DESNet;
 
 namespace O2DESNet
 {
-    public class Synchronizer : Module<Synchronizer.Statics>
+    public class Synchronizer : State<Synchronizer.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -24,27 +24,21 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        private class UpdStateEvent : Event
+        private abstract class InternalEvent : Event<Synchronizer, Statics> { }
+        private class UpdStateEvent : InternalEvent
         {
-            public Synchronizer Synchronizer { get; private set; }
-            public int Index { get; private set; }
-            public bool Value { get; private set; }
-            internal UpdStateEvent(Synchronizer synchronizer, int index, bool value)
-            {
-                Synchronizer = synchronizer;
-                Index = index;
-                Value = value;
-            }
+            internal int Idx { get; set; }
+            internal bool Value { get; set; }
             public override void Invoke()
             {
-                if (Index < 1 || Index > Synchronizer.Config.Size) throw new Exception("Index is out of range.");
-                if (Value && !Synchronizer.TrueIndices.Contains(Index)) Synchronizer.TrueIndices.Add(Index);
-                if (!Value && Synchronizer.TrueIndices.Contains(Index)) Synchronizer.TrueIndices.Remove(Index);
-                Synchronizer.AllTrue = Synchronizer.TrueIndices.Count == Synchronizer.Config.Size;
-                Synchronizer.AllFalse = Synchronizer.TrueIndices.Count == 0;
-                foreach (var evnt in Synchronizer.OnStateChg) Execute(evnt(Synchronizer));
+                if (Idx < 1 || Idx > Config.Size) throw new Exception("Index is out of range.");
+                if (Value && !This.TrueIndices.Contains(Idx)) This.TrueIndices.Add(Idx);
+                if (!Value && This.TrueIndices.Contains(Idx)) This.TrueIndices.Remove(Idx);
+                This.AllTrue = This.TrueIndices.Count == This.Config.Size;
+                This.AllFalse = This.TrueIndices.Count == 0;
+                Execute(This.OnStateChg, e => e());
             }
-            public override string ToString() { return string.Format("{0}_UpdState", Synchronizer); }
+            public override string ToString() { return string.Format("{0}_UpdState", This); }
         }
         #endregion
 
@@ -52,14 +46,14 @@ namespace O2DESNet
         /// <summary>
         /// Update whether the condition at index is satisfied
         /// </summary>
-        /// <param name="index">Range from 1 to defined size</param>
+        /// <param name="idx">Range from 1 to defined size</param>
         /// <param name="value">true or false</param>
         /// <returns></returns>
-        public Event UpdState(int index, bool value) { return new UpdStateEvent(this, index, value); }
+        public Event UpdState(int idx, bool value) { return new UpdStateEvent { This = this, Idx = idx, Value = value }; }
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Synchronizer, Event>> OnStateChg { get; private set; } = new List<Func<Synchronizer, Event>>();
+        public List<Func<Event>> OnStateChg { get; private set; } = new List<Func<Event>>();
         #endregion
         
         public Synchronizer(Statics config, string tag = null) : base(config, 0, tag)

@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Load : Module
+    public class Load : State<Load.Statics>
     {
+        #region Statics
+        public class Statics : Scenario { }
+        #endregion
+
         #region Dynamics
         public List<Tuple<DateTime, Event>> TimeStamps { get; private set; }
         public TimeSpan TotalTimeSpan { get { return TimeStamps.Max(t => t.Item1) - TimeStamps.Min(t => t.Item1); } }
@@ -17,21 +21,32 @@ namespace O2DESNet
                 if (check == null || check(TimeStamps[i].Item2)) return TimeStamps[i].Item1;
             return null;
         }
-        public DateTime? GetLastTimeStamp(Func<Event,bool> check)
+        public DateTime? GetLastTimeStamp(Func<Event, bool> check)
         {
             for (int i = TimeStamps.Count; i > 0; i--)
                 if (check == null || check(TimeStamps[i - 1].Item2)) return TimeStamps[i - 1].Item1;
             return null;
         }
+        #endregion
 
-        public virtual void Log(Event evnt)
+        #region Events
+        private abstract class InternalEvent : Event<Load, Statics> { }
+        private class LogEvent : InternalEvent
         {
-            TimeStamps.Add(new Tuple<DateTime, Event>(evnt.ClockTime, evnt));
-            evnt.Log(this, evnt);
+            internal Event Event { get; set; }
+            public override void Invoke()
+            {
+                This.TimeStamps.Add(new Tuple<DateTime, Event>(ClockTime, Event));
+                Log(this, Event);
+            }
         }
         #endregion
 
-        public Load(int seed = 0, string tag = null) : base(seed: seed, tag: tag)
+        #region Input Events - Getters
+        public Event Log(Event evnt) { return new LogEvent { This = this, Event = evnt }; }
+        #endregion
+
+        public Load(int seed = 0, string tag = null) : base(new Statics(), seed, tag)
         {
             Name = "Load";
             TimeStamps = new List<Tuple<DateTime, Event>>();
@@ -41,12 +56,4 @@ namespace O2DESNet
 
         public override void WriteToConsole(DateTime? clockTime = null) { Console.WriteLine(this); }
     }
-
-    public abstract class Load<TStatics> : Load
-       where TStatics : Scenario
-    {
-        public TStatics Category { get; private set; }
-        public Load(TStatics category, int seed = 0, string tag = null) : base(seed, tag) { Category = category; }
-    }
-
 }

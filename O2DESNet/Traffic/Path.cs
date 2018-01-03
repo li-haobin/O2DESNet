@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace O2DESNet.Traffic
 {
-    public class Path : Module<Path.Statics>
+    public class Path : State<Path.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -97,9 +97,8 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Events
-        private abstract class EventOfPath : Event
+        private abstract class InternalEvent : Event<Path, Statics>
         {
-            internal Path This { get; set; }
             internal void UpdPositions()
             {
                 var distance = This.CurrentSpeed * (ClockTime - This.LastTimeStamp).TotalSeconds;
@@ -115,7 +114,7 @@ namespace O2DESNet.Traffic
         } // event adapter 
 
         // Alpha_1
-        private class EnterEvent : EventOfPath
+        private class EnterEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
             public override void Invoke()
@@ -124,14 +123,14 @@ namespace O2DESNet.Traffic
                 UpdPositions();
                 This.VehiclePositions.Add(Vehicle, 0);
                 This.VehicleCompletionTimes.Add(Vehicle, ClockTime);
-                Execute(new UpdCompletionEvent { This = This });
-                foreach (var evnt in This.OnVacancyChg) Execute(evnt(This));
+                Execute(new UpdCompletionEvent());
+                Execute(This.OnVacancyChg, e => e());
                 //Log("Start,{0},{1}", Vehicle, This);
             }
         }
 
         // Alpha_2
-        private class UpdToExitEvent : EventOfPath
+        private class UpdToExitEvent : InternalEvent
         {
             internal Path Path { get; set; } // the path after which vehicles complete the last targets
             internal bool ToExit { get; set; }
@@ -139,12 +138,12 @@ namespace O2DESNet.Traffic
             {
                 if (This.ToArrive.ContainsKey(Path.Config)) This.ToArrive[Path.Config] = ToExit;
                 else This.ToArrive.Add(Path.Config, ToExit);
-                Execute(new ExitEvent { This = This });
+                Execute(new ExitEvent());
             }
         }
 
         // Alpha_3
-        private class UpdToEnterEvent : EventOfPath
+        private class UpdToEnterEvent : InternalEvent
         {
             internal Path Path { get; set; } // the path which vehicles exit to
             internal bool ToEnter { get; set; }
@@ -152,12 +151,12 @@ namespace O2DESNet.Traffic
             {
                 if (This.ToEnter.ContainsKey(Path.Config)) This.ToEnter[Path.Config] = ToEnter;
                 else This.ToEnter.Add(Path.Config, ToEnter);
-                Execute(new ExitEvent { This = This });
+                Execute(new ExitEvent());
             }
         }
 
         // Alpha_4
-        private class ResetEvent : EventOfPath
+        private class ResetEvent : InternalEvent
         {
             public override void Invoke()
             {
@@ -172,7 +171,7 @@ namespace O2DESNet.Traffic
         }
 
         // Beta_1
-        private class UpdCompletionEvent : EventOfPath
+        private class UpdCompletionEvent : InternalEvent
         {
             public override void Invoke()
             {
@@ -180,15 +179,15 @@ namespace O2DESNet.Traffic
                 This.CurrentSpeed = This.Config.SpeedByDensity(This.Occupancy / This.Config.Length);
                 foreach (var veh in This.VehiclePositions.Keys)
                 {
-                    var completionTime = ClockTime + TimeSpan.FromSeconds(Math.Max(0, (This.Config.Length - This.VehiclePositions[veh]) / This.CurrentSpeed));
-                    Schedule(new AttemptToCompleteEvent { This = This, Vehicle = veh }, completionTime);
+                    var completionTime = ClockTime + TimeSpan.FromSeconds(Math.Max(0, (Config.Length - This.VehiclePositions[veh]) / This.CurrentSpeed));
+                    Schedule(new AttemptToCompleteEvent { Vehicle = veh }, completionTime);
                     This.VehicleCompletionTimes[veh] = completionTime;
                 }
             }
         }
 
         // Beta_2
-        private class AttemptToCompleteEvent : EventOfPath
+        private class AttemptToCompleteEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
             public override void Invoke()
@@ -198,12 +197,12 @@ namespace O2DESNet.Traffic
                 This.VehicleCompletionTimes.Remove(Vehicle);
                 This.VehiclesCompleted.Enqueue(Vehicle);
                 UpdPositions();
-                Execute(new ExitEvent { This = This });
+                Execute(new ExitEvent());
             }
         }
 
         // Beta_3
-        private class ExitEvent : EventOfPath
+        private class ExitEvent : InternalEvent
         {
             public override void Invoke()
             {
@@ -212,16 +211,16 @@ namespace O2DESNet.Traffic
                 var prevLockedByPaths = This.LockedByPaths;
                 var vehicle = This.VehiclesCompleted.First();
                 var target = vehicle.Targets.First();
-                if (vehicle.Targets.Count > 1 && target.Equals(This.Config.End)) target = vehicle.Targets[1]; // if multiple targets exists, and the 1st target is to be reached, look at the 2nd target
+                if (vehicle.Targets.Count > 1 && target.Equals(Config.End)) target = vehicle.Targets[1]; // if multiple targets exists, and the 1st target is to be reached, look at the 2nd target
                 var exit = false;
                 if (target == This.Config.End)  // target is reached at the End
                 {
-                    exit = This.ToArrive[This.Config];
+                    exit = This.ToArrive[Config];
                     This.LockedByPaths = false;
                 }
                 else
                 {
-                    var next = This.Config.End.PathTo(target);
+                    var next = Config.End.PathTo(target);
                     exit = This.ToEnter[next];
                     This.LockedByPaths = !exit;
 
@@ -244,15 +243,13 @@ namespace O2DESNet.Traffic
                 {
                     var veh = This.VehiclesCompleted.Dequeue();
                     //Log("Exit,{0},{1}", veh, This);
-                    foreach (var evnt in This.OnExit) Execute(evnt(veh));
-                    Execute(new ExitEvent { This = This });
-                    Execute(new UpdCompletionEvent { This = This });
-                    foreach (var evnt in This.OnVacancyChg) Execute(evnt(This));
+                    Execute(This.OnExit, e => e(veh));
+                    Execute(new ExitEvent());
+                    Execute(new UpdCompletionEvent());
+                    Execute(This.OnVacancyChg, e => e());
                 }
                 if (!prevLockedByPaths && This.LockedByPaths || This.VehiclesCompleted.Count == 0)
-                {
-                    foreach (var evnt in This.OnLockedByPaths) Execute(evnt(This));
-                }
+                    Execute(This.OnLockedByPaths, e => e());                
             }
         }
         #endregion
@@ -285,8 +282,8 @@ namespace O2DESNet.Traffic
 
         #region Output Events - Reference to Getters
         public List<Func<Vehicle, Event>> OnExit { get; private set; } = new List<Func<Vehicle, Event>>();
-        public List<Func<Path, Event>> OnVacancyChg { get; private set; } = new List<Func<Path, Event>>();
-        public List<Func<Path, Event>> OnLockedByPaths { get; private set; } = new List<Func<Path, Event>>();
+        public List<Func<Event>> OnVacancyChg { get; private set; } = new List<Func<Event>>();
+        public List<Func<Event>> OnLockedByPaths { get; private set; } = new List<Func<Event>>();
         #endregion
 
         public Path(Statics config, int seed, string tag = null) : base(config, seed, tag)

@@ -8,7 +8,7 @@ using System.Drawing;
 
 namespace O2DESNet.Traffic
 {
-    public class PathMover : Module<PathMover.Statics>
+    public class PathMover : State<PathMover.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -209,7 +209,8 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Events
-        private abstract class InternalEvent : Event { internal PathMover This { get; set; } } // event adapter 
+
+        private abstract class InternalEvent : Event<PathMover, Statics> { }
 
         // Alpha_1
         private class CallToDepartEvent : InternalEvent
@@ -224,7 +225,7 @@ namespace O2DESNet.Traffic
                 This.DepartingQueues[path].Enqueue(Vehicle);
                 This.HCounter_Departing.ObserveChange(1, ClockTime);
                 This.Timestamps.Add(Vehicle, ClockTime);
-                Execute(new DepartEvent { This = This, Path = path });
+                Execute(new DepartEvent { Path = path });
             }
         }
 
@@ -272,11 +273,11 @@ namespace O2DESNet.Traffic
                 if (This.DepartingQueues[Path].Count == 0 || Path.Vacancy == 0) return;
                 var vehicle = This.DepartingQueues[Path].Dequeue();
                 This.Vehicles.Add(vehicle);
-                Execute(new ReachControlPointEvent { This = This, Vehicle = vehicle, At = Path.Config.Start });
+                Execute(new ReachControlPointEvent { Vehicle = vehicle, At = Path.Config.Start });
                 This.HCounter_Departing.ObserveChange(-1, ClockTime);
                 This.HCounter_Travelling.ObserveChange(1, ClockTime);
-                foreach (var evnt in This.OnDepart) Execute(evnt(vehicle, Path.Config.Start));
-                Execute(new DepartEvent { This = This, Path = Path });
+                Execute(This.OnDepart, e => e(vehicle, Path.Config.Start));
+                Execute(new DepartEvent { Path = Path });
             }
         }
 
@@ -292,7 +293,7 @@ namespace O2DESNet.Traffic
                     Execute(Vehicle.RemoveTarget());
                     if (Vehicle.Targets.Count == 0)
                     {
-                        Execute(new ArriveEvent { This = This, Vehicle = Vehicle, At = At });
+                        Execute(new ArriveEvent { Vehicle = Vehicle, At = At });
                         return;
                     }
                 }
@@ -311,7 +312,7 @@ namespace O2DESNet.Traffic
                 This.Vehicles.Remove(Vehicle);
                 This.HCounter_Travelling.ObserveChange(-1, ClockTime);
                 This.Timestamps.Remove(Vehicle);
-                foreach (var evnt in This.OnArrive) Execute(evnt(Vehicle, At));
+                Execute(This.OnArrive, e => e(Vehicle, At));
             }
         }
 
@@ -332,7 +333,7 @@ namespace O2DESNet.Traffic
                     //string paths = "";
                     //foreach (var p in This.Paths.Values.Where(p => p.Occupancy > 0)) paths += string.Format("{0},", p);
                     //Log(string.Format("Deadlock Occurs at Path #{0}.", paths.Substring(0, paths.Length - 1)));
-                    foreach (var evnt in This.OnDeadlock) Execute(evnt(This));
+                    Execute(This.OnDeadlock, e => e());
                 }
             }
         }
@@ -363,7 +364,7 @@ namespace O2DESNet.Traffic
         #region Output Events - Reference to Getters
         public List<Func<Vehicle, ControlPoint.Statics, Event>> OnDepart { get; private set; } = new List<Func<Vehicle, ControlPoint.Statics, Event>>();
         public List<Func<Vehicle, ControlPoint.Statics, Event>> OnArrive { get; private set; } = new List<Func<Vehicle, ControlPoint.Statics, Event>>();
-        public List<Func<PathMover, Event>> OnDeadlock { get; private set; } = new List<Func<PathMover, Event>>();
+        public List<Func<Event>> OnDeadlock { get; private set; } = new List<Func<Event>>();
         #endregion
 
         public PathMover(Statics config, int seed, string tag = null) : base(config, seed, tag)
@@ -382,21 +383,21 @@ namespace O2DESNet.Traffic
             {
                 foreach (var prev in path.Config.Start.PathsIn.Select(p => Paths[p]))
                 {
-                    path.OnVacancyChg.Add(p => prev.UpdToEnter(path, path.Vacancy > 0));
+                    path.OnVacancyChg.Add(() => prev.UpdToEnter(path, path.Vacancy > 0));
                     InitEvents.Add(prev.UpdToEnter(path, path.Vacancy > 0));
                     InitEvents.Add(path.UpdToExit(path, true));
                     // cross-hatching
                     if (prev.Config.CrossHatched)
                         foreach (var prev2 in prev.Config.Start.PathsIn.Select(p => Paths[p]))
                         {
-                            path.OnVacancyChg.Add(p => prev2.UpdToEnter(path, path.Vacancy > 0));
+                            path.OnVacancyChg.Add(() => prev2.UpdToEnter(path, path.Vacancy > 0));
                             InitEvents.Add(prev2.UpdToEnter(path, path.Vacancy > 0));
                         }
                     if (path.Config.CrossHatched)
                     {
                         InitEvents.Add(prev.UpdToExit(path, true));
                     }
-                    path.OnLockedByPaths.Add(p => new ChkDeadlockEvent { This = this });
+                    path.OnLockedByPaths.Add(() => new ChkDeadlockEvent { This = this });
                 }
             }
         }

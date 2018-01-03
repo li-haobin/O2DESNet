@@ -22,7 +22,7 @@ namespace O2DESNet.Demos.GGnQueue
                     ServerCapacity = 1, // n: number of concurrent servers
                 };
 
-            var sim = new Simulator(assembly: new GGnQueueSystem(scenario, seed: 0));
+            var sim = new Simulator(new GGnQueueSystem(scenario, seed: 0));
 
             while (true)
             {

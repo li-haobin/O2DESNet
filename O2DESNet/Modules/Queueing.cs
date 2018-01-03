@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Queueing<TLoad> : Module<Queueing<TLoad>.Statics>
+    public class Queueing<TLoad> : State<Queueing<TLoad>.Statics>
     {
         #region Static Properties
         public class Statics : Scenario
@@ -25,93 +25,69 @@ namespace O2DESNet
         public bool ToDequeue { get; private set; } = true;
 
         public HourCounter HourCounter { get; private set; } = new HourCounter(); // statistics    
-        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }    
+        public double Utilization { get { return HourCounter.AverageCount / Config.Capacity; } }
         #endregion
 
         #region Events
+        private abstract class InternalEvent : Event<Queueing<TLoad>, Statics> { }
         /// <summary>
         /// Enqueue given load
         /// </summary>
-        private class EnqueueEvent : Event
+        private class EnqueueEvent : InternalEvent
         {
-            public Queueing<TLoad> Queue { get; private set; }
-            public TLoad Load { get; private set; }
-
-            internal EnqueueEvent(Queueing<TLoad> queue, TLoad load)
-            {
-                Queue = queue;
-                Load = load;
-            }
+            internal TLoad Load { get; set; }
             public override void Invoke()
             {
-                if (Queue.Vacancy == 0) throw new HasZeroVacancyException();
-                Queue.Waiting.Add(Load);
-                Queue.HourCounter.ObserveChange(1, ClockTime);
-                Execute(new StateChgEvent(Queue));
-                if (Queue.ToDequeue) Execute(new DequeueEvent(Queue));                
+                if (This.Vacancy == 0) throw new HasZeroVacancyException();
+                This.Waiting.Add(Load);
+                This.HourCounter.ObserveChange(1, ClockTime);
+                Execute(new StateChgEvent());
+                if (This.ToDequeue) Execute(new DequeueEvent());                
             }
-            public override string ToString() { return string.Format("{0}_Enqueue", Queue); }
+            public override string ToString() { return string.Format("{0}_Enqueue", This); }
         }        
-        private class UpdToDequeueEvent : Event
+        private class UpdToDequeueEvent : InternalEvent
         {
-            public Queueing<TLoad> Queue { get; private set; }
-            public bool ToDequeue { get; private set; }
-
-            internal UpdToDequeueEvent(Queueing<TLoad> queue, bool toDequeue)
-            {
-                Queue = queue;
-                ToDequeue = toDequeue;
-            }
+            internal bool ToDequeue { get; set; }
             public override void Invoke()
             {
-                Queue.ToDequeue = ToDequeue;
-                if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
+                This.ToDequeue = ToDequeue;
+                if (This.ToDequeue && This.Waiting.Count > 0) Execute(new DequeueEvent());
             }
-            public override string ToString() { return string.Format("{0}_UpdToDequeue", Queue); }
+            public override string ToString() { return string.Format("{0}_UpdToDequeue", This); }
         }
-        private class StateChgEvent : Event
+        private class StateChgEvent : InternalEvent
         {
-            public Queueing<TLoad> Queue { get; private set; }
-            internal StateChgEvent(Queueing<TLoad> queue) { Queue = queue; }
-            public override void Invoke()
-            {
-                foreach (var evnt in Queue.OnStateChg) Execute(evnt(Queue));
-            }
-            public override string ToString() { return string.Format("{0}_StateChange", Queue); }
+            public override void Invoke() { Execute(This.OnStateChg, e => e()); }
+            public override string ToString() { return string.Format("{0}_StateChange", This); }
         }
         /// <summary>
         /// Dequeue the first load
         /// </summary>
-        private class DequeueEvent : Event
+        private class DequeueEvent : InternalEvent
         {
-            public Queueing<TLoad> Queue { get; private set; }
-
-            internal DequeueEvent(Queueing<TLoad> queue)
-            {
-                Queue = queue;
-            }
             public override void Invoke()
             {
-                TLoad load = Queue.Waiting.FirstOrDefault();
-                Queue.Waiting.RemoveAt(0);
-                Queue.HourCounter.ObserveChange(-1, ClockTime);                
-                foreach (var evnt in Queue.OnDequeue) Execute(evnt(load));
+                TLoad load = This.Waiting.FirstOrDefault();
+                This.Waiting.RemoveAt(0);
+                This.HourCounter.ObserveChange(-1, ClockTime);                
+                foreach (var evnt in This.OnDequeue) Execute(evnt(load));
 
-                Execute(new StateChgEvent(Queue));
-                if (Queue.ToDequeue && Queue.Waiting.Count > 0) Execute(new DequeueEvent(Queue));
+                Execute(new StateChgEvent());
+                if (This.ToDequeue && This.Waiting.Count > 0) Execute(new DequeueEvent());
             }
-            public override string ToString() { return string.Format("{0}_Dequeue", Queue); }
+            public override string ToString() { return string.Format("{0}_Dequeue", This); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event Enqueue(TLoad load) { return new EnqueueEvent(this, load); }
-        public Event UpdToDequeue(bool toDequeue) { return new UpdToDequeueEvent(this, toDequeue); }
+        public Event Enqueue(TLoad load) { return new EnqueueEvent { This = this, Load = load }; }
+        public Event UpdToDequeue(bool toDequeue) { return new UpdToDequeueEvent { This = this, ToDequeue = toDequeue }; }
         #endregion
 
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDequeue { get; private set; } = new List<Func<TLoad, Event>>();
-        public List<Func<Queueing<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<Queueing<TLoad>, Event>>();
+        public List<Func<Event>> OnStateChg { get; private set; } = new List<Func<Event>>();
         #endregion
 
         #region Exeptions

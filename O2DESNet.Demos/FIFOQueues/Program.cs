@@ -21,6 +21,7 @@ namespace O2DESNet.Demos.FIFOQueues
                 ServerCapacity2 = 2,
                 ServiceTime2 = (l, rs) => TimeSpan.FromMinutes(Exponential.Sample(rs, 12)),
             };
+            //var sim = new Simulator(new TwoFIFOServers(scenario));
             var sim = new Simulator(new TwoFIFOServers(scenario));
             while (true)
             {

@@ -6,15 +6,8 @@ using System.Threading.Tasks;
 using O2DESNet;
 namespace O2DESNet.Demos.FIFOQueues
 {
-    public class TwoFIFOServers : Module<TwoFIFOServers.Statics>
+    public class TwoFIFOServers : State<TwoFIFOServers.Statics>
     {
-        #region Sub-Components
-        public Generator<Load> Generator { get; private set; }
-        public Queueing<Load> Queue { get; private set; }
-        public FIFOServer<Load> Server1 { get; private set; }
-        public Queueing<Load> Buffer { get; private set; }
-        public FIFOServer<Load> Server2 { get; private set; }
-        #endregion
         #region Statics
         public class Statics : Scenario
         {
@@ -37,7 +30,14 @@ namespace O2DESNet.Demos.FIFOQueues
             public Func<Load, Random, TimeSpan> ServiceTime2 { get { return Server2.ServiceTime; } set { Server2.ServiceTime = value; } }
         }
         #endregion
+
         #region Dynamics
+        public Generator<Load> Generator { get; private set; }
+        public Queueing<Load> Queue { get; private set; }
+        public FIFOServer<Load> Server1 { get; private set; }
+        public Queueing<Load> Buffer { get; private set; }
+        public FIFOServer<Load> Server2 { get; private set; }
+
         public List<Load> Waiting { get { return Queue.Waiting; } }
         public HashSet<Load> Serving1 { get { return Server1.Serving; } }
         public HashSet<Load> Served1 { get { return Server1.Served; } }
@@ -47,31 +47,28 @@ namespace O2DESNet.Demos.FIFOQueues
         public int NCompleted { get { return Server2.NCompleted; } }
         public List<Load> Processed { get; private set; }
         #endregion
+
         #region Events
-        private class ArchiveEvent : Event
+        private abstract class InternalEvent : Event<TwoFIFOServers, Statics> { }
+        private class ArchiveEvent : InternalEvent
         {
-            public TwoFIFOServers System { get; private set; }
-            public Load Load { get; private set; }
-            public ArchiveEvent(TwoFIFOServers system, Load load)
-            {
-                System = system;
-                Load = load;
-            }
+            internal Load Load { get; set; }
             public override void Invoke()
             {
-                System.Processed.Add(Load);
+                This.Processed.Add(Load);
             }
         }
         #endregion
+
         #region Input Events - Getters
         public Event Start() { return Generator.Start(); }
         public Event End() { return Generator.End(); }
         #endregion
+
         #region Output Events - Reference to Getters
         public List<Func<Load, Event>> OnDepart { get { return Server2.OnDepart; } }
         #endregion
-        #region Exeptions
-        #endregion
+        
         public TwoFIFOServers(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
             Name = "TwoFIFOServerSystem";
@@ -92,20 +89,20 @@ namespace O2DESNet.Demos.FIFOQueues
                seed: DefaultRS.Next(),
                tag: "1st Server");
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
-            Server1.OnStateChg.Add(s => Queue.UpdToDequeue(s.Vacancy > 0));
+            Server1.OnStateChg.Add(() => Queue.UpdToDequeue(Server1.Vacancy > 0));
 
             Buffer = new Queueing<Load>(
                  config: Config.Buffer,
                  tag: "Buffer");
             Buffer.OnDequeue.Add(load => Server2.Start(load));
-            Buffer.OnStateChg.Add(b => Server1.UpdToDepart(b.Vacancy > 0));
+            Buffer.OnStateChg.Add(() => Server1.UpdToDepart(Buffer.Vacancy > 0));
 
             Server2 = new FIFOServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
-            Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
-            Server2.OnStateChg.Add(s => Buffer.UpdToDequeue(s.Vacancy > 0));
+            Server2.OnDepart.Add(load => new ArchiveEvent { This = this, Load = load });
+            Server2.OnStateChg.Add(() => Buffer.UpdToDequeue(Server2.Vacancy > 0));
             
             InitEvents.Add(Generator.Start());
         }

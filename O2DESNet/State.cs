@@ -1,20 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace O2DESNet
 {
-    public abstract class State<TScenario> where TScenario : Scenario
+    public abstract class State
     {
-        internal protected TScenario Scenario { get; private set; }
         internal protected Random DefaultRS { get; private set; }
         private int _seed;
         public int Seed { get { return _seed; } set { _seed = value; DefaultRS = new Random(_seed); } }
         
-        public State(TScenario scenario, int seed = 0)
+        public State(int seed = 0, string tag = null)
         {
-            Scenario = scenario;
             Seed = seed;
             Display = false;
+            Id = ++_count;
+            Tag = tag;
         }
 
         public virtual void WarmedUp(DateTime clockTime) { throw new NotImplementedException(); }
@@ -55,5 +56,28 @@ namespace O2DESNet
                 }
         }
         #endregion
-    }    
+
+        #region Module-based
+        protected static int _count = 0;
+        public int Id { get; protected set; }
+        public string Name { get; protected set; }
+        public string Tag { get; set; }        
+        public override string ToString()
+        {
+            if (Tag != null && Tag.Length > 0) return Tag;
+            return string.Format("{0}#{1}", Name, Id);
+        }
+        public List<Event> InitEvents { get; } = new List<Event>();
+        #endregion
+    }
+
+    public abstract class State<TScenario> : State
+        where TScenario : Scenario
+    {
+        public TScenario Config { get; private set; }
+        public State(TScenario scenario, int seed = 0, string tag = null) : base(seed, tag)
+        {
+            Config = scenario;
+        }
+    }
 }

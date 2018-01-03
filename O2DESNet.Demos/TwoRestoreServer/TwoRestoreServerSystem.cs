@@ -7,16 +7,8 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.TwoRestoreServer
 {
-    public class TwoRestoreServerSystem : Module<TwoRestoreServerSystem.Statics>
+    public class TwoRestoreServerSystem : State<TwoRestoreServerSystem.Statics>
     {
-        #region Sub-Components
-        public Generator<Load> Generator { get; private set; }
-        public Queueing<Load> Queue { get; private set; }
-        public RestoreServer<Load> Server1 { get; private set; }
-        public Queueing<Load> Buffer { get; private set; }
-        public RestoreServer<Load> Server2 { get; private set; }
-        #endregion
-
         #region Statics
         public class Statics : Scenario
         {
@@ -43,6 +35,14 @@ namespace O2DESNet.Demos.TwoRestoreServer
         }
         #endregion
 
+        #region Sub-Components
+        public Generator<Load> Generator { get; private set; }
+        public Queueing<Load> Queue { get; private set; }
+        public RestoreServer<Load> Server1 { get; private set; }
+        public Queueing<Load> Buffer { get; private set; }
+        public RestoreServer<Load> Server2 { get; private set; }
+        #endregion
+
         #region Dynamics
         public List<Load> Waiting { get { return Queue.Waiting; } }
         public HashSet<Load> Serving1 { get { return Server1.Serving; } }
@@ -55,19 +55,11 @@ namespace O2DESNet.Demos.TwoRestoreServer
         #endregion
 
         #region Events
-        private class ArchiveEvent : Event
+        private abstract class InternalEvent : Event<TwoRestoreServerSystem, Statics> { } // event adapter 
+        private class ArchiveEvent : InternalEvent
         {
-            public TwoRestoreServerSystem System { get; private set; }
-            public Load Load { get; private set; }
-            public ArchiveEvent(TwoRestoreServerSystem system, Load load)
-            {
-                System = system;
-                Load = load;
-            }
-            public override void Invoke()
-            {
-                System.Processed.Add(Load);
-            }
+            internal Load Load { get; set; }
+            public override void Invoke() { This.Processed.Add(Load); }
         }
         #endregion
 
@@ -78,9 +70,6 @@ namespace O2DESNet.Demos.TwoRestoreServer
 
         #region Output Events - Reference to Getters
         public List<Func<Load, Event>> OnDepart { get { return Server2.OnDepart; } }
-        #endregion
-
-        #region Exeptions
         #endregion
 
         public TwoRestoreServerSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
@@ -104,20 +93,20 @@ namespace O2DESNet.Demos.TwoRestoreServer
                seed: DefaultRS.Next(),
                tag: "1st Server");
             Server1.OnDepart.Add(load => Buffer.Enqueue(load));
-            Server1.OnStateChg.Add(s => Queue.UpdToDequeue(s.Vacancy > 0));
+            Server1.OnStateChg.Add(() => Queue.UpdToDequeue(Server1.Vacancy > 0));
 
             Buffer = new Queueing<Load>(
                  config: Config.Buffer,
                  tag: "Buffer");
             Buffer.OnDequeue.Add(load => Server2.Start(load));
-            Buffer.OnStateChg.Add(b => Server1.UpdToDepart(b.Vacancy > 0));
+            Buffer.OnStateChg.Add(() => Server1.UpdToDepart(Buffer.Vacancy > 0));
 
             Server2 = new RestoreServer<Load>(
                config: Config.Server2,
                seed: DefaultRS.Next(),
                tag: "2st Server");
-            Server2.OnDepart.Add(load => new ArchiveEvent(this, load));
-            Server2.OnStateChg.Add(s => Buffer.UpdToDequeue(s.Vacancy > 0));
+            Server2.OnDepart.Add(load => new ArchiveEvent { This = this, Load = load });
+            Server2.OnStateChg.Add(() => Buffer.UpdToDequeue(Server2.Vacancy > 0));
 
             InitEvents.Add(Generator.Start());
         }

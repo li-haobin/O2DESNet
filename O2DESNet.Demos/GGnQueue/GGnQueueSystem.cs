@@ -7,7 +7,7 @@ using O2DESNet;
 
 namespace O2DESNet.Demos.GGnQueue
 {
-    public class GGnQueueSystem : Module<GGnQueueSystem.Statics>
+    public class GGnQueueSystem : State<GGnQueueSystem.Statics>
     {
         #region Sub-Components
         public Generator<Load> Generator { get; private set; }
@@ -34,26 +34,23 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Events
-        private class EnterEvent : Event
+        private abstract class InternalEvent : Event<GGnQueueSystem, Statics> { } // event adapter 
+        private class EnterEvent : InternalEvent
         {
-            public GGnQueueSystem GGnQueueSystem { get; private set; }
-            public Load Load { get; private set; }
-            public EnterEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            internal Load Load { get; set; }
             public override void Invoke()
             {
-                Load.Log(this);
-                Execute(GGnQueueSystem.Queue.Enqueue(Load));
+                Execute(Load.Log(this));
+                Execute(This.Queue.Enqueue(Load));
             }
         }
-        private class ExitEvent : Event
+        private class ExitEvent : InternalEvent
         {
-            public GGnQueueSystem GGnQueueSystem { get; private set; }
-            public Load Load { get; private set; }
-            public ExitEvent(GGnQueueSystem ggnQueueSystem, Load load) { GGnQueueSystem = ggnQueueSystem; Load = load; }
+            internal Load Load { get; set; }
             public override void Invoke()
             {
-                Load.Log(this);
-                GGnQueueSystem.Processed.Add(Load);
+                Execute(Load.Log(this));
+                This.Processed.Add(Load);
             }
         }
         #endregion
@@ -66,34 +63,22 @@ namespace O2DESNet.Demos.GGnQueue
         #region Output Events - Reference to Getters
         public List<Func<Load, Event>> OnDepart { get { return Server.OnDepart; } }
         #endregion
-
-        #region Exeptions
-        #endregion
-
+        
         public GGnQueueSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
         {
             Name = "GGnQueueSystem";
             Processed = new List<Load>();
 
             Config.Generator.Create = rs => new Load();
-            Generator = new Generator<Load>(
-                config: Config.Generator,
-                seed: DefaultRS.Next());
-            Generator.OnArrive.Add(load => new EnterEvent(this, load));
+            Generator = new Generator<Load>(Config.Generator, DefaultRS.Next());
+            Generator.OnArrive.Add(load => new EnterEvent { This = this, Load = load });
 
-            Queue = new Queueing<Load>(
-                config: Config.Queue,
-                tag: "Queue");
-            //Queue.Config.ToDequeue = load => Server.Vancancy > 0;
+            Queue = new Queueing<Load>(Config.Queue, "Queue");
             Queue.OnDequeue.Add(load => Server.Start(load));
 
-            Server = new Server<Load>(
-               config: Config.Server,
-               seed: DefaultRS.Next(),
-               tag: "Server");
-            //Server.Config.ToDepart = load => true;
-            Server.OnStateChg.Add(s => Queue.UpdToDequeue(s.Vacancy > 0));
-            Server.OnDepart.Add(load => new ExitEvent(this, load));
+            Server = new Server<Load>(Config.Server, DefaultRS.Next(), "Server");
+            Server.OnStateChg.Add(() => Queue.UpdToDequeue(Server.Vacancy > 0));
+            Server.OnDepart.Add(load => new ExitEvent { This = this, Load = load });
 
             InitEvents.Add(Generator.Start());
         }

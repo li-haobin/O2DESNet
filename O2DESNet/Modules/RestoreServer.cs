@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class RestoreServer<TLoad> : Module<RestoreServer<TLoad>.Statics>
+    public class RestoreServer<TLoad> : State<RestoreServer<TLoad>.Statics>
     {
         #region Sub-Components
         internal Server<TLoad> H_Server { get; private set; }
@@ -39,63 +39,40 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        private class StartEvent : Event
+        private abstract class InternalEvent : Event<RestoreServer<TLoad>, Statics> { }
+        private class StartEvent : InternalEvent
         {
-            public RestoreServer<TLoad> RestoreServer { get; private set; }
-            public TLoad Load { get; private set; }
-            internal StartEvent(RestoreServer<TLoad> restoreServer, TLoad load)
-            {
-                RestoreServer = restoreServer;
-                Load = load;
-            }
+            internal TLoad Load { get; set; }
             public override void Invoke()
             {
-                if (RestoreServer.Vacancy < 1) throw new HasZeroVacancyException();
-                Execute(RestoreServer.H_Server.Start(Load));
-                Execute(new StateChgEvent(RestoreServer));
+                if (This.Vacancy < 1) throw new HasZeroVacancyException();
+                Execute(This.H_Server.Start(Load));
+                Execute(new StateChgEvent());
             }
-            public override string ToString() { return string.Format("{0}_Start", RestoreServer); }
+            public override string ToString() { return string.Format("{0}_Start", This); }
         }
-        private class StateChgEvent : Event
+        private class StateChgEvent : InternalEvent
         {
-            public RestoreServer<TLoad> RestoreServer { get; private set; }
-            internal StateChgEvent(RestoreServer<TLoad> restoreServer) { RestoreServer = restoreServer; }
-            public override void Invoke()
-            {
-                foreach (var evnt in RestoreServer.OnStateChg) Execute(evnt(RestoreServer));
-            }
-            public override string ToString() { return string.Format("{0}_StateChange", RestoreServer); }
+            public override void Invoke() { Execute(This.OnStateChg, e => e()); }
+            public override string ToString() { return string.Format("{0}_StateChange", This); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event Start(TLoad load)
-        {            
-            if (Config.HandlingTime == null) throw new HandlingTimeNotSpecifiedException();
-            if (Config.RestoringTime == null) throw new RestoringTimeNotSpecifiedException();
-            return new StartEvent(this, load);
-        }
+        public Event Start(TLoad load) { return new StartEvent { This = this, Load = load }; }
         public Event UpdToDepart(bool toDepart) { return H_Server.UpdToDepart(toDepart); }
         #endregion
                
         #region Output Events - Reference to Getters
         public List<Func<TLoad, Event>> OnDepart { get { return H_Server.OnDepart; } }
         public List<Func<TLoad, Event>> OnRestore { get { return R_Server.OnDepart; } }
-        public List<Func<RestoreServer<TLoad>, Event>> OnStateChg { get; private set; } = new List<Func<RestoreServer<TLoad>, Event>>();
+        public List<Func<Event>> OnStateChg { get; private set; } = new List<Func<Event>>();
         #endregion
 
         #region Exeptions
         public class HasZeroVacancyException : Exception
         {
             public HasZeroVacancyException() : base("Check vacancy of the Server before execute Start event.") { }
-        }
-        public class HandlingTimeNotSpecifiedException : Exception
-        {
-            public HandlingTimeNotSpecifiedException() : base("Set HandlingTime as a random generator.") { }
-        }
-        public class RestoringTimeNotSpecifiedException : Exception
-        {
-            public RestoringTimeNotSpecifiedException() : base("Set RestoringTime as a random generator.") { }
         }
         #endregion
 
@@ -107,8 +84,8 @@ namespace O2DESNet
 
             // connect sub-components
             H_Server.OnDepart.Add(R_Server.Start);
-            H_Server.OnStateChg.Add(s => new StateChgEvent(this));
-            R_Server.OnStateChg.Add(s => new StateChgEvent(this));
+            H_Server.OnStateChg.Add(() => new StateChgEvent { This = this });
+            R_Server.OnStateChg.Add(() => new StateChgEvent { This = this });
         }
 
         public override void WarmedUp(DateTime clockTime)

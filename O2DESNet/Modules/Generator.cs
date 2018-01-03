@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace O2DESNet
 {
-    public class Generator<TLoad> : Module<Generator<TLoad>.Statics>
+    public class Generator<TLoad> : State<Generator<TLoad>.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -24,47 +24,42 @@ namespace O2DESNet
         #endregion
 
         #region Events
-        private class StartEvent : Event
+        private abstract class InternalEvent : Event<Generator<TLoad>, Statics> { }
+        private class StartEvent : InternalEvent
         {
-            public Generator<TLoad> Generator { get; private set; }
-            internal StartEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                if (Generator.Config.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
-                Generator.On = true;
-                Generator.StartTime = ClockTime;
-                Generator.Count = 0;
-                if (Generator.Config.SkipFirst) Schedule(new ArriveEvent(Generator), Generator.Config.InterArrivalTime(Generator.DefaultRS));
-                else Execute(new ArriveEvent(Generator));
+                if (Config.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                This.On = true;
+                This.StartTime = ClockTime;
+                This.Count = 0;
+                if (Config.SkipFirst) Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
+                else Schedule(new ArriveEvent());
             }
         }
-        private class EndEvent : Event
+        private class EndEvent : InternalEvent
         {
-            public Generator<TLoad> Generator { get; private set; }
-            internal EndEvent(Generator<TLoad> generator) { Generator = generator; }
-            public override void Invoke() { Generator.On = false; }
+            public override void Invoke() { This.On = false; }
         }
-        private class ArriveEvent : Event
+        private class ArriveEvent : InternalEvent
         {
-            public Generator<TLoad> Generator { get; private set; }
-            internal ArriveEvent(Generator<TLoad> generator) { Generator = generator; }
             public override void Invoke()
             {
-                if (Generator.On)
+                if (This.On)
                 {
-                    var load = Generator.Config.Create(Generator.DefaultRS);
-                    Generator.Count++;
-                    Schedule(new ArriveEvent(Generator), Generator.Config.InterArrivalTime(Generator.DefaultRS));
-                    foreach (var evnt in Generator.OnArrive) Execute(evnt(load));
+                    var load = Config.Create(DefaultRS);
+                    This.Count++;
+                    Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
+                    Execute(This.OnArrive, e => e(load));
                 }
             }
-            public override string ToString() { return string.Format("{0}_Arrive", Generator); }
+            public override string ToString() { return string.Format("{0}_Arrive", This); }
         }
         #endregion
 
         #region Input Events - Getters
-        public Event Start() { return new StartEvent(this); }
-        public Event End() { return new EndEvent(this); }
+        public Event Start() { return new StartEvent { This = this }; }
+        public Event End() { return new EndEvent { This = this }; }
         #endregion
 
         #region Output Events - Reference to Getters

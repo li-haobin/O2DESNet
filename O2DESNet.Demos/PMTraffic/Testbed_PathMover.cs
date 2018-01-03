@@ -7,7 +7,7 @@ using O2DESNet.Traffic;
 
 namespace O2DESNet.Demos.PMTraffic
 {
-    public class Testbed_PathMover : Module<Testbed_PathMover.Statics>
+    public class Testbed_PathMover : State<Testbed_PathMover.Statics>
     {
         #region Statics
         public class Statics : Scenario
@@ -20,11 +20,7 @@ namespace O2DESNet.Demos.PMTraffic
             public bool RestrictedNeighboringJobs { get; set; } = false;
         }
         #endregion
-
-        #region Sub-Components
-        //private Server<TLoad> Server { get; set; }
-        #endregion
-
+        
         #region Dynamics
         public PathMover PathMover { get; private set; }
         public List<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
@@ -34,27 +30,26 @@ namespace O2DESNet.Demos.PMTraffic
         #endregion
 
         #region Events
-        private abstract class EventOfTestbed_PathMover : Event { internal Testbed_PathMover This { get; set; } } // event adapter 
-
-        private class StartEvent : EventOfTestbed_PathMover
+        private abstract class InternalEvent : Event<Testbed_PathMover, Statics> { } // event adapter 
+        private class StartEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
             internal ControlPoint.Statics At { get; set; } = null;
             public override void Invoke()
             {
-                if (At == null) At = This.Config.Origins[DefaultRS.Next(This.Config.Origins.Count)];
+                if (At == null) At = Config.Origins[DefaultRS.Next(Config.Origins.Count)];
 
                 bool neighboring = DefaultRS.NextDouble() < 0.95;
                 ControlPoint.Statics target;
 
                 while (true)
                 {
-                    if (This.Config.Origins.Contains(At))
-                        target = This.Config.Destinations[DefaultRS.Next(This.Config.Destinations.Count)];
+                    if (Config.Origins.Contains(At))
+                        target = Config.Destinations[DefaultRS.Next(Config.Destinations.Count)];
                     else
-                        target = This.Config.Origins[DefaultRS.Next(This.Config.Origins.Count)];
+                        target = Config.Origins[DefaultRS.Next(Config.Origins.Count)];
 
-                    if (!This.Config.RestrictedNeighboringJobs) break;
+                    if (!Config.RestrictedNeighboringJobs) break;
                     var nCols = Math.Abs(Convert.ToInt32(At.Tag.Split('_').Last()) - Convert.ToInt32(target.Tag.Split('_').Last()));
                     if (neighboring && nCols <= 1) break;
                     else if (!neighboring && nCols > 1) break;
@@ -66,18 +61,18 @@ namespace O2DESNet.Demos.PMTraffic
             }
         }
 
-        private class FinishEvent : EventOfTestbed_PathMover
+        private class FinishEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
             internal ControlPoint.Statics At { get; set; }
             public override void Invoke()
             {
                 This.JobsCounter.ObserveChange(-1, ClockTime);
-                Execute(new StartEvent { This = This, Vehicle = Vehicle, At = At });
+                Execute(new StartEvent { Vehicle = Vehicle, At = At });
             }
         }
 
-        private class DeadLockEvent : EventOfTestbed_PathMover
+        private class DeadLockEvent : InternalEvent
         {
             public override void Invoke()
             {
@@ -88,15 +83,15 @@ namespace O2DESNet.Demos.PMTraffic
                 //Console.WriteLine(string.Format("Deadlock Occurs at Path #{0}.", paths.Substring(0, paths.Length - 1)));
 
                 Execute(This.PathMover.Reset());
-                foreach (var vehicle in This.Vehicles) Execute(new StartEvent { This = This, Vehicle = vehicle });
+                foreach (var vehicle in This.Vehicles) Execute(new StartEvent { Vehicle = vehicle });
             }
         }
 
-        private class TestUpdToArriveEvent : EventOfTestbed_PathMover
+        private class TestUpdToArriveEvent : InternalEvent
         {
             public override void Invoke()
             {
-                int idxCP = 10;
+                //int idxCP = 10;
                 //Schedule(This.PathMover.UpdToArrive(This.PathMover.ControlPoints.Values.ElementAt(idxCP), false), TimeSpan.FromHours(3));
                 //Schedule(This.PathMover.UpdToArrive(This.PathMover.ControlPoints.Values.ElementAt(idxCP), true), TimeSpan.FromHours(5));
             }
@@ -109,7 +104,7 @@ namespace O2DESNet.Demos.PMTraffic
             PathMover = new PathMover(config.PathMover, DefaultRS.Next());
             for (int i = 0; i < config.NVehicles; i++) Vehicles.Add(new Vehicle(config.VehicleCategory, DefaultRS.Next()));
             PathMover.OnArrive.Add((veh, cp) => new FinishEvent { This = this, Vehicle = veh, At = cp });
-            PathMover.OnDeadlock.Add(pm => new DeadLockEvent { This = this });
+            PathMover.OnDeadlock.Add(() => new DeadLockEvent { This = this });
             InitEvents.AddRange(PathMover.InitEvents);
             foreach (var veh in Vehicles) InitEvents.Add(new StartEvent { This = this, Vehicle = veh });
 
