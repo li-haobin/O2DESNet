@@ -21,23 +21,20 @@ namespace O2DESNet
         public virtual void WarmedUp(DateTime clockTime) { throw new NotImplementedException(); }
         public virtual void WriteToConsole(DateTime? clockTime = null) { throw new NotImplementedException(); }
 
-        private class BatchExecuteEvent<T> : Event
+        private class BatchExecuteEvent : Event
         {
-            internal List<T> Batch { get; set; }
-            internal Func<T,Event> Renderer { get; set; }
+            internal IEnumerable<Event> Events { get; set; }
             public override void Invoke()
             {
-                foreach (var e in Batch) Execute(Renderer(e));
+                foreach (var e in Events) Execute(e);
             }
-        }
+        }         
         /// <summary>
-        /// Generate an event that execute a batch of given events
+        /// Wrap a batch of events as a single event
         /// </summary>
-        /// <typeparam name="T">Type of event getters</typeparam>
-        /// <param name="batch">Event getters in a batch</param>
-        /// <param name="renderer">Renderer for each event</param>
-        /// <returns></returns>
-        public Event EventWrapper<T>(List<T> batch, Func<T, Event> renderer) { return new BatchExecuteEvent<T> { Batch = batch, Renderer = renderer }; }
+        /// <param name="events">A batch of events</param>
+        /// <returns>The single event</returns>
+        public Event EventWrapper(IEnumerable<Event> events) { return new BatchExecuteEvent { Events = events }; }
 
         #region For Logging
         private string _logFile;

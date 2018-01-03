@@ -61,7 +61,7 @@ namespace O2DESNet.Demos.GGnQueue
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Load, Event>> OnDepart { get { return Server.OnDepart; } }
+        public List<Func<Load, Event>> OnDepart { get; } = new List<Func<Load, Event>>();
         #endregion
         
         public GGnQueueSystem(Statics config, int seed = 0, string tag = null) : base(config, seed, tag)
@@ -79,6 +79,7 @@ namespace O2DESNet.Demos.GGnQueue
             Server = new Server<Load>(Config.Server, DefaultRS.Next(), "Server");
             Server.OnStateChg.Add(() => Queue.UpdToDequeue(Server.Vacancy > 0));
             Server.OnDepart.Add(load => new ExitEvent { This = this, Load = load });
+            Server.OnDepart.Add(load => EventWrapper(OnDepart.Select(e => e(load))));
 
             InitEvents.Add(Generator.Start());
         }
