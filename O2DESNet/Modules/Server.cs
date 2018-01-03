@@ -87,7 +87,7 @@ namespace O2DESNet
         }
         private class StateChgEvent : InternalEvent
         {
-            public override void Invoke() { Execute(This.OnStateChg, e => e()); }
+            public override void Invoke() { Execute(This.OnStateChg.Select(e => e())); }
             public override string ToString() { return string.Format("{0}_StateChange", This); }
         }
         private class DepartEvent : InternalEvent

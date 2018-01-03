@@ -276,7 +276,7 @@ namespace O2DESNet.Traffic
                 Execute(new ReachControlPointEvent { Vehicle = vehicle, At = Path.Config.Start });
                 This.HCounter_Departing.ObserveChange(-1, ClockTime);
                 This.HCounter_Travelling.ObserveChange(1, ClockTime);
-                Execute(This.OnDepart, e => e(vehicle, Path.Config.Start));
+                Execute(This.OnDepart.Select(e => e(vehicle, Path.Config.Start)));
                 Execute(new DepartEvent { Path = Path });
             }
         }
@@ -312,7 +312,7 @@ namespace O2DESNet.Traffic
                 This.Vehicles.Remove(Vehicle);
                 This.HCounter_Travelling.ObserveChange(-1, ClockTime);
                 This.Timestamps.Remove(Vehicle);
-                Execute(This.OnArrive, e => e(Vehicle, At));
+                Execute(This.OnArrive.Select(e => e(Vehicle, At)));
             }
         }
 
@@ -333,7 +333,7 @@ namespace O2DESNet.Traffic
                     //string paths = "";
                     //foreach (var p in This.Paths.Values.Where(p => p.Occupancy > 0)) paths += string.Format("{0},", p);
                     //Log(string.Format("Deadlock Occurs at Path #{0}.", paths.Substring(0, paths.Length - 1)));
-                    Execute(This.OnDeadlock, e => e());
+                    Execute(This.OnDeadlock.Select(e => e()));
                 }
             }
         }

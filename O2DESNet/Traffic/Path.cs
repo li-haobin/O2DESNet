@@ -124,7 +124,7 @@ namespace O2DESNet.Traffic
                 This.VehiclePositions.Add(Vehicle, 0);
                 This.VehicleCompletionTimes.Add(Vehicle, ClockTime);
                 Execute(new UpdCompletionEvent());
-                Execute(This.OnVacancyChg, e => e());
+                Execute(This.OnVacancyChg.Select(e => e()));
                 //Log("Start,{0},{1}", Vehicle, This);
             }
         }
@@ -243,13 +243,13 @@ namespace O2DESNet.Traffic
                 {
                     var veh = This.VehiclesCompleted.Dequeue();
                     //Log("Exit,{0},{1}", veh, This);
-                    Execute(This.OnExit, e => e(veh));
+                    Execute(This.OnExit.Select(e => e(veh)));
                     Execute(new ExitEvent());
                     Execute(new UpdCompletionEvent());
-                    Execute(This.OnVacancyChg, e => e());
+                    Execute(This.OnVacancyChg.Select(e => e()));
                 }
                 if (!prevLockedByPaths && This.LockedByPaths || This.VehiclesCompleted.Count == 0)
-                    Execute(This.OnLockedByPaths, e => e());                
+                    Execute(This.OnLockedByPaths.Select(e => e()));
             }
         }
         #endregion

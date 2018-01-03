@@ -50,7 +50,7 @@ namespace O2DESNet
                     var load = Config.Create(DefaultRS);
                     This.Count++;
                     Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
-                    Execute(This.OnArrive, e => e(load));
+                    Execute(This.OnArrive.Select(e => e(load)));
                 }
             }
             public override string ToString() { return string.Format("{0}_Arrive", This); }

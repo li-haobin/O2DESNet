@@ -36,7 +36,7 @@ namespace O2DESNet
                 if (!Value && This.TrueIndices.Contains(Idx)) This.TrueIndices.Remove(Idx);
                 This.AllTrue = This.TrueIndices.Count == This.Config.Size;
                 This.AllFalse = This.TrueIndices.Count == 0;
-                Execute(This.OnStateChg, e => e());
+                Execute(This.OnStateChg.Select(e => e()));
             }
             public override string ToString() { return string.Format("{0}_UpdState", This); }
         }
