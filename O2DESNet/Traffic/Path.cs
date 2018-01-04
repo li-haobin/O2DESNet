@@ -1,20 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using O2DESNet.SVGRenderer;
-using System.Xml.Linq;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows;
 
 namespace O2DESNet.Traffic
 {
     public class Path : State<Path.Statics>
     {
         #region Statics
-        public class Statics : Scenario
+        public class Statics : Scenario, IDrawable
         {
             public int Index { get; internal set; }
-            public string Tag { get; internal set; }
+            public string Tag { get; set; }
             public PathMover.Statics PathMover { get; internal set; }
             internal Statics() { }
+            public Statics(ControlPoint start, ControlPoint end, List<Point> trajectory = null)
+            {
+                Trajectory = trajectory ?? new List <Point> { new Point(start.X, start.Y), new Point(end.X, end.Y) };
+                Start = start;
+                End = end;
+                start.PathsOut.Add(this);
+                end.PathsIn.Add(this);
+                for (int i = 0; i < Trajectory.Count - 1; i++) Length += (Trajectory[i + 1] - Trajectory[i]).Length / 10;
+            }
 
             public double Length { get; set; }
             public int Capacity { get; set; }
@@ -22,62 +32,93 @@ namespace O2DESNet.Traffic
             /// Function map vehicle density in # vehicles per meter,  to the speed in meters per second
             /// </summary>
             public Func<double, double> SpeedByDensity { get; set; } = d => 4.5;
-            public ControlPoint.Statics Start { get; internal set; }
-            public ControlPoint.Statics End { get; internal set; }
+            public ControlPoint Start { get; internal set; }
+            public ControlPoint End { get; internal set; }
             public bool CrossHatched { get; set; } = false;
 
-            #region SVG Output
-            /// <summary>
-            /// SVG - Path Description
-            /// </summary>
-            public string D { get; set; }
-            /// <summary>
-            /// SVG - X coordinate for translation
-            /// </summary>
-            public double X { get; set; } = 0;
-            /// <summary>
-            /// SVG - Y coordinate for translation
-            /// </summary>
-            public double Y { get; set; } = 0;
-            /// <summary>
-            /// SVG - Rotate degree for transformation
-            /// </summary>
-            public double Rotate { get; set; } = 0;
-
-            public Group SVG()
+            #region Drawing
+            public List<Point> Trajectory { get; private set; } = new List<Point>();
+            public bool TurnWithRoad { get; set; } = true;
+            public TransformGroup RenderTransform { get; private set; } = new TransformGroup();
+            internal TransformGroup SlipOnCurve(double ratio, bool turnWithRoad = false)
             {
-                string name = "path#" + PathMover.Index + "_" + Index;
-                var g = new Group(name, new O2DESNet.SVGRenderer.Path(LineStyle, D, new XAttribute("id", name + "_d")));
-                var label = new Text(LabelStyle, string.Format("PATH{0}", Index), new XAttribute("transform", "translate(-10 -4)"));
-                g.Add(new PathMarker(name + "_marker", name + "_d", 0.333, new Use("arrow"), label)); // forwards & bi-directional                
-                if (X != 0 || Y != 0 || Rotate != 0) g.Add(new XAttribute("transform", string.Format("translate({0} {1}) rotate({2})", X, Y, Rotate)));
-                return g;
-            }
+                var distances = new List<double>();
 
-            public static CSS LineStyle = new CSS("pm_path", new XAttribute("stroke", "black"), new XAttribute("stroke-dasharray", "3,3"), new XAttribute("fill", "none"), new XAttribute("stroke-width", "0.5"));
-            public static CSS LabelStyle = new CSS("pm_path_label", new XAttribute("text-anchor", "start"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "4px"), new XAttribute("fill", "black"));
-
-            /// <summary>
-            /// Including arrows, styles
-            /// </summary>
-            public static Definition SVGDefs
-            {
-                get
+                Func<Vector, double> l2Norm = v => Math.Sqrt(v.X * v.X + v.Y * v.Y);
+                Func<Vector, double> degree = v => Math.Atan2(v.Y, v.X) / Math.PI * 180;
+                for (int i = 0; i < Trajectory.Count - 1; i++)
+                    distances.Add(l2Norm(Trajectory[i + 1] - Trajectory[i]));
+                var total = distances.Sum();
+                var cum = 0d;
+                var dist = total * ratio;
+                for (int i = 0; i < distances.Count; i++)
                 {
-                    return new Definition(
-                        new O2DESNet.SVGRenderer.Path("M -5 -2 L 0 0 L -5 2", "black", new XAttribute("id", "arrow"), new XAttribute("stroke-width", "0.5")),
-                        new Style(LineStyle, LabelStyle)
-                        );
+                    cum += distances[i];
+                    if (dist <= cum)
+                    {
+                        var p = Trajectory[i + 1] - (Trajectory[i + 1] - Trajectory[i]) / distances[i] * (cum - dist);
+                        var tg = new TransformGroup();
+                        if (TurnWithRoad || turnWithRoad) tg.Children.Add(new RotateTransform(degree(Trajectory[i + 1] - Trajectory[i])));
+                        tg.Children.Add(new TranslateTransform(p.X, p.Y));
+                        return tg;
+                    }
                 }
+                throw new Exception("The path must contain more than one point.");
             }
-            #endregion
+
+            private bool _showTag = true;
+            private Canvas _drawing = null;
+            public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
+            public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+            public void UpdDrawing(DateTime? clockTime = null)
+            {
+                _drawing = new Canvas();
+                _drawing.Children.Add(new System.Windows.Shapes.Path // Trajectory
+                {
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 1,
+                    StrokeDashArray = new DoubleCollection(new double[] { 3, 3 }),
+                    Data = new PathGeometry
+                    {
+                        Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(Trajectory.First(),
+                            Trajectory.GetRange(1, Trajectory.Count - 1).Select(pt => new LineSegment(pt, true)),
+                            false)
+                        })
+                    }
+                });
+                _drawing.Children.Add(new System.Windows.Shapes.Path // Arrow
+                {
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 1,
+                    Data = new PathGeometry
+                    {
+                        Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(new Point(-6, -3), new LineSegment[]{
+                                new LineSegment(new Point(0, 0), true),
+                                new LineSegment(new Point(-6, 3), true),
+                            },
+                            false)
+                        })
+                    },
+                    RenderTransform = SlipOnCurve(0.4, true),
+                });
+                if (ShowTag) _drawing.Children.Add(new TextBlock
+                {
+                    Text = Tag,
+                    FontSize = 10,
+                    RenderTransform = SlipOnCurve(0.4),
+                });
+                _drawing.RenderTransform = RenderTransform;
+            }
+            #endregion            
         }
         #endregion
 
         #region Dynamics
-        public Dictionary<Vehicle, double> VehiclePositions { get; private set; } = new Dictionary<Vehicle, double>();
-        public Dictionary<Vehicle, DateTime> VehicleCompletionTimes { get; private set; } = new Dictionary<Vehicle, DateTime>();
-        public Queue<Vehicle> VehiclesCompleted { get; private set; } = new Queue<Vehicle>();
+        public Dictionary<IVehicle, double> VehiclePositions { get; private set; } = new Dictionary<IVehicle, double>();
+        public Dictionary<IVehicle, DateTime> VehicleCompletionTimes { get; private set; } = new Dictionary<IVehicle, DateTime>();
+        public Queue<IVehicle> VehiclesCompleted { get; private set; } = new Queue<IVehicle>();
         public DateTime LastTimeStamp { get; private set; }
         /// <summary>
         /// Record the availabilities of the following paths for the vehicle to exit to,
@@ -116,7 +157,7 @@ namespace O2DESNet.Traffic
         // Alpha_1
         private class EnterEvent : InternalEvent
         {
-            internal Vehicle Vehicle { get; set; }
+            internal IVehicle Vehicle { get; set; }
             public override void Invoke()
             {
                 if (This.Vacancy < 1) throw new Exception("There is no vacancy for incoming vehicle.");
@@ -160,9 +201,9 @@ namespace O2DESNet.Traffic
         {
             public override void Invoke()
             {
-                This.VehiclePositions = new Dictionary<Vehicle, double>();
-                This.VehicleCompletionTimes = new Dictionary<Vehicle, DateTime>();
-                This.VehiclesCompleted = new Queue<Vehicle>();
+                This.VehiclePositions = new Dictionary<IVehicle, double>();
+                This.VehicleCompletionTimes = new Dictionary<IVehicle, DateTime>();
+                This.VehiclesCompleted = new Queue<IVehicle>();
                 This.LastTimeStamp = ClockTime;
                 foreach (var path in This.ToEnter.Keys.ToList()) This.ToEnter[path] = true;
                 This.LockedByPaths = false;
@@ -189,7 +230,7 @@ namespace O2DESNet.Traffic
         // Beta_2
         private class AttemptToCompleteEvent : InternalEvent
         {
-            internal Vehicle Vehicle { get; set; }
+            internal IVehicle Vehicle { get; set; }
             public override void Invoke()
             {
                 if (!This.VehicleCompletionTimes.ContainsKey(Vehicle) || !This.VehicleCompletionTimes[Vehicle].Equals(ClockTime)) return;
@@ -255,7 +296,7 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Input Events - Getters
-        public Event Enter(Vehicle vehicle) { return new EnterEvent { This = this, Vehicle = vehicle }; }
+        public Event Enter(IVehicle vehicle) { return new EnterEvent { This = this, Vehicle = vehicle }; }
         /// <summary>
         /// Update the state of the following paths, 
         /// if they are available for the vehicle to exit to.
@@ -281,7 +322,7 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Vehicle, Event>> OnExit { get; private set; } = new List<Func<Vehicle, Event>>();
+        public List<Func<IVehicle, Event>> OnExit { get; private set; } = new List<Func<IVehicle, Event>>();
         public List<Func<Event>> OnVacancyChg { get; private set; } = new List<Func<Event>>();
         public List<Func<Event>> OnLockedByPaths { get; private set; } = new List<Func<Event>>();
         #endregion
@@ -313,5 +354,18 @@ namespace O2DESNet.Traffic
             }
             Console.WriteLine();
         }
+
+        #region Drawing
+        private bool _showTag = true;
+        private DateTime? _timestamp = null;
+        private Canvas _drawing = null;
+        public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
+        public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(_timestamp); } }
+        public void UpdDrawing(DateTime? clockTime = null)
+        {
+            _timestamp = clockTime;
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

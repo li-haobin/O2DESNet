@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-using O2DESNet.SVGRenderer;
-using System.Drawing;
+using System.Windows.Media;
+using System.Windows.Controls;
+using System.Windows;
 
 namespace O2DESNet.Traffic
 {
     public class PathMover : State<PathMover.Statics>
     {
         #region Statics
-        public class Statics : Scenario
+        public class Statics : Scenario, IDrawable
         {
             public int Index { get; set; }
             public Dictionary<string, Path.Statics> Paths { get; private set; } = new Dictionary<string, Path.Statics>();
-            public Dictionary<string, ControlPoint.Statics> ControlPoints { get; private set; } = new Dictionary<string, ControlPoint.Statics>();
+            public Dictionary<string, ControlPoint> ControlPoints { get; private set; } = new Dictionary<string, ControlPoint>();
             public string RoutingTablesFile { get; set; } = null;
             public int Capacity
             {
@@ -32,16 +33,16 @@ namespace O2DESNet.Traffic
             }
 
             #region Path Mover Builder
-            public ControlPoint.Statics CreatControlPoint(string tag = null)
+            public ControlPoint CreatControlPoint(string tag = null)
             {
                 CheckInitialized();
-                var cp = new ControlPoint.Statics { PathMover = this, Tag = tag, Index = ControlPoints.Count };
+                var cp = new ControlPoint { Tag = tag, Index = ControlPoints.Count };
                 if (cp.Tag == null || cp.Tag.Length == 0) cp.Tag = string.Format(" {0}", cp.Index);
                 ControlPoints.Add(cp.Tag, cp);
                 return cp;
             }
 
-            public Path.Statics CreatePath(string tag = null, double length = 0, int capacity = int.MaxValue, ControlPoint.Statics start = null, ControlPoint.Statics end = null, bool crossHatched = false)
+            public Path.Statics CreatePath(string tag = null, double length = 0, int capacity = int.MaxValue, ControlPoint start = null, ControlPoint end = null, bool crossHatched = false)
             {
                 CheckInitialized();
                 var path = new Path.Statics
@@ -56,6 +57,7 @@ namespace O2DESNet.Traffic
                 if (path.Tag == null || path.Length == 0) path.Tag = string.Format("{0}", path.Index);
                 if (start != null) { path.Start = start; start.PathsOut.Add(path); }
                 if (end != null) { path.End = end; end.PathsIn.Add(path); }
+                path.Trajectory.AddRange(new Point[] { new Point(start.X, start.Y), new Point(end.X, end.Y) });
                 Paths.Add(path.Tag, path);
                 return path;
             }
@@ -98,7 +100,7 @@ namespace O2DESNet.Traffic
                             var ln = rt.Split('.');
                             int index = Convert.ToInt32(ln[0]);
                             if (ln[1].Length > 0) controlPoints[index].RoutingTable = ln[1].Split(',').Select(r => r.Split(':')).ToDictionary(r => controlPoints[Convert.ToInt32(r[0])], r => controlPoints[Convert.ToInt32(r[1])]);
-                            else controlPoints[index].RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
+                            else controlPoints[index].RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
                             foreach (var cp in controlPoints)
                                 if (cp != controlPoints[index] && !controlPoints[index].RoutingTable.ContainsKey(cp))
                                     controlPoints[index].RoutingTable.Add(cp, null);
@@ -107,7 +109,7 @@ namespace O2DESNet.Traffic
                     }
                     catch { }
                 }
-                foreach (var cp in controlPoints) cp.RoutingTable = new Dictionary<ControlPoint.Statics, ControlPoint.Statics>();
+                foreach (var cp in controlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
                 var incompleteSet = controlPoints.ToList();
                 var edges = paths.Select(path => new Tuple<int, int, double>(path.Start.Index, path.End.Index, path.Length)).ToList();
                 while (incompleteSet.Count > 0)
@@ -131,8 +133,8 @@ namespace O2DESNet.Traffic
                 {
                     lock (ControlPoints)
                     {
-                        Console.Clear();
-                        Console.WriteLine("Constructing routing table...\t\n{0:F3}% of entire PathMover Completed!\t", 100.0 * ControlPoints.Values.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
+                        //Console.Clear();
+                        //Console.WriteLine("Constructing routing table...\t\n{0:F3}% of entire PathMover Completed!\t", 100.0 * ControlPoints.Values.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
                     }
 
                     var sinkIndex = sinkIndices.First();
@@ -167,26 +169,19 @@ namespace O2DESNet.Traffic
             }
             #endregion
 
-            #region SVG Output
-            public virtual Group SVG(double x = 0, double y = 0, double degree = 0)
-            {
-                return new Group(id: "pm#" + Index, x: x, y: y, rotate: degree,
-                    content: Paths.Values.Select(path => path.SVG()).Concat(ControlPoints.Values.Select(cp => cp.SVG())));
-            }
+            #region For Drawing
+            public TransformGroup RenderTransform { get; private set; } = new TransformGroup();
 
-            /// <summary>
-            /// Including arrows, styles
-            /// </summary>
-            public static Definition SVGDefs
+            private bool _showTag = true;
+            private Canvas _drawing = null;
+            public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
+            public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+            public void UpdDrawing(DateTime? clockTime = null)
             {
-                get
-                {
-                    var defs = new Definition();
-                    defs.Add(Path.Statics.SVGDefs.Elements());
-                    defs.Add(ControlPoint.Statics.SVGDefs.Elements());
-                    //defs.Add(Vehicle.Statics.SVGDefs.Elements());
-                    return defs;
-                }
+                _drawing = new Canvas();
+                foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
+                foreach (var path in Paths.Values) { path.ShowTag = ShowTag; _drawing.Children.Add(path.Drawing); }
+                _drawing.RenderTransform = RenderTransform;
             }
             #endregion
         }
@@ -194,9 +189,9 @@ namespace O2DESNet.Traffic
 
         #region Dynamics
         public Dictionary<Path.Statics, Path> Paths { get; private set; } = new Dictionary<Path.Statics, Path>();
-        public HashSet<Vehicle> Vehicles { get; private set; } = new HashSet<Vehicle>();
-        public Dictionary<Vehicle, DateTime> Timestamps { get; private set; } = new Dictionary<Vehicle, DateTime>();
-        public Dictionary<Path, Queue<Vehicle>> DepartingQueues { get; private set; } = new Dictionary<Path, Queue<Vehicle>>();
+        public HashSet<IVehicle> Vehicles { get; private set; } = new HashSet<IVehicle>();
+        public Dictionary<IVehicle, DateTime> Timestamps { get; private set; } = new Dictionary<IVehicle, DateTime>();
+        public Dictionary<Path, Queue<IVehicle>> DepartingQueues { get; private set; } = new Dictionary<Path, Queue<IVehicle>>();
         public HourCounter HCounter_Departing { get; private set; } = new HourCounter();
         public HourCounter HCounter_Travelling { get; private set; } = new HourCounter();
         public double TotalMilage { get; private set; }
@@ -215,8 +210,8 @@ namespace O2DESNet.Traffic
         // Alpha_1
         private class CallToDepartEvent : InternalEvent
         {
-            internal Vehicle Vehicle { get; set; }
-            internal ControlPoint.Statics At { get; set; }
+            internal IVehicle Vehicle { get; set; }
+            internal ControlPoint At { get; set; }
             public override void Invoke()
             {
                 while (At.Equals(Vehicle.Targets.FirstOrDefault())) Execute(Vehicle.RemoveTarget());
@@ -232,7 +227,7 @@ namespace O2DESNet.Traffic
         // Alpha_2
         private class UpdToArriveEvent : InternalEvent
         {
-            internal ControlPoint.Statics At { get; set; }
+            internal ControlPoint At { get; set; }
             internal bool ToArrive { get; set; }
             public override void Invoke()
             {
@@ -256,9 +251,9 @@ namespace O2DESNet.Traffic
                 foreach (var path in This.Paths.Values)
                 {
                     Execute(path.Reset());
-                    This.DepartingQueues[path] = new Queue<Vehicle>();
+                    This.DepartingQueues[path] = new Queue<IVehicle>();
                 }
-                This.Vehicles = new HashSet<Vehicle>();
+                This.Vehicles = new HashSet<IVehicle>();
                 This.HCounter_Departing.ObserveCount(0, ClockTime);
                 This.HCounter_Travelling.ObserveCount(0, ClockTime);
             }
@@ -284,8 +279,8 @@ namespace O2DESNet.Traffic
         // Beta_2
         private class ReachControlPointEvent : InternalEvent
         {
-            internal Vehicle Vehicle { get; set; }
-            internal ControlPoint.Statics At { get; set; }
+            internal IVehicle Vehicle { get; set; }
+            internal ControlPoint At { get; set; }
             public override void Invoke()
             {
                 if (At.Equals(Vehicle.Targets.First()))
@@ -305,8 +300,8 @@ namespace O2DESNet.Traffic
         // Beta_3
         private class ArriveEvent : InternalEvent
         {
-            internal Vehicle Vehicle { get; set; }
-            internal ControlPoint.Statics At { get; set; }
+            internal IVehicle Vehicle { get; set; }
+            internal ControlPoint At { get; set; }
             public override void Invoke()
             {
                 This.Vehicles.Remove(Vehicle);
@@ -341,7 +336,7 @@ namespace O2DESNet.Traffic
         private class CalcMilageEvent : InternalEvent
         {
             internal Path Path { get; set; }
-            internal Vehicle Vehicle { get; set; }
+            internal IVehicle Vehicle { get; set; }
             public override void Invoke()
             {
                 This.TotalMilage += Path.Config.Length;
@@ -353,8 +348,8 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Input Events - Getters
-        public Event CallToDepart(Vehicle vehicle, ControlPoint.Statics at) { return new CallToDepartEvent { This = this, Vehicle = vehicle, At = at }; }
-        public Event UpdToArrive(ControlPoint.Statics at, bool toArrive) { return new UpdToArriveEvent { This = this, At = at, ToArrive = toArrive }; }
+        public Event CallToDepart(IVehicle vehicle, ControlPoint at) { return new CallToDepartEvent { This = this, Vehicle = vehicle, At = at }; }
+        public Event UpdToArrive(ControlPoint at, bool toArrive) { return new UpdToArriveEvent { This = this, At = at, ToArrive = toArrive }; }
         /// <summary>
         /// Reset the PathMover by removing all vehicles, and releasing locks caused by congested paths.
         /// </summary>
@@ -362,8 +357,8 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Output Events - Reference to Getters
-        public List<Func<Vehicle, ControlPoint.Statics, Event>> OnDepart { get; private set; } = new List<Func<Vehicle, ControlPoint.Statics, Event>>();
-        public List<Func<Vehicle, ControlPoint.Statics, Event>> OnArrive { get; private set; } = new List<Func<Vehicle, ControlPoint.Statics, Event>>();
+        public List<Func<IVehicle, ControlPoint, Event>> OnDepart { get; private set; } = new List<Func<IVehicle, ControlPoint, Event>>();
+        public List<Func<IVehicle, ControlPoint, Event>> OnArrive { get; private set; } = new List<Func<IVehicle, ControlPoint, Event>>();
         public List<Func<Event>> OnDeadlock { get; private set; } = new List<Func<Event>>();
         #endregion
 
@@ -374,7 +369,7 @@ namespace O2DESNet.Traffic
             {
                 var path = new Path(pathConfig, DefaultRS.Next(), tag: pathConfig.Tag);
                 Paths.Add(pathConfig, path);
-                DepartingQueues.Add(path, new Queue<Vehicle>());
+                DepartingQueues.Add(path, new Queue<IVehicle>());
                 path.OnExit.Add(veh => new CalcMilageEvent { This = this, Path = path, Vehicle = veh });
                 path.OnExit.Add(veh => new ReachControlPointEvent { This = this, Vehicle = veh, At = path.Config.End });
                 path.OnExit.Add(veh => new DepartEvent { This = this, Path = path });
@@ -413,33 +408,6 @@ namespace O2DESNet.Traffic
         {
             foreach (var path in Paths.Values) path.WriteToConsole();
         }
-
-        public Bitmap DrawToImage(double scale)
-        {
-            int offset = 20;
-            int width = (int)Math.Ceiling(Config.ControlPoints.Values.Max(cp => cp.X) * scale) + offset * 5;
-            var minY = Config.ControlPoints.Values.Min(cp => cp.Y);
-            int height = (int)Math.Ceiling((Config.ControlPoints.Values.Max(cp => cp.Y) - minY) * scale) + offset * 5;
-            Bitmap bitmap = new Bitmap(width: width, height: height);
-            var g = Graphics.FromImage(bitmap);
-            float penWidth = 10;
-            int fullRGB = 200;
-            foreach (var path in Paths.Values)
-            {
-                //var congestion = 1.0 * path.Occupancy / path.Config.Capacity;
-                var congestion = Math.Min(1.0 * path.HC_AllVehicles.AverageCount / path.Config.Capacity / 0.3, 1);
-                int red = congestion == 0 ? 220 : congestion < 0.5 ? (int)Math.Floor(fullRGB * congestion / 0.5) : fullRGB;
-                int green = congestion == 0 ? 220 : congestion > 0.5 ? (int)Math.Floor(fullRGB * (1 - congestion) / 0.5) : fullRGB;
-                int blue = congestion == 0 ? 220 : 0;
-                var d = path.Config.D.Split(' ');
-                double startX = Convert.ToDouble(d[1]) + offset, startY = Convert.ToDouble(d[2]) + offset,
-                    endX = Convert.ToDouble(d[4]) + offset, endY = Convert.ToDouble(d[5]) + offset;
-                g.DrawLine(
-                    pen: new Pen(Color.FromArgb(red: red, green: green, blue: blue), width: penWidth),
-                    pt1: new PointF((float)(startX * scale), (float)((startY - minY) * scale)),
-                    pt2: new PointF((float)(endX * scale), (float)((endY - minY) * scale)));
-            }
-            return bitmap;
-        }
+        
     }
 }

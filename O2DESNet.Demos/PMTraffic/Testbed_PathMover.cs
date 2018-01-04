@@ -13,8 +13,8 @@ namespace O2DESNet.Demos.PMTraffic
         public class Statics : Scenario
         {
             public PathMover.Statics PathMover { get; set; }
-            public List<ControlPoint.Statics> Origins { get; set; }
-            public List<ControlPoint.Statics> Destinations { get; set; }
+            public List<ControlPoint> Origins { get; set; }
+            public List<ControlPoint> Destinations { get; set; }
             public Vehicle.Statics VehicleCategory { get; set; }
             public int NVehicles { get; set; } = 1;
             public bool RestrictedNeighboringJobs { get; set; } = false;
@@ -34,13 +34,13 @@ namespace O2DESNet.Demos.PMTraffic
         private class StartEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
-            internal ControlPoint.Statics At { get; set; } = null;
+            internal ControlPoint At { get; set; } = null;
             public override void Invoke()
             {
                 if (At == null) At = Config.Origins[DefaultRS.Next(Config.Origins.Count)];
 
                 bool neighboring = DefaultRS.NextDouble() < 0.95;
-                ControlPoint.Statics target;
+                ControlPoint target;
 
                 while (true)
                 {
@@ -55,7 +55,7 @@ namespace O2DESNet.Demos.PMTraffic
                     else if (!neighboring && nCols > 1) break;
                 }
 
-                Execute(Vehicle.SetTargets(new List<ControlPoint.Statics> { target }));
+                Execute(Vehicle.SetTargets(new List<ControlPoint> { target }));
                 Execute(This.PathMover.CallToDepart(Vehicle, At));
                 This.JobsCounter.ObserveChange(1, ClockTime);
             }
@@ -64,7 +64,7 @@ namespace O2DESNet.Demos.PMTraffic
         private class FinishEvent : InternalEvent
         {
             internal Vehicle Vehicle { get; set; }
-            internal ControlPoint.Statics At { get; set; }
+            internal ControlPoint At { get; set; }
             public override void Invoke()
             {
                 This.JobsCounter.ObserveChange(-1, ClockTime);
@@ -103,7 +103,7 @@ namespace O2DESNet.Demos.PMTraffic
             Name = "Testbed_PathMover";
             PathMover = new PathMover(config.PathMover, DefaultRS.Next());
             for (int i = 0; i < config.NVehicles; i++) Vehicles.Add(new Vehicle(config.VehicleCategory, DefaultRS.Next()));
-            PathMover.OnArrive.Add((veh, cp) => new FinishEvent { This = this, Vehicle = veh, At = cp });
+            PathMover.OnArrive.Add((veh, cp) => new FinishEvent { This = this, Vehicle = (Vehicle)veh, At = cp });
             PathMover.OnDeadlock.Add(() => new DeadLockEvent { This = this });
             InitEvents.AddRange(PathMover.InitEvents);
             foreach (var veh in Vehicles) InitEvents.Add(new StartEvent { This = this, Vehicle = veh });

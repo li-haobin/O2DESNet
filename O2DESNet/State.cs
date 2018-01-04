@@ -4,7 +4,20 @@ using System.IO;
 
 namespace O2DESNet
 {
-    public abstract class State
+    public interface IModule
+    {
+        void WarmedUp(DateTime clockTime);
+        void WriteToConsole(DateTime? clockTime = null);
+        /// <summary>
+        /// Name of the module type
+        /// </summary>
+        string Name { get; }
+        /// <summary>
+        /// Tag for the module instance
+        /// </summary>
+        string Tag { get; set; }
+    }
+    public abstract class State : IModule
     {
         internal protected Random DefaultRS { get; private set; }
         private int _seed;

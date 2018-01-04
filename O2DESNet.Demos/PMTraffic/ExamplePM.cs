@@ -129,8 +129,8 @@ namespace O2DESNet.Demos.PMTraffic
                 }
             }
 
-            foreach (var path in pm.Paths.Values)
-                path.D = string.Format("M {0} {1} L {2} {3}", path.Start.X, path.Start.Y, path.End.X, path.End.Y);
+            //foreach (var path in pm.Paths.Values)
+            //    path.D = string.Format("M {0} {1} L {2} {3}", path.Start.X, path.Start.Y, path.End.X, path.End.Y);
 
             pm.RoutingTablesFile = "routing_table_pm_example2.txt";
             pm.OutputRoutingTables();

@@ -1,101 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using O2DESNet.SVGRenderer;
-using System.Xml.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace O2DESNet.Traffic
 {
-    public class ControlPoint : State<ControlPoint.Statics>
+    public class ControlPoint : IDrawable
     {
-        #region Statics
-        public class Statics : Scenario
+        public int Index { get; internal set; }
+        public string Tag { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Degree { get; set; } = 0;
+        //public PathMover.Statics PathMover { get; internal set; }
+        //internal Statics() { }
+
+        public List<Path.Statics> PathsIn { get; private set; } = new List<Path.Statics>();
+        public List<Path.Statics> PathsOut { get; private set; } = new List<Path.Statics>();
+        public Dictionary<ControlPoint, ControlPoint> RoutingTable { get; internal set; }        
+        public Path.Statics PathTo(ControlPoint target)
         {
-            public int Index { get; internal set; }
-            public string Tag { get; set; }
-            public PathMover.Statics PathMover { get; internal set; }
-            //internal Statics() { }
+            if (Equals(target)) return null;
+            return PathsOut.Where(p => p.End.Equals(RoutingTable[target])).First();
+        }
 
-            public List<Path.Statics> PathsIn { get; private set; } = new List<Path.Statics>();
-            public List<Path.Statics> PathsOut { get; private set; } = new List<Path.Statics>();
-            public Dictionary<Statics, Statics> RoutingTable { get; internal set; }
-            public Path.Statics PathTo(Statics target)
+        #region Drawing
+        private bool _showTag = true;
+        private Canvas _drawing = null;
+        public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
+        public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+        public void UpdDrawing(DateTime? clockTime = null)
+        {
+            _drawing = new Canvas();
+            _drawing.Children.Add(new System.Windows.Shapes.Path // Cross
             {
-                if (Equals(target)) return null;
-                return PathsOut.Where(p => p.End.Equals(RoutingTable[target])).First();
-            }
-
-            #region SVG Output
-            /// <summary>
-            /// SVG - X coordinate for translation
-            /// </summary>
-            public double X { get; set; } = 0;
-            /// <summary>
-            /// SVG - Y coordinate for translation
-            /// </summary>
-            public double Y { get; set; } = 0;
-
-            public Group SVG()
-            {
-                string cp_name = "cp#" + PathMover.Index + "_" + Index;
-                var path = PathsOut.First();
-                string path_name = "path#" + PathMover.Index + "_" + path.Index;
-                var label = new Text(LabelStyle, string.Format("CP{0}", Index), new XAttribute("transform", "translate(3 6)"));
-                if (path.X != 0 || path.Y != 0 || path.Rotate != 0)
-                    return new PathMarker(cp_name, path.X, path.Y, path.Rotate, path_name + "_d", 0, new Use("cross"), label);
-                else return new PathMarker(cp_name, path_name + "_d", 0, new Use("cross"), label);
-            }
-
-            public static CSS LabelStyle = new CSS("pm_cp_label", new XAttribute("text-anchor", "left"), new XAttribute("font-family", "Verdana"), new XAttribute("font-size", "4px"), new XAttribute("fill", "darkred"));
-
-            /// <summary>
-            /// Including arrows, styles
-            /// </summary>
-            public static Definition SVGDefs
-            {
-                get
+                Stroke = Brushes.DarkRed,
+                StrokeThickness = 1,
+                Data = new PathGeometry
                 {
-                    return new Definition(
-                        new O2DESNet.SVGRenderer.Path("M -2 -2 L 2 2 M -2 2 L 2 -2", "darkred", new XAttribute("id", "cross"), new XAttribute("stroke-width", "0.5")),
-                        new Style(LabelStyle)
-                        );
-                }
-            }
-            #endregion
+                    Figures = new PathFigureCollection(new PathFigure[] {
+                        new PathFigure(new Point(-4, -4), new LineSegment[]{
+                            new LineSegment(new Point(4, 4), true),
+                        }, false),
+                        new PathFigure(new Point(-4, 4), new LineSegment[]{
+                            new LineSegment(new Point(4, -4), true),
+                        }, false),
+                    })
+                },
+            });
+            if (ShowTag) _drawing.Children.Add(new TextBlock
+            {
+                Text = Tag ?? ToString(),
+                FontSize = 10,
+                Margin = new Thickness(-10, 4, 0, 0),
+            });
+            var rt = new TransformGroup();
+            rt.Children.Add(new RotateTransform(Degree));
+            rt.Children.Add(new TranslateTransform(X, Y));
+            _drawing.RenderTransform = rt;
         }
         #endregion
-
-        //#region Sub-Components
-        ////private Server<TLoad> Server { get; set; }
-        //#endregion
-
-        //#region Dynamics
-        ////public int Occupancy { get { return Server.Occupancy; } }  
-        //#endregion
-
-        //#region Events
-        //private abstract class EventOfControlPoint : Event { internal ControlPoint This { get; set; } } // event adapter 
-
-        ////private class InternalEvent : EventOfControlPoint
-        ////{
-        ////    internal TLoad Load { get; set; }
-        ////    public override void Invoke() {  }
-        ////}
-        //#endregion
-
-        //#region Input Events - Getters
-        ////public Event Input(TLoad load) { return new InternalEvent { This = this, Load = load }; }
-        //#endregion
-
-        //#region Output Events - Reference to Getters
-        ////public List<Func<TLoad, Event>> OnOutput { get; private set; } = new List<Func<TLoad, Event>>();
-        //#endregion
-
-        public ControlPoint(Statics config, int seed, string tag = null) : base(config, seed, tag)
-        {
-            Name = "ControlPoint";
-        }
-
-        public override void WarmedUp(DateTime clockTime) { }
     }
 }

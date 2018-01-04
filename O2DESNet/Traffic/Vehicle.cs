@@ -4,7 +4,14 @@ using System.Linq;
 
 namespace O2DESNet.Traffic
 {
-    public class Vehicle : State<Vehicle.Statics>
+    public interface IVehicle : IModule
+    {
+        List<ControlPoint> Targets { get; }
+
+        Event RemoveTarget();
+        Event CalcMilage(double meters);
+    }
+    public class Vehicle : State<Vehicle.Statics>, IVehicle
     {
         #region Statics
         public class Statics : Scenario
@@ -14,7 +21,7 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Dynamics
-        public List<ControlPoint.Statics> Targets { get; private set; } = new List<ControlPoint.Statics>();
+        public List<ControlPoint> Targets { get; private set; } = new List<ControlPoint>();
         public Dictionary<int, double> Milage { get; private set; } = new Dictionary<int, double> { { 0, 0 } };
         public Dictionary<int, List<TimeSpan>> Duration { get; private set; } = new Dictionary<int, List<TimeSpan>>();
         public int CurrentPhase { get; private set; } = 0;
@@ -29,7 +36,7 @@ namespace O2DESNet.Traffic
 
         private class AddTargetEvent : InternalEvent
         {
-            internal ControlPoint.Statics Target { get; set; }
+            internal ControlPoint Target { get; set; }
             public override void Invoke()
             {
                 This.Targets.Add(Target);
@@ -37,10 +44,10 @@ namespace O2DESNet.Traffic
         }
         private class SetTargetsEvent : InternalEvent
         {
-            internal List<ControlPoint.Statics> Targets { get; set; }
+            internal List<ControlPoint> Targets { get; set; }
             public override void Invoke()
             {
-                This.Targets = new List<ControlPoint.Statics>(Targets);
+                This.Targets = new List<ControlPoint>(Targets);
             }
         }
 
@@ -73,8 +80,8 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Input Events - Getters
-        public Event AddTarget(ControlPoint.Statics target) { return new AddTargetEvent { This = this, Target = target }; }
-        public Event SetTargets(List<ControlPoint.Statics> targets) { return new SetTargetsEvent { This = this, Targets = targets }; }
+        public Event AddTarget(ControlPoint target) { return new AddTargetEvent { This = this, Target = target }; }
+        public Event SetTargets(List<ControlPoint> targets) { return new SetTargetsEvent { This = this, Targets = targets }; }
         public Event RemoveTarget() { return new RemoveTargetEvent { This = this }; }
         public Event CalcMilage(double meters)
         {
