@@ -64,18 +64,15 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Distributions\Poisson.cs" />
-    <Compile Include="IDrawable.cs" />
+    <Compile Include="Drawing\IDrawable.cs" />
     <Compile Include="Modules\FIFOServer.cs" />
     <Compile Include="Modules\Load.cs" />
     <Compile Include="Modules\Synchronizer.cs" />

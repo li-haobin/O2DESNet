@@ -29,11 +29,13 @@ namespace O2DESNet.Traffic
         #region Drawing
         private bool _showTag = true;
         private Canvas _drawing = null;
+        public TransformGroup TransformGroup { get; } = new TransformGroup();
         public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
-        public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+        public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
         public void UpdDrawing(DateTime? clockTime = null)
         {
-            _drawing = new Canvas();
+            if (_drawing == null) _drawing = new Canvas();
+            else _drawing.Children.Clear();
             _drawing.Children.Add(new System.Windows.Shapes.Path // Cross
             {
                 Stroke = Brushes.DarkRed,
@@ -56,10 +58,9 @@ namespace O2DESNet.Traffic
                 FontSize = 10,
                 Margin = new Thickness(-10, 4, 0, 0),
             });
-            var rt = new TransformGroup();
-            rt.Children.Add(new RotateTransform(Degree));
-            rt.Children.Add(new TranslateTransform(X, Y));
-            _drawing.RenderTransform = rt;
+            TransformGroup.Children.Add(new RotateTransform(Degree));
+            TransformGroup.Children.Add(new TranslateTransform(X, Y));
+            _drawing.RenderTransform = TransformGroup;
         }
         #endregion
     }

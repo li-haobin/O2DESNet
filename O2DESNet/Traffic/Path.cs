@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace O2DESNet.Traffic
 {
-    public class Path : State<Path.Statics>
+    public class Path : State<Path.Statics>, IDrawable
     {
         #region Statics
         public class Statics : Scenario, IDrawable
@@ -36,10 +36,9 @@ namespace O2DESNet.Traffic
             public ControlPoint End { get; internal set; }
             public bool CrossHatched { get; set; } = false;
 
-            #region Drawing
+            #region For Drawing
             public List<Point> Trajectory { get; private set; } = new List<Point>();
             public bool TurnWithRoad { get; set; } = true;
-            public TransformGroup RenderTransform { get; private set; } = new TransformGroup();
             internal TransformGroup SlipOnCurve(double ratio, bool turnWithRoad = false)
             {
                 var distances = new List<double>();
@@ -68,8 +67,9 @@ namespace O2DESNet.Traffic
 
             private bool _showTag = true;
             private Canvas _drawing = null;
+            public TransformGroup TransformGroup { get; } = new TransformGroup();
             public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
-            public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+            public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
             public void UpdDrawing(DateTime? clockTime = null)
             {
                 _drawing = new Canvas();
@@ -109,7 +109,7 @@ namespace O2DESNet.Traffic
                     FontSize = 10,
                     RenderTransform = SlipOnCurve(0.4),
                 });
-                _drawing.RenderTransform = RenderTransform;
+                _drawing.RenderTransform = TransformGroup;
             }
             #endregion            
         }
@@ -355,16 +355,93 @@ namespace O2DESNet.Traffic
             Console.WriteLine();
         }
 
-        #region Drawing
-        private bool _showTag = true;
+        #region For Drawing
         private DateTime? _timestamp = null;
         private Canvas _drawing = null;
-        public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
-        public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(_timestamp); } }
+        private System.Windows.Shapes.Path _overlay_red, _overlay_green;
+        private Dictionary<IVehicle, Canvas> _drawing_vehicles = new Dictionary<IVehicle, Canvas>();
+
+        public TransformGroup TransformGroup { get { return Config.TransformGroup; } } 
+        public Canvas Drawing { get { if (_drawing == null) { InitDrawing(); UpdDrawing(); } return _drawing; } }
+        public bool ShowTag {
+            get { return Config.ShowTag; }
+            set { if (Config.ShowTag != value) { Config.ShowTag = value; UpdDrawing(_timestamp); } }
+        }
+        private void InitDrawing()
+        {
+            _drawing = new Canvas();
+            _overlay_red = new System.Windows.Shapes.Path
+            {
+                Stroke = Brushes.Red,
+                StrokeThickness = 5,
+                Data = new PathGeometry
+                {
+                    Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(Config.Trajectory.First(),
+                            Config.Trajectory.GetRange(1, Config.Trajectory.Count - 1).Select(pt => new LineSegment(pt, true)),
+                            false)
+                        })
+                },
+                Opacity = 0,
+                RenderTransform = TransformGroup,
+            };
+            _overlay_green = new System.Windows.Shapes.Path
+            {
+                Stroke = Brushes.Green,
+                StrokeThickness = 5,
+                Data = new PathGeometry
+                {
+                    Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(Config.Trajectory.First(),
+                            Config.Trajectory.GetRange(1, Config.Trajectory.Count - 1).Select(pt => new LineSegment(pt, true)),
+                            false)
+                        })
+                },
+                Opacity = 0.4,
+                RenderTransform = TransformGroup,
+            };
+            _drawing.Children.Add(Config.Drawing);
+            _drawing.Children.Add(_overlay_red);
+            _drawing.Children.Add(_overlay_green);
+        }
         public void UpdDrawing(DateTime? clockTime = null)
         {
+            clockTime = clockTime ?? LastTimeStamp;
+            clockTime = clockTime >= LastTimeStamp ? clockTime : LastTimeStamp;
             _timestamp = clockTime;
-            throw new NotImplementedException();
+            var toRemove = _drawing_vehicles.Keys.Where(veh => !VehiclePositions.ContainsKey(veh) && !VehiclesCompleted.Contains(veh)).ToList();
+            foreach (var veh in toRemove)
+            {
+                _drawing.Children.Remove(_drawing_vehicles[veh]);
+                _drawing_vehicles.Remove(veh);
+            }
+            var toAdd = VehiclePositions.Keys.Concat(VehiclesCompleted).Where(veh => !_drawing_vehicles.ContainsKey(veh)).ToList();
+            foreach (var veh in toAdd)
+            {
+                var drw = veh.Drawing;
+                _drawing_vehicles.Add(veh, drw);
+                _drawing.Children.Add(drw);
+            }
+            foreach (var veh in _drawing_vehicles.Keys)
+            {
+                veh.ShowTag = ShowTag;
+                var tg = Config.SlipOnCurve(
+                    VehiclePositions.ContainsKey(veh) ?
+                    VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed / Config.Length : 1.0
+                    );
+                foreach (var t in TransformGroup.Children) tg.Children.Add(t);
+                _drawing_vehicles[veh].RenderTransform = tg;
+            }
+            if (Occupancy > 0)
+            {
+                _overlay_red.Opacity = 0.4;
+                _overlay_green.Opacity = 0;
+            }
+            else
+            {
+                _overlay_red.Opacity = 0;
+                _overlay_green.Opacity = 0.4;
+            }
         }
         #endregion
     }

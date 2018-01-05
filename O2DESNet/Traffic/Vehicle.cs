@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace O2DESNet.Traffic
 {
-    public interface IVehicle : IModule
+    public interface IVehicle : IModule, IDrawable
     {
         List<ControlPoint> Targets { get; }
 
@@ -17,6 +20,60 @@ namespace O2DESNet.Traffic
         public class Statics : Scenario
         {
             public double Speed { get; set; }
+            public string Tag { get; set; }
+
+            #region For Drawing
+            private bool _showTag = true;
+            private Canvas _drawing = null;
+            public TransformGroup TransformGroup { get; } = new TransformGroup();
+            public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
+            public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
+            public void UpdDrawing(DateTime? clockTime = null)
+            {
+                _drawing = new Canvas();
+                _drawing.Children.Add(new System.Windows.Shapes.Path
+                {
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 1,
+                    Data = new PathGeometry
+                    {
+                        Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(
+                                new Point(-70, -15),
+                                new LineSegment[]{
+                                    new LineSegment(new Point(-70, 15), true),
+                                    new LineSegment(new Point(70, 15), true),
+                                    new LineSegment(new Point(70, -15), true),
+                                }, true)
+                        })
+                    },
+                    Fill = Brushes.Orange,
+                });
+                _drawing.Children.Add(new System.Windows.Shapes.Path
+                {
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 3,
+                    Data = new PathGeometry
+                    {
+                        Figures = new PathFigureCollection(new PathFigure[] {
+                            new PathFigure(new Point(-10, -10), new LineSegment[]{
+                                new LineSegment(new Point(10, 0), true),
+                                new LineSegment(new Point(-10, 10), true),
+                            },
+                            false)
+                        })
+                    },
+                });
+                if (ShowTag) _drawing.Children.Add(new TextBlock
+                {
+                    Text = Tag,
+                    FontSize = 10,
+                    Margin = new Thickness(30, 0, 0, 0),
+                });
+                _drawing.Opacity = 0.5;
+                _drawing.RenderTransform = TransformGroup;
+            }
+            #endregion          
         }
         #endregion
 
@@ -99,5 +156,17 @@ namespace O2DESNet.Traffic
             foreach (var phase in Duration.Keys.ToList()) Duration[phase] = new List<TimeSpan>();
             TimeStamp = clockTime;
         }
+
+        #region For Drawing
+        private Canvas _drawing = null;
+        public TransformGroup TransformGroup { get { return Config.TransformGroup; } }
+        public Canvas Drawing { get { if (_drawing == null) { UpdDrawing(); } return _drawing; } }
+        public bool ShowTag { get { return Config.ShowTag; } set { Config.ShowTag = value; UpdDrawing(); } }        
+        public void UpdDrawing(DateTime? clockTime = null)
+        {
+            Config.UpdDrawing();
+            _drawing = Config.Drawing;
+        }
+        #endregion
     }
 }

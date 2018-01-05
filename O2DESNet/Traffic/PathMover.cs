@@ -9,7 +9,7 @@ using System.Windows;
 
 namespace O2DESNet.Traffic
 {
-    public class PathMover : State<PathMover.Statics>
+    public class PathMover : State<PathMover.Statics>, IDrawable
     {
         #region Statics
         public class Statics : Scenario, IDrawable
@@ -170,18 +170,18 @@ namespace O2DESNet.Traffic
             #endregion
 
             #region For Drawing
-            public TransformGroup RenderTransform { get; private set; } = new TransformGroup();
+            public TransformGroup TransformGroup { get; } = new TransformGroup();
 
             private bool _showTag = true;
             private Canvas _drawing = null;
             public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
-            public bool ShowTag { get { return _showTag; } set { _showTag = value; UpdDrawing(); } }
+            public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
             public void UpdDrawing(DateTime? clockTime = null)
             {
                 _drawing = new Canvas();
                 foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
                 foreach (var path in Paths.Values) { path.ShowTag = ShowTag; _drawing.Children.Add(path.Drawing); }
-                _drawing.RenderTransform = RenderTransform;
+                _drawing.RenderTransform = TransformGroup;
             }
             #endregion
         }
@@ -204,7 +204,6 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Events
-
         private abstract class InternalEvent : Event<PathMover, Statics> { }
 
         // Alpha_1
@@ -408,6 +407,34 @@ namespace O2DESNet.Traffic
         {
             foreach (var path in Paths.Values) path.WriteToConsole();
         }
-        
+
+        #region For Drawing
+        private DateTime? _timestamp = null;
+        private Canvas _drawing = null;
+
+        public TransformGroup TransformGroup { get { return Config.TransformGroup; } }
+        public Canvas Drawing { get { if (_drawing == null) { InitDrawing(); UpdDrawing(); } return _drawing; } }
+        public bool ShowTag
+        {
+            get { return Config.ShowTag; }
+            set { if (Config.ShowTag != value) { Config.ShowTag = value; UpdDrawing(_timestamp); } }
+        }
+        private void InitDrawing()
+        {
+            _drawing = new Canvas();
+            foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
+            foreach (var path in Paths.Values) _drawing.Children.Add(path.Drawing);
+            _drawing.RenderTransform = Config.TransformGroup;
+        }
+        public void UpdDrawing(DateTime? clockTime = null)
+        {
+            foreach (var path in Paths.Values)
+            {
+                path.ShowTag = ShowTag;
+                path.UpdDrawing(clockTime);
+            }
+        }
+        #endregion
+
     }
 }
