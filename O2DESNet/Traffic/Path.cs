@@ -427,7 +427,7 @@ namespace O2DESNet.Traffic
                 veh.ShowTag = ShowTag;
                 var tg = Config.SlipOnCurve(
                     VehiclePositions.ContainsKey(veh) ?
-                    VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed / Config.Length : 1.0
+                    Math.Min(1.0, (VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed) / Config.Length) : 1.0
                     );
                 foreach (var t in TransformGroup.Children) tg.Children.Add(t);
                 _drawing_vehicles[veh].RenderTransform = tg;
