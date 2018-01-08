@@ -48,5 +48,9 @@ namespace O2DESNet
         protected void Schedule(Event evnt, DateTime time) { Induce(evnt); Simulator.Schedule(evnt, time); }
         protected void Schedule(Event evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
         protected void Schedule(Event evnt) { Schedule(evnt, ClockTime); }
+        protected void Schedule(IEnumerable<Event> events)
+        {
+            foreach (var e in events) Schedule(e);
+        }
     }    
 }
