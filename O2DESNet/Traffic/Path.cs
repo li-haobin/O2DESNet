@@ -402,7 +402,7 @@ namespace O2DESNet.Traffic
                 Opacity = 0.4,
                 RenderTransform = TransformGroup,
             };
-            _drawing.Children.Add(Config.Drawing);
+            //_drawing.Children.Add(Config.Drawing);
             _drawing.Children.Add(_overlay_red);
             _drawing.Children.Add(_overlay_green);
         }

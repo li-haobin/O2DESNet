@@ -141,8 +141,8 @@ namespace O2DESNet.Traffic
                 {
                     lock (ControlPoints)
                     {
-                        //Console.Clear();
-                        //Console.WriteLine("Constructing routing table...\t\n{0:F3}% of entire PathMover Completed!\t", 100.0 * ControlPoints.Values.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
+                        Console.Clear();
+                        Console.WriteLine("Constructing routing table...\t\n{0:F3}% of entire PathMover Completed!\t", 100.0 * ControlPoints.Values.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
                     }
 
                     var sinkIndex = sinkIndices.First();
@@ -181,10 +181,10 @@ namespace O2DESNet.Traffic
             public TransformGroup TransformGroup { get; } = new TransformGroup();
 
             private bool _showTag = true;
-            private Canvas _drawing = null;
+            protected Canvas _drawing = null;
             public Canvas Drawing { get { if (_drawing == null) UpdDrawing(); return _drawing; } }
             public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
-            public void UpdDrawing(DateTime? clockTime = null)
+            public virtual void UpdDrawing(DateTime? clockTime = null)
             {
                 _drawing = new Canvas();
                 foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
@@ -301,6 +301,7 @@ namespace O2DESNet.Traffic
                 }
                 var path = This.Paths[At.PathTo(Vehicle.Targets.First())];
                 Execute(path.Enter(Vehicle));
+                if (!This.PathsToDraw.Contains(path)) This.PathsToDraw.Add(path); //for drawing
             }
         }
 
@@ -429,18 +430,21 @@ namespace O2DESNet.Traffic
         }
         private void InitDrawing()
         {
-            _drawing = new Canvas();
-            foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
+            _drawing = Config.Drawing;
+            //_drawing = new Canvas();
+            //foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
             foreach (var path in Paths.Values) _drawing.Children.Add(path.Drawing);
-            _drawing.RenderTransform = Config.TransformGroup;
+            //_drawing.RenderTransform = Config.TransformGroup;
         }
+        private HashSet<Path> PathsToDraw { get; } = new HashSet<Path>();
         public void UpdDrawing(DateTime? clockTime = null)
         {
-            foreach (var path in Paths.Values)
+            foreach (var path in PathsToDraw)
             {
                 path.ShowTag = ShowTag;
                 path.UpdDrawing(clockTime);
             }
+            PathsToDraw.RemoveWhere(p => p.HC_AllVehicles.LastCount == 0);
         }
         #endregion
 

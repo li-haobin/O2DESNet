@@ -40,11 +40,11 @@ namespace O2DESNet.Traffic
                     {
                         Figures = new PathFigureCollection(new PathFigure[] {
                             new PathFigure(
-                                new Point(-70, -15),
+                                new Point(-7.0, -1.5),
                                 new LineSegment[]{
-                                    new LineSegment(new Point(-70, 15), true),
-                                    new LineSegment(new Point(70, 15), true),
-                                    new LineSegment(new Point(70, -15), true),
+                                    new LineSegment(new Point(-7.0, 1.5), true),
+                                    new LineSegment(new Point(7.0, 1.5), true),
+                                    new LineSegment(new Point(7.0, -1.5), true),
                                 }, true)
                         })
                     },
@@ -57,9 +57,9 @@ namespace O2DESNet.Traffic
                     Data = new PathGeometry
                     {
                         Figures = new PathFigureCollection(new PathFigure[] {
-                            new PathFigure(new Point(-10, -10), new LineSegment[]{
-                                new LineSegment(new Point(10, 0), true),
-                                new LineSegment(new Point(-10, 10), true),
+                            new PathFigure(new Point(-1.0, -1.0), new LineSegment[]{
+                                new LineSegment(new Point(1.0, 0), true),
+                                new LineSegment(new Point(-1.0, 1.0), true),
                             },
                             false)
                         })
@@ -71,7 +71,7 @@ namespace O2DESNet.Traffic
                     FontSize = 10,
                     Margin = new Thickness(30, 0, 0, 0),
                 });
-                _drawing.Opacity = 0.5;
+                //_drawing.Opacity = 0.5;
                 _drawing.RenderTransform = TransformGroup;
             }
             #endregion          
