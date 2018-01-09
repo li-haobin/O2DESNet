@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows;
+using O2DESNet.Drawing;
 
 namespace O2DESNet.Traffic
 {
@@ -106,8 +107,9 @@ namespace O2DESNet.Traffic
                 if (ShowTag) _drawing.Children.Add(new TextBlock
                 {
                     Text = Tag,
-                    FontSize = 10,
+                    FontSize = 4,
                     RenderTransform = SlipOnCurve(0.4),
+                    
                 });
                 _drawing.RenderTransform = TransformGroup;
             }

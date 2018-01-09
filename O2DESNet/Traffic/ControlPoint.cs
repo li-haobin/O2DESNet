@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -25,6 +26,7 @@ namespace O2DESNet.Traffic
             if (Equals(target)) return null;
             return PathsOut.Where(p => p.End.Equals(RoutingTable[target])).First();
         }
+        public override string ToString() { return Tag ?? base.ToString(); }
 
         #region Drawing
         private bool _showTag = true;
@@ -55,7 +57,7 @@ namespace O2DESNet.Traffic
             if (ShowTag) _drawing.Children.Add(new TextBlock
             {
                 Text = Tag ?? ToString(),
-                FontSize = 10,
+                FontSize = 4,
                 Margin = new Thickness(-10, 4, 0, 0),
             });
             TransformGroup.Children.Add(new RotateTransform(Degree));

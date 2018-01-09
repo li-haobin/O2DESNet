@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Distributions\Poisson.cs" />
+    <Compile Include="Drawing\Drawer.cs" />
     <Compile Include="Drawing\IDrawable.cs" />
     <Compile Include="Modules\FIFOServer.cs" />
     <Compile Include="Modules\Load.cs" />

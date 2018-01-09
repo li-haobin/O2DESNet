@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows;
+using O2DESNet.Drawing;
 
 namespace O2DESNet.Traffic
 {
@@ -33,12 +34,19 @@ namespace O2DESNet.Traffic
             }
 
             #region Path Mover Builder
-            public ControlPoint CreatControlPoint(string tag = null)
+            public ControlPoint CreateControlPoint(string tag = null)
             {
                 CheckInitialized();
                 var cp = new ControlPoint { Tag = tag, Index = ControlPoints.Count };
                 if (cp.Tag == null || cp.Tag.Length == 0) cp.Tag = string.Format(" {0}", cp.Index);
                 ControlPoints.Add(cp.Tag, cp);
+                return cp;
+            }
+            public ControlPoint CreateControlPoint(double x, double y, string tag = null)
+            {
+                var cp = CreateControlPoint(tag);
+                cp.X = x;
+                cp.Y = y;
                 return cp;
             }
 
