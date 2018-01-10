@@ -12,6 +12,7 @@ namespace O2DESNet.Traffic
     {
         List<ControlPoint> Targets { get; }
 
+        Event SetTargets(List<ControlPoint> targets);
         Event RemoveTarget();
         Event CalcMilage(double meters);
     }

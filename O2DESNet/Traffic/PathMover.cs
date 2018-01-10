@@ -419,7 +419,7 @@ namespace O2DESNet.Traffic
 
         #region For Drawing
         private DateTime? _timestamp = null;
-        private Canvas _drawing = null;
+        protected Canvas _drawing = null;
 
         public TransformGroup TransformGroup { get { return Config.TransformGroup; } }
         public Canvas Drawing { get { if (_drawing == null) { InitDrawing(); UpdDrawing(); } return _drawing; } }
@@ -428,23 +428,25 @@ namespace O2DESNet.Traffic
             get { return Config.ShowTag; }
             set { if (Config.ShowTag != value) { Config.ShowTag = value; UpdDrawing(_timestamp); } }
         }
-        private void InitDrawing()
+        protected virtual void InitDrawing()
         {
-            _drawing = Config.Drawing;
-            //_drawing = new Canvas();
-            //foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
+            _drawing = new Canvas();
+            foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
             foreach (var path in Paths.Values) _drawing.Children.Add(path.Drawing);
-            //_drawing.RenderTransform = Config.TransformGroup;
+            _drawing.RenderTransform = Config.TransformGroup;
         }
         private HashSet<Path> PathsToDraw { get; } = new HashSet<Path>();
         public void UpdDrawing(DateTime? clockTime = null)
         {
+            List<Path> toRemove = new List<Path>();            
             foreach (var path in PathsToDraw)
             {
                 path.ShowTag = ShowTag;
                 path.UpdDrawing(clockTime);
+                if (path.HC_AllVehicles.LastCount == 0) lock (toRemove) toRemove.Add(path);
             }
-            PathsToDraw.RemoveWhere(p => p.HC_AllVehicles.LastCount == 0);
+            //PathsToDraw.RemoveWhere(p => p.HC_AllVehicles.LastCount == 0);
+            foreach (var path in toRemove) PathsToDraw.Remove(path);
         }
         #endregion
 
