@@ -36,6 +36,7 @@ namespace O2DESNet.Traffic
             public ControlPoint Start { get; internal set; }
             public ControlPoint End { get; internal set; }
             public bool CrossHatched { get; set; } = false;
+            public TimeSpan SuspendTime { get; set; } = TimeSpan.FromSeconds(5);
 
             #region For Drawing
             public List<Point> Trajectory { get; private set; } = new List<Point>();
@@ -132,8 +133,12 @@ namespace O2DESNet.Traffic
         public Dictionary<Statics, bool> ToArrive { get; private set; } = new Dictionary<Statics, bool>();
         public double CurrentSpeed { get; private set; }
         public int Occupancy { get { return VehiclePositions.Count + VehiclesCompleted.Count; } }
-        public int Vacancy { get { return Config.Capacity - Occupancy; } }
+        public int Vacancy { get { return Suspended ? 0 : Config.Capacity - Occupancy; } }
         public bool LockedByPaths { get; private set; } = false;
+        /// <summary>
+        /// Control time gap between entrances. Suspended is true if the path is temporarily closed.
+        /// </summary>
+        public bool Suspended { get; private set; } = false;
         public HourCounter HC_AllVehicles { get; private set; } = new HourCounter();
         public HourCounter HC_VehiclesTravelling { get; private set; } = new HourCounter();
         public HourCounter HC_VehiclesCompleted { get; private set; } = new HourCounter();
@@ -166,6 +171,7 @@ namespace O2DESNet.Traffic
                 UpdPositions();
                 This.VehiclePositions.Add(Vehicle, 0);
                 This.VehicleCompletionTimes.Add(Vehicle, ClockTime);
+                Execute(new SuspendEvent());
                 Execute(new UpdCompletionEvent());
                 Execute(This.OnVacancyChg.Select(e => e()));
                 //Log("Start,{0},{1}", Vehicle, This);
@@ -295,6 +301,24 @@ namespace O2DESNet.Traffic
                     Execute(This.OnLockedByPaths.Select(e => e()));
             }
         }
+
+        // Time Gap between entrances
+        private class SuspendEvent : InternalEvent
+        {
+            public override void Invoke()
+            {
+                This.Suspended = true;
+                Schedule(new ResumeEvent(), Config.SuspendTime);
+            }
+        }
+        private class ResumeEvent : InternalEvent
+        {
+            public override void Invoke()
+            {
+                This.Suspended = false;
+                Execute(This.OnVacancyChg.Select(e => e()));
+            }
+        }
         #endregion
 
         #region Input Events - Getters
@@ -402,7 +426,7 @@ namespace O2DESNet.Traffic
                 Opacity = 0.4,
                 RenderTransform = TransformGroup,
             };
-            _drawing.Children.Add(Config.Drawing);
+            //_drawing.Children.Add(Config.Drawing);
             _drawing.Children.Add(_overlay_red);
             _drawing.Children.Add(_overlay_green);
         }

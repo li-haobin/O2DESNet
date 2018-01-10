@@ -186,7 +186,7 @@ namespace O2DESNet.Traffic
             public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
             public virtual void UpdDrawing(DateTime? clockTime = null)
             {
-                _drawing = new Canvas();
+                if (_drawing == null) _drawing = new Canvas();
                 foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
                 foreach (var path in Paths.Values) { path.ShowTag = ShowTag; _drawing.Children.Add(path.Drawing); }
                 _drawing.RenderTransform = TransformGroup;
@@ -430,10 +430,11 @@ namespace O2DESNet.Traffic
         }
         protected virtual void InitDrawing()
         {
-            _drawing = new Canvas();
-            foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
+            _drawing = Config.Drawing;
+            //_drawing = new Canvas();
+            //foreach (var cp in Config.ControlPoints.Values) _drawing.Children.Add(cp.Drawing);
             foreach (var path in Paths.Values) _drawing.Children.Add(path.Drawing);
-            _drawing.RenderTransform = Config.TransformGroup;
+            //_drawing.RenderTransform = Config.TransformGroup;
         }
         private HashSet<Path> PathsToDraw { get; } = new HashSet<Path>();
         public void UpdDrawing(DateTime? clockTime = null)

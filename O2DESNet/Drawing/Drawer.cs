@@ -13,19 +13,19 @@ namespace O2DESNet.Drawing
 {
     public class Drawer
     {
-        public static void ExportToPng(string path, Canvas surface)
+        public static void ExportToPng(string path, Canvas canvas)
         {
             // Save current canvas transform
-            Transform transform = surface.LayoutTransform;
+            Transform transform = canvas.LayoutTransform;
             // reset current transform (in case it is scaled or rotated)
-            surface.LayoutTransform = null;
+            canvas.LayoutTransform = null;
 
             // Get the size of canvas
-            Size size = new Size(surface.Width, surface.Height);
+            Size size = new Size(canvas.Width, canvas.Height);
             // Measure and arrange the surface
             // VERY IMPORTANT
-            surface.Measure(size);
-            surface.Arrange(new Rect(size));
+            canvas.Measure(size);
+            canvas.Arrange(new Rect(size));
 
             // Create a render bitmap and push the surface to it
             RenderTargetBitmap renderBitmap =
@@ -35,7 +35,7 @@ namespace O2DESNet.Drawing
                 96d,
                 96d,
                 PixelFormats.Pbgra32);
-            renderBitmap.Render(surface);
+            renderBitmap.Render(canvas);
 
             // Create a file stream for saving image
             using (FileStream outStream = new FileStream(path, FileMode.Create))
@@ -49,7 +49,7 @@ namespace O2DESNet.Drawing
             }
 
             // Restore previously saved layout
-            surface.LayoutTransform = transform;
+            canvas.LayoutTransform = transform;
         }
     }
 }
