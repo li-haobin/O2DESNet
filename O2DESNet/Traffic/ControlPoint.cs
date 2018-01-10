@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Xml.Serialization;
 
 namespace O2DESNet.Traffic
 {
@@ -63,6 +64,60 @@ namespace O2DESNet.Traffic
             TransformGroup.Children.Add(new RotateTransform(Degree));
             TransformGroup.Children.Add(new TranslateTransform(X, Y));
             _drawing.RenderTransform = TransformGroup;
+        }
+        #endregion
+
+        #region XML
+        [XmlType("ControlPoint")]
+        public class XML
+        {
+            public string Index { get; set; }
+            public string Tag { get; set; }
+            public double X { get; set; }
+            public double Y { get; set; }
+            public string Degree { get; set; }
+            public List<string> Router { get; set; }
+            public XML() { }
+            public XML(ControlPoint cp)
+            {
+                Index = string.Format("{0:x}", cp.Index);
+                Tag = cp.Tag;
+                X = cp.X;
+                Y = cp.Y;
+                if (cp.Degree != 0) Degree = cp.Degree.ToString();
+                if (cp.PathsOut.Count > 1)
+                {
+                    var routingList = new Dictionary<int, List<int>>();
+                    foreach (var i in cp.RoutingTable)
+                        if (i.Value != null && i.Key != cp)
+                        {
+                            var key = i.Value.Index;
+                            var value = i.Key.Index;
+                            if (!routingList.ContainsKey(key)) routingList.Add(key, new List<int>());
+                            if (key != value) routingList[key].Add(value);
+                        }
+                    Router = routingList.Keys.Select(k => string.Format("{0:x}@{1}", k, routingList[k].OrderBy(v => v)
+                        .Select(v => string.Format("{0:x}", v))
+                        .Aggregate("", (s1, s2) => s1.Length == 0 ? s2 : string.Format("{0}|{1}", s1, s2))))
+                        .OrderByDescending(str => str.Length).ToList();
+                    Router.RemoveAt(0); // remove the longest routing string as it is no more than the complement
+                    Router = Router.OrderBy(str => Convert.ToInt32(str.Split('@')[0], 16)).ToList();
+                }
+            }
+            public ControlPoint Restore()
+            {
+                var cp = new ControlPoint
+                {
+                    Index = Convert.ToInt32(Index, 16),
+                    Tag = Tag,
+                    X = X,
+                    Y = Y,
+                    Degree = Convert.ToDouble(Degree),
+                    RoutingTable = new Dictionary<ControlPoint, ControlPoint>(),
+                };
+                if (Degree != null) cp.Degree = Convert.ToDouble(Degree);
+                return cp;
+            }
         }
         #endregion
     }

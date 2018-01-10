@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows;
 using O2DESNet.Drawing;
+using System.Xml.Serialization;
 
 namespace O2DESNet.Traffic
 {
@@ -190,6 +191,37 @@ namespace O2DESNet.Traffic
                 foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
                 foreach (var path in Paths.Values) { path.ShowTag = ShowTag; _drawing.Children.Add(path.Drawing); }
                 _drawing.RenderTransform = TransformGroup;
+            }
+            #endregion
+
+            #region XML
+            public void ToXML(string file) { XML.ToXML(this, file); }
+            public static Statics FromXML(string file) { return XMLParser<XML>.FromXML(file).Restore(); }
+            [XmlType("PathMover")]
+            public class XML
+            {
+                public List<ControlPoint.XML> ControlPoints { get; set; }
+                public XML() { }
+                public XML(Statics pm)
+                {
+                    ControlPoints = pm.ControlPoints.Values.OrderBy(cp => cp.Index)
+                        .Select(cp => new ControlPoint.XML(cp)).ToList();
+                }
+                public static void ToXML(Statics pm, string file)
+                {
+                    var xml = new XML(pm);
+                    XMLParser<XML>.ToXML(xml, file);
+                }
+                public Statics Restore()
+                {
+                    var cfg = new Statics();
+                    var cpsXmls = ControlPoints.ToDictionary(cp => cp.Restore(), cp => cp);
+                    cfg.ControlPoints = cpsXmls.Keys.ToDictionary(cp => cp.Tag, cp => cp);
+
+                    // need to reconstruct routing table
+
+                    return cfg;
+                }
             }
             #endregion
         }
