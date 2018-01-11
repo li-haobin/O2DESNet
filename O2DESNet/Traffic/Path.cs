@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows;
 using O2DESNet.Drawing;
+using System.Xml.Serialization;
 
 namespace O2DESNet.Traffic
 {
@@ -15,7 +16,7 @@ namespace O2DESNet.Traffic
         {
             public int Index { get; internal set; }
             public string Tag { get; set; }
-            public PathMover.Statics PathMover { get; internal set; }
+            //public PathMover.Statics PathMover { get; internal set; }
             internal Statics() { }
             public Statics(ControlPoint start, ControlPoint end, List<Point> trajectory = null)
             {
@@ -114,7 +115,61 @@ namespace O2DESNet.Traffic
                 });
                 _drawing.RenderTransform = TransformGroup;
             }
-            #endregion            
+            #endregion
+
+            #region XML
+            [XmlType("Path")]
+            public class XML
+            {
+                public string Start { get; set; }
+                public string End { get; set; }
+                public string Index { get; set; }
+                public string Tag { get; set; }                
+                public double Length { get; set; }
+                public int Capacity { get; set; }
+                public string Trajectory { get; set; }
+                public double SuspendTime { get; set; } // in unit of seconds
+                public string CrossHatched { get; set; } // null if false
+                public string TurnWithRoad { get; set; } // null if false                
+                public XML() { }
+                public XML(Statics path)
+                {
+                    Index = string.Format("{0:x}", path.Index);
+                    if (path.Tag != path.Index.ToString()) Tag = path.Tag;
+                    Start = string.Format("{0:x}", path.Start.Index);
+                    End = string.Format("{0:x}", path.End.Index);
+                    Length = Math.Round(path.Length, 3);
+                    Capacity = path.Capacity;
+                    if (path.CrossHatched) CrossHatched = "";
+                    SuspendTime = path.SuspendTime.TotalSeconds;
+                    if (path.Trajectory.Count > 1)
+                        Trajectory = path.Trajectory.Select(p => string.Format("{0},{1};", Math.Round(p.X, 3), Math.Round(p.Y, 3)))
+                            .Aggregate("", (s1, s2) => string.Format("{0}{1}", s1, s2));
+                    if (path.TurnWithRoad) TurnWithRoad = "";
+                }
+                public Statics Restore(Dictionary<int, ControlPoint> controlPoints)
+                {
+                    var index = Convert.ToInt32(Index, 16);
+                    var path = new Statics
+                    {
+                        Index = index,
+                        Tag = Tag ?? index.ToString(),
+                        Start = controlPoints[Convert.ToInt32(Start, 16)],
+                        End = controlPoints[Convert.ToInt32(End, 16)],
+                        Length = Length,
+                        Capacity = Capacity,
+                        SuspendTime = TimeSpan.FromSeconds(SuspendTime),
+                        CrossHatched = CrossHatched != null,
+                        TurnWithRoad = TurnWithRoad != null,
+                    };
+                    path.Start.PathsOut.Add(path);
+                    path.End.PathsIn.Add(path);
+                    foreach (var s in Trajectory.Split(';').Select(s => s.Split(',')))
+                        if (s.Length > 1) path.Trajectory.Add(new Point(Convert.ToDouble(s[0]), Convert.ToDouble(s[1])));
+                    return path;
+                }
+            }
+            #endregion
         }
         #endregion
 

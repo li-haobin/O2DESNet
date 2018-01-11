@@ -56,7 +56,7 @@ namespace O2DESNet.Traffic
                 CheckInitialized();
                 var path = new Path.Statics
                 {
-                    PathMover = this,
+                    //PathMover = this,
                     Tag = tag,
                     Index = Paths.Count,
                     Length = length,
@@ -196,29 +196,58 @@ namespace O2DESNet.Traffic
 
             #region XML
             public void ToXML(string file) { XML.ToXML(this, file); }
-            public static Statics FromXML(string file) { return XMLParser<XML>.FromXML(file).Restore(); }
+            public static Statics FromXML(string file) { return XMLParser<XML>.Deserialize(file).Restore(); }
             [XmlType("PathMover")]
             public class XML
             {
                 public List<ControlPoint.XML> ControlPoints { get; set; }
+                public List<Path.Statics.XML> Paths { get; set; }
                 public XML() { }
                 public XML(Statics pm)
                 {
-                    ControlPoints = pm.ControlPoints.Values.OrderBy(cp => cp.Index)
-                        .Select(cp => new ControlPoint.XML(cp)).ToList();
+                    ControlPoints = pm.ControlPoints.Values.OrderBy(cp => cp.Index).Select(cp => new ControlPoint.XML(cp)).ToList();
+                    Paths = pm.Paths.Values.OrderBy(p => p.Start.Index).ThenBy(p => p.End.Index).Select(path => new Path.Statics.XML(path)).ToList();
                 }
                 public static void ToXML(Statics pm, string file)
                 {
                     var xml = new XML(pm);
-                    XMLParser<XML>.ToXML(xml, file);
+                    XMLParser<XML>.Serialize(xml, file);
                 }
                 public Statics Restore()
                 {
                     var cfg = new Statics();
-                    var cpsXmls = ControlPoints.ToDictionary(cp => cp.Restore(), cp => cp);
-                    cfg.ControlPoints = cpsXmls.Keys.ToDictionary(cp => cp.Tag, cp => cp);
+                    var idxCps = ControlPoints.Select(xml => xml.Restore()).ToDictionary(cp => cp.Index, cp => cp);
+                    cfg.ControlPoints = idxCps.Values.ToDictionary(cp => cp.Tag, cp => cp);
+                    cfg.Paths = Paths.Select(xml => xml.Restore(idxCps)).ToDictionary(path => path.Tag, path => path);
 
-                    // need to reconstruct routing table
+                    Func<string, ControlPoint> idxCp = idx => idxCps[Convert.ToInt32(idx, 16)];
+                    foreach (var xml in ControlPoints)
+                    {
+                        var cp = idxCp(xml.Index);
+                        var allCps = new HashSet<ControlPoint>(idxCps.Values);
+                        var nextCps = new HashSet<ControlPoint>(cp.PathsOut.Select(p => p.End));
+                        allCps.Remove(cp);
+                        ControlPoint next;
+                        foreach (var line in xml.Router.Select(s => s.Split('@')))
+                        {
+                            next = idxCp(line[0]);
+                            cp.RoutingTable.Add(next, next);
+                            nextCps.Remove(next);
+                            allCps.Remove(next);
+                            foreach (var target in line[1].Split('|').Where(s => s.Length > 0).Select(s => idxCp(s)))
+                            {
+                                cp.RoutingTable.Add(target, next);
+                                allCps.Remove(target);
+                            }
+                        }
+                        // for the complement info
+                        if (nextCps.Count > 1) throw new Exception("Wrong size for routing information.");
+                        if (cp.PathsOut.Count == 0) throw new Exception(string.Format("No path out at Control Point {0}.", cp.Tag));
+                        next = nextCps.First();
+                        cp.RoutingTable.Add(next, next);
+                        allCps.Remove(next);
+                        foreach (var target in allCps) cp.RoutingTable.Add(target, next);
+                    }
 
                     return cfg;
                 }
