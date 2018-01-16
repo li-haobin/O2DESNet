@@ -17,8 +17,8 @@ namespace O2DESNet.Traffic
         public class Statics : Scenario, IDrawable
         {
             public int Index { get; set; }
-            public Dictionary<string, Path.Statics> Paths { get; private set; } = new Dictionary<string, Path.Statics>();
-            public Dictionary<string, ControlPoint> ControlPoints { get; private set; } = new Dictionary<string, ControlPoint>();
+            public Dictionary<string, Path.Statics> Paths { get; protected set; } = new Dictionary<string, Path.Statics>();
+            public Dictionary<string, ControlPoint> ControlPoints { get; protected set; } = new Dictionary<string, ControlPoint>();
             public string RoutingTablesFile { get; set; } = null;
             public int Capacity
             {
@@ -195,7 +195,7 @@ namespace O2DESNet.Traffic
             #endregion
 
             #region XML
-            public void ToXML(string file) { XML.ToXML(this, file); }
+            public virtual void ToXML(string file) { XML.ToXML(this, file); }
             public static Statics FromXML(string file) { return XMLParser<XML>.Deserialize(file).Restore(); }
             [XmlType("PathMover")]
             public class XML
@@ -213,18 +213,19 @@ namespace O2DESNet.Traffic
                     var xml = new XML(pm);
                     XMLParser<XML>.Serialize(xml, file);
                 }
-                public Statics Restore()
+                protected Dictionary<int, ControlPoint> _idxCps;
+                public virtual Statics Restore()
                 {
                     var cfg = new Statics();
-                    var idxCps = ControlPoints.Select(xml => xml.Restore()).ToDictionary(cp => cp.Index, cp => cp);
-                    cfg.ControlPoints = idxCps.Values.ToDictionary(cp => cp.Tag, cp => cp);
-                    cfg.Paths = Paths.Select(xml => xml.Restore(idxCps)).ToDictionary(path => path.Tag, path => path);
+                    _idxCps = ControlPoints.Select(xml => xml.Restore()).ToDictionary(cp => cp.Index, cp => cp);
+                    cfg.ControlPoints = _idxCps.Values.ToDictionary(cp => cp.Tag, cp => cp);
+                    cfg.Paths = Paths.Select(xml => xml.Restore(_idxCps)).ToDictionary(path => path.Tag, path => path);
 
-                    Func<string, ControlPoint> idxCp = idx => idxCps[Convert.ToInt32(idx, 16)];
+                    Func<string, ControlPoint> idxCp = idx => _idxCps[Convert.ToInt32(idx, 16)];
                     foreach (var xml in ControlPoints)
                     {
                         var cp = idxCp(xml.Index);
-                        var allCps = new HashSet<ControlPoint>(idxCps.Values);
+                        var allCps = new HashSet<ControlPoint>(_idxCps.Values);
                         var nextCps = new HashSet<ControlPoint>(cp.PathsOut.Select(p => p.End));
                         allCps.Remove(cp);
                         ControlPoint next;
@@ -242,11 +243,17 @@ namespace O2DESNet.Traffic
                         }
                         // for the complement info
                         if (nextCps.Count > 1) throw new Exception("Wrong size for routing information.");
-                        if (cp.PathsOut.Count == 0) throw new Exception(string.Format("No path out at Control Point {0}.", cp.Tag));
-                        next = nextCps.First();
-                        cp.RoutingTable.Add(next, next);
-                        allCps.Remove(next);
-                        foreach (var target in allCps) cp.RoutingTable.Add(target, next);
+                        if (cp.PathsOut.Count > 0)
+                        {
+                            next = nextCps.First();
+                            cp.RoutingTable.Add(next, next);
+                            allCps.Remove(next);
+                            foreach (var target in allCps) cp.RoutingTable.Add(target, next);
+                        }
+                        else
+                        {
+                            //throw new Exception(string.Format("No path out at Control Point {0}.", cp.Tag)); // ControlPoints might not be connected
+                        }
                     }
 
                     return cfg;
