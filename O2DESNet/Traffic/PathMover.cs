@@ -242,7 +242,7 @@ namespace O2DESNet.Traffic
                             }
                         }
                         // for the complement info
-                        if (nextCps.Count > 1) throw new Exception("Wrong size for routing information.");
+                        if (xml.Router.Count > 0 && nextCps.Count > 1) throw new Exception("Wrong size for routing information.");
                         if (cp.PathsOut.Count > 0)
                         {
                             next = nextCps.First();

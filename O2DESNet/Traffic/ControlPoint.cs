@@ -85,7 +85,7 @@ namespace O2DESNet.Traffic
                 X = cp.X;
                 Y = cp.Y;
                 if (cp.Degree != 0) Degree = cp.Degree.ToString();
-                if (cp.PathsOut.Count > 1)
+                if (cp.RoutingTable != null && cp.PathsOut.Count > 1)
                 {
                     var routingList = new Dictionary<int, List<int>>();
                     foreach (var i in cp.RoutingTable)
