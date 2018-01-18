@@ -16,7 +16,7 @@ namespace O2DESNet.Traffic
         #region Statics
         public class Statics : Scenario, IDrawable
         {
-            public int Index { get; set; }
+            public string Tag { get; set; }
             public Dictionary<string, Path.Statics> Paths { get; protected set; } = new Dictionary<string, Path.Statics>();
             public Dictionary<string, ControlPoint> ControlPoints { get; protected set; } = new Dictionary<string, ControlPoint>();
             public string RoutingTablesFile { get; set; } = null;
@@ -123,7 +123,8 @@ namespace O2DESNet.Traffic
                 var edges = paths.Select(path => new Tuple<int, int, double>(path.Start.Index, path.End.Index, path.Length)).ToList();
                 while (incompleteSet.Count > 0)
                 {
-                    Parallel.ForEach(incompleteSet, cp => ConstructRoutingTables(cp.Index, edges));
+                    Parallel.ForEach(incompleteSet, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                        cp => ConstructRoutingTables(cp.Index, edges));
                     //ConstructRoutingTables(incompleteSet.First().Index, edges);
                     incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
                 }
@@ -195,16 +196,18 @@ namespace O2DESNet.Traffic
             #endregion
 
             #region XML
-            public virtual void ToXML(string file) { XML.ToXML(this, file); }
+            public virtual void ToXML(string file = null) { XML.ToXML(this, file ?? string.Format("{0}.xml", Tag)); }
             public static Statics FromXML(string file) { return XMLParser<XML>.Deserialize(file).Restore(); }
             [XmlType("PathMover")]
             public class XML
             {
+                public string Tag { get; set; }
                 public List<ControlPoint.XML> ControlPoints { get; set; }
                 public List<Path.Statics.XML> Paths { get; set; }
                 public XML() { }
                 public XML(Statics pm)
                 {
+                    Tag = Tag;
                     ControlPoints = pm.ControlPoints.Values.OrderBy(cp => cp.Index).Select(cp => new ControlPoint.XML(cp)).ToList();
                     Paths = pm.Paths.Values.OrderBy(p => p.Start.Index).ThenBy(p => p.End.Index).Select(path => new Path.Statics.XML(path)).ToList();
                 }
@@ -216,7 +219,7 @@ namespace O2DESNet.Traffic
                 protected Dictionary<int, ControlPoint> _idxCps;
                 public virtual Statics Restore()
                 {
-                    var cfg = new Statics();
+                    var cfg = new Statics { Tag = Tag };
                     _idxCps = ControlPoints.Select(xml => xml.Restore()).ToDictionary(cp => cp.Index, cp => cp);
                     cfg.ControlPoints = _idxCps.Values.ToDictionary(cp => cp.Tag, cp => cp);
                     cfg.Paths = Paths.Select(xml => xml.Restore(_idxCps)).ToDictionary(path => path.Tag, path => path);
