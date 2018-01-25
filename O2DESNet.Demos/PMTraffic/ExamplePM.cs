@@ -21,11 +21,11 @@ namespace O2DESNet.Demos.PMTraffic
             {
                 for (int colId = 0; colId <= nCols; colId++)
                 {
-                    var cp_in = pm.CreatControlPoint(tag: string.Format("I_{0}_{1}", rowId, colId));
+                    var cp_in = pm.CreateControlPoint(tag: string.Format("I_{0}_{1}", rowId, colId));
                     cp_in.X = colId * (block_length + junction_length);
                     cp_in.Y = rowId == 0 ? 0 : rowId * (block_width + junction_width) + (junction_length - junction_width);
 
-                    var cp_out = pm.CreatControlPoint(tag: string.Format("O_{0}_{1}", rowId, colId));
+                    var cp_out = pm.CreateControlPoint(tag: string.Format("O_{0}_{1}", rowId, colId));
                     cp_out.X = cp_in.X + junction_length;
                     cp_out.Y = rowId == 0 ? cp_in.Y + junction_length : cp_in.Y + junction_width;
 
@@ -52,7 +52,7 @@ namespace O2DESNet.Demos.PMTraffic
 
                 for (int colId = 0; colId < nCols; colId++)
                 {
-                    var cp_work = pm.CreatControlPoint(tag: string.Format("{0}_{1}_{2}", init, rowId, colId)); // Work Points
+                    var cp_work = pm.CreateControlPoint(tag: string.Format("{0}_{1}_{2}", init, rowId, colId)); // Work Points
                     cp_work.X = colId * (block_length + junction_length) + junction_length + block_length / 2;
                     cp_work.Y = rowId == 0 ? 0 : rowId * (block_width + junction_width) + (junction_length - junction_width);
 

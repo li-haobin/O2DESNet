@@ -197,7 +197,7 @@ namespace O2DESNet.Traffic
 
             #region XML
             public virtual void ToXML(string file = null) { XML.ToXML(this, file ?? string.Format("{0}.xml", Tag)); }
-            public static Statics FromXML(string file) { return XMLParser<XML>.Deserialize(file).Restore(); }
+            public static Statics FromXML(string file) { return XMLParser<XML>.ReadFromXML(file).Restore(); }
             [XmlType("PathMover")]
             public class XML
             {
@@ -214,7 +214,7 @@ namespace O2DESNet.Traffic
                 public static void ToXML(Statics pm, string file)
                 {
                     var xml = new XML(pm);
-                    XMLParser<XML>.Serialize(xml, file);
+                    XMLParser<XML>.WriteToXML(xml, file);
                 }
                 protected Dictionary<int, ControlPoint> _idxCps;
                 public virtual Statics Restore()

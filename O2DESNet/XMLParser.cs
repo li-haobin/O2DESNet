@@ -11,13 +11,13 @@ namespace O2DESNet
 {
     public class XMLParser<T>
     {
-        public static void Serialize(T obj, string file)
+        public static void WriteToXML(T obj, string file)
         {
             using (var sw = new StreamWriter(string.Format(file)))
                 new XmlSerializer(typeof(T)).Serialize(XmlWriter.Create(sw), obj);
         }
         // 读取 XML 文件还原成类
-        public static T Deserialize(string file)
+        public static T ReadFromXML(string file)
         {
             return (T)new XmlSerializer(typeof(T)).Deserialize(new StreamReader(file));
         }
