@@ -43,7 +43,7 @@ namespace O2DESNet
         /// <param name="events">Batch of events to be executed</param>
         protected void Execute(IEnumerable<Event> events)
         {
-            foreach (var e in events) Execute(e);
+            foreach (var e in events.ToList()) Execute(e);
         }
         protected void Schedule(Event evnt, DateTime time) { Induce(evnt); Simulator.Schedule(evnt, time); }
         protected void Schedule(Event evnt, TimeSpan delay) { Schedule(evnt, ClockTime + delay); }
