@@ -228,7 +228,7 @@ namespace O2DESNet.Traffic
                 This.VehicleCompletionTimes.Add(Vehicle, ClockTime);
                 Execute(new SuspendEvent());
                 Execute(new UpdCompletionEvent());
-                Execute(This.OnVacancyChg.Select(e => e()));
+                Execute(new VacancyChgEvent());
                 //Log("Start,{0},{1}", Vehicle, This);
             }
         }
@@ -250,11 +250,12 @@ namespace O2DESNet.Traffic
         private class UpdToEnterEvent : InternalEvent
         {
             internal Path Path { get; set; } // the path which vehicles exit to
-            internal bool ToEnter { get; set; }
+            //internal bool ToEnter { get; set; }
             public override void Invoke()
             {
-                if (This.ToEnter.ContainsKey(Path.Config)) This.ToEnter[Path.Config] = ToEnter;
-                else This.ToEnter.Add(Path.Config, ToEnter);
+                var toEnter = Path.Vacancy > 0;
+                if (This.ToEnter.ContainsKey(Path.Config)) This.ToEnter[Path.Config] = toEnter;
+                else This.ToEnter.Add(Path.Config, toEnter);
                 Execute(new ExitEvent());
             }
         }
@@ -350,7 +351,7 @@ namespace O2DESNet.Traffic
                     Execute(This.OnExit.Select(e => e(veh)));
                     Execute(new ExitEvent());
                     Execute(new UpdCompletionEvent());
-                    Execute(This.OnVacancyChg.Select(e => e()));
+                    Execute(new VacancyChgEvent());
                 }
                 if (!prevLockedByPaths && This.LockedByPaths || This.VehiclesCompleted.Count == 0)
                     Execute(This.OnLockedByPaths.Select(e => e()));
@@ -371,6 +372,13 @@ namespace O2DESNet.Traffic
             public override void Invoke()
             {
                 This.Suspended = false;
+                Execute(new VacancyChgEvent());
+            }
+        }
+        private class VacancyChgEvent : InternalEvent
+        {
+            public override void Invoke()
+            {
                 Execute(This.OnVacancyChg.Select(e => e()));
             }
         }
@@ -382,7 +390,7 @@ namespace O2DESNet.Traffic
         /// Update the state of the following paths, 
         /// if they are available for the vehicle to exit to.
         /// </summary>
-        public Event UpdToEnter(Path path, bool toEnter) { return new UpdToEnterEvent { This = this, Path = path, ToEnter = toEnter }; }
+        public Event UpdToEnter(Path path) { return new UpdToEnterEvent { This = this, Path = path }; }
         /// <summary>
         /// Update the state of the current or following paths (if it is cross-hatched), 
         /// if they are exitable at the end when vehicles reached the last target.

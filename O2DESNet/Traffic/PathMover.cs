@@ -457,15 +457,15 @@ namespace O2DESNet.Traffic
             {
                 foreach (var prev in path.Config.Start.PathsIn.Select(p => Paths[p]))
                 {
-                    path.OnVacancyChg.Add(() => prev.UpdToEnter(path, path.Vacancy > 0));
-                    InitEvents.Add(prev.UpdToEnter(path, path.Vacancy > 0));
+                    path.OnVacancyChg.Add(() => prev.UpdToEnter(path));
+                    InitEvents.Add(prev.UpdToEnter(path));
                     InitEvents.Add(path.UpdToExit(path, true));
                     // cross-hatching
                     if (prev.Config.CrossHatched)
                         foreach (var prev2 in prev.Config.Start.PathsIn.Select(p => Paths[p]))
                         {
-                            path.OnVacancyChg.Add(() => prev2.UpdToEnter(path, path.Vacancy > 0));
-                            InitEvents.Add(prev2.UpdToEnter(path, path.Vacancy > 0));
+                            path.OnVacancyChg.Add(() => prev2.UpdToEnter(path));
+                            InitEvents.Add(prev2.UpdToEnter(path));
                         }
                     if (path.Config.CrossHatched)
                     {
