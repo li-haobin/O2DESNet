@@ -13,7 +13,7 @@ namespace O2DESNet.Distributions
 
         public static TimeSpan Sample(Random rs, TimeSpan lowerbound, TimeSpan upperbound)
         {
-            return TimeSpan.FromDays(Sample(rs, lowerbound.Days, upperbound.Days));
+            return TimeSpan.FromMinutes(Sample(rs, lowerbound.TotalMinutes, upperbound.TotalMinutes));
         }
 
         public static T Sample<T>(Random rs, IEnumerable<T> candidates)
