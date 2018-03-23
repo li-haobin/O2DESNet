@@ -293,7 +293,20 @@ namespace O2DESNet.Traffic
             public override void Invoke()
             {
                 while (At.Equals(Vehicle.Targets.FirstOrDefault())) Execute(Vehicle.RemoveTarget());
-                if (Vehicle.Targets.Count == 0) throw new Exception("Vechile must have at least one target that is different from the departing point.");
+                if (Vehicle.Targets.Count == 0)
+                {
+                    try
+                    {
+                        Execute(This.OnDepart.Select(e => e(Vehicle, At)));
+                        Execute(This.OnArrive.Select(e => e(Vehicle, At)));
+                        return;
+                    }
+                    catch(Exception e)
+                    {
+                        throw e;
+                        //throw new Exception("Vechile must have at least one target that is different from the departing point.");
+                    }
+                }
                 var path = This.Paths[At.PathTo(Vehicle.Targets.First())];
                 This.DepartingQueues[path].Enqueue(Vehicle);
                 This.HCounter_Departing.ObserveChange(1, ClockTime);
@@ -342,7 +355,7 @@ namespace O2DESNet.Traffic
         {
             internal Path Path { get; set; }
             public override void Invoke()
-            {
+            {                
                 if (This.DepartingQueues[Path].Count == 0 || Path.Vacancy == 0) return;
                 var vehicle = This.DepartingQueues[Path].Dequeue();
                 This.Vehicles.Add(vehicle);
@@ -451,7 +464,8 @@ namespace O2DESNet.Traffic
                 DepartingQueues.Add(path, new Queue<IVehicle>());
                 path.OnExit.Add(veh => new CalcMilageEvent { This = this, Path = path, Vehicle = veh });
                 path.OnExit.Add(veh => new ReachControlPointEvent { This = this, Vehicle = veh, At = path.Config.End });
-                path.OnExit.Add(veh => new DepartEvent { This = this, Path = path });
+                path.OnVacancyChg.Add(() => new DepartEvent { This = this, Path = path });
+                //path.OnExit.Add(veh => new DepartEvent { This = this, Path = path });
             }
             foreach (var path in Paths.Values)
             {

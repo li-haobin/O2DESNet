@@ -509,6 +509,7 @@ namespace O2DESNet.Traffic
             {
                 var drw = veh.Drawing;
                 _drawing_vehicles.Add(veh, drw);
+                if (drw.Parent != null) ((Canvas)drw.Parent).Children.Remove(drw);
                 _drawing.Children.Add(drw);
             }
             foreach (var veh in _drawing_vehicles.Keys)
@@ -521,16 +522,18 @@ namespace O2DESNet.Traffic
                 foreach (var t in TransformGroup.Children) tg.Children.Add(t);
                 _drawing_vehicles[veh].RenderTransform = tg;
             }
-            if (Occupancy > 0)
-            {
-                _overlay_red.Opacity = 0.4;
-                _overlay_green.Opacity = 0;
-            }
-            else
-            {
-                _overlay_red.Opacity = 0;
-                _overlay_green.Opacity = 0.4;
-            }
+            //if (Occupancy > 0)
+            //{
+            //    _overlay_red.Opacity = 0.4;
+            //    _overlay_green.Opacity = 0;
+            //}
+            //else
+            //{
+            //    _overlay_red.Opacity = 0;
+            //    _overlay_green.Opacity = 0.4;
+            //}
+            _overlay_red.Opacity = 0;
+            _overlay_green.Opacity = 0;
         }
         #endregion
     }
