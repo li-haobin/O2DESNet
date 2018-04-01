@@ -33,7 +33,7 @@ namespace O2DESNet.Traffic
             /// <summary>
             /// Function map vehicle density in # vehicles per meter,  to the speed in meters per second
             /// </summary>
-            public Func<double, double> SpeedByDensity { get; set; } = d => 4.5;
+            public Func<double, double> SpeedByDensity { get; set; } //= d => 4.5;
             public ControlPoint Start { get; internal set; }
             public ControlPoint End { get; internal set; }
             public bool CrossHatched { get; set; } = false;

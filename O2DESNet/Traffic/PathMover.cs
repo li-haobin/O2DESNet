@@ -280,6 +280,7 @@ namespace O2DESNet.Traffic
         /// km/h
         /// </summary>
         public double AverageSpeed { get { return TotalMilage / TotalVehicleTime.TotalHours; } }
+        public Dictionary<ControlPoint, bool> ToArrive { get; private set; }
         #endregion
 
         #region Events
@@ -322,15 +323,19 @@ namespace O2DESNet.Traffic
             internal bool ToArrive { get; set; }
             public override void Invoke()
             {
+                This.ToArrive[At] = ToArrive;
                 foreach (var path in At.PathsIn.Select(p => This.Paths[p]))
                 {
-                    Execute(path.UpdToExit(path, ToArrive));
+                    Execute(path.UpdToExit(path, This.ToArrive[At]));
                     if (path.Config.CrossHatched)
                     {
                         foreach (var prev in path.Config.Start.PathsIn.Select(p => This.Paths[p]))
-                            Execute(prev.UpdToExit(path, ToArrive));
+                            Execute(prev.UpdToExit(path, This.ToArrive[At]));
                     }
                 }
+
+                var t = At.PathsIn.Select(p => This.Paths[p].ToArrive[p]).First();
+                foreach (var t1 in At.PathsIn.Select(p => This.Paths[p].ToArrive[p])) if (t1 != t) ;
             }
         }
 
@@ -488,6 +493,7 @@ namespace O2DESNet.Traffic
                     path.OnLockedByPaths.Add(() => new ChkDeadlockEvent { This = this });
                 }
             }
+            ToArrive = Config.ControlPoints.Values.ToDictionary(cp => cp, cp => true);
         }
 
         public override void WarmedUp(DateTime clockTime)
