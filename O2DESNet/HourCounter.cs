@@ -36,7 +36,7 @@ namespace O2DESNet
         /// <summary>
         /// The average count on observation period
         /// </summary>
-        public double AverageCount { get { return CumValue / TotalHours; } }
+        public double AverageCount { get { if (TotalHours == 0) return LastCount; return CumValue / TotalHours; } }
         public bool Paused { get; private set; }
 
         public HourCounter() { Init(DateTime.MinValue); }
