@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows;
 using O2DESNet.Drawing;
 using System.Xml.Serialization;
+using O2DESNet.Distributions;
 
 namespace O2DESNet.Traffic
 {
@@ -281,6 +282,8 @@ namespace O2DESNet.Traffic
         /// </summary>
         public double AverageSpeed { get { return TotalMilage / TotalVehicleTime.TotalHours; } }
         public Dictionary<ControlPoint, bool> ToArrive { get; private set; }
+        public HourCounter HCounter_Deadlocks { get; private set; } = new HourCounter();
+        public List<Path> DeadlockedPaths { get; private set; } = null;
         #endregion
 
         #region Events
@@ -333,9 +336,6 @@ namespace O2DESNet.Traffic
                             Execute(prev.UpdToExit(path, This.ToArrive[At]));
                     }
                 }
-
-                var t = At.PathsIn.Select(p => This.Paths[p].ToArrive[p]).First();
-                foreach (var t1 in At.PathsIn.Select(p => This.Paths[p].ToArrive[p])) if (t1 != t) ;
             }
         }
 
@@ -411,25 +411,52 @@ namespace O2DESNet.Traffic
         // Beta_4
         private class ChkDeadlockEvent : InternalEvent
         {
+            internal Path Path { get; set; }
             public override void Invoke()
             {
-                var nLockedByPaths = This.Paths.Values.Count(p => p.LockedByPaths);
-
-                //var paths_lockedByPaths = This.Paths.Values.Where(p => p.LockedByPaths).ToList();
-                //var paths_locked = This.Paths.Values.Where(p => p.VehiclesCompleted.Count == p.Occupancy && p.Occupancy > 0).ToList();
-                //if (nLockedByPaths < paths_locked.Count) Console.WriteLine();
-
-                var nOccupied = This.Paths.Values.Count(p => p.Occupancy > 0);
-                if (nOccupied > 0 && nLockedByPaths == nOccupied)
+                if (LockedBy(Path) != null)
                 {
-                    //string paths = "";
-                    //foreach (var p in This.Paths.Values.Where(p => p.Occupancy > 0)) paths += string.Format("{0},", p);
-                    //Log(string.Format("Deadlock Occurs at Path #{0}.", paths.Substring(0, paths.Length - 1)));
+                    var paths = new List<Path> { LockedBy(Path) };
+                    var hashset = new HashSet<Path>();
+                    
+                    while (!paths.Last().Equals(Path))
+                    {
+                        var path = LockedBy(paths.Last());
+                        if (path == null)
+                        {
+                            This.DeadlockedPaths = null;
+                            return;
+                        } 
+                        if (!hashset.Contains(path))
+                        {
+                            hashset.Add(path);
+                            paths.Add(path);
+                        }
+                        else
+                        {
+                            while (paths.First() != path) paths.RemoveAt(0);
+                            break;
+                        }
+                    }
+                    This.DeadlockedPaths = paths;
                     Execute(This.OnDeadlock.Select(e => e()));
+                    This.HCounter_Deadlocks.ObserveChange(1, ClockTime);
                 }
             }
+            private Path LockedBy(Path path)
+            {
+                if (!path.LockedByPaths)
+                {
+                    if (!This.ToArrive[path.Config.End] /// cannot exit
+                        && path.Config.End.PathsOut.Count(p => This.Paths[p].Vacancy > 0) == 0) /// the subsequent paths cannot be accessed
+                        return This.Paths[path.Config.End.PathsOut.First()];
+                    return null;
+                }
+                var next = This.Paths[path.Config.End.PathTo(path.VehiclesCompleted.First().Targets.First())];
+                if (next.Config.CrossHatched) next = This.Paths[next.Config.End.PathTo(path.VehiclesCompleted.First().Targets.First())];
+                return next;
+            }
         }
-
         private class CalcMilageEvent : InternalEvent
         {
             internal Path Path { get; set; }
@@ -442,6 +469,19 @@ namespace O2DESNet.Traffic
                 Execute(Vehicle.CalcMilage(Path.Config.Length));
             }
         }
+        private class TeleportEvent : InternalEvent
+        {
+            public override void Invoke()
+            {
+                if (This.DeadlockedPaths == null) return;
+                var from = Uniform.Sample(DefaultRS, This.DeadlockedPaths);
+                var vehicle = from.VehiclesCompleted.First();
+                Execute(from.Dequeue());
+
+                var to = Uniform.Sample(DefaultRS, This.Paths.Values.Where(p => p.Vacancy > 0));
+                Execute(to.Enter(vehicle));
+            }
+        }
         #endregion
 
         #region Input Events - Getters
@@ -451,6 +491,7 @@ namespace O2DESNet.Traffic
         /// Reset the PathMover by removing all vehicles, and releasing locks caused by congested paths.
         /// </summary>
         public Event Reset() { return new ResetEvent { This = this }; }
+        public Event Teleport() { return new TeleportEvent { This = this }; }
         #endregion
 
         #region Output Events - Reference to Getters
@@ -490,7 +531,7 @@ namespace O2DESNet.Traffic
                     {
                         InitEvents.Add(prev.UpdToExit(path, true));
                     }
-                    path.OnLockedByPaths.Add(() => new ChkDeadlockEvent { This = this });
+                    path.OnLockedByPaths.Add(() => new ChkDeadlockEvent { This = this, Path = path });
                 }
             }
             ToArrive = Config.ControlPoints.Values.ToDictionary(cp => cp, cp => true);
@@ -501,6 +542,7 @@ namespace O2DESNet.Traffic
             foreach (var path in Paths.Values) path.WarmedUp(clockTime);
             HCounter_Departing.WarmedUp(clockTime);
             HCounter_Travelling.WarmedUp(clockTime);
+            HCounter_Deadlocks.WarmedUp(clockTime);
         }
 
         public override void WriteToConsole(DateTime? clockTime = default(DateTime?))

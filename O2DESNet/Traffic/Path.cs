@@ -242,7 +242,7 @@ namespace O2DESNet.Traffic
             {
                 if (This.ToArrive.ContainsKey(Path.Config)) This.ToArrive[Path.Config] = ToExit;
                 else This.ToArrive.Add(Path.Config, ToExit);
-                Execute(new ExitEvent());
+                Execute(new AtptExitEvent());
             }
         }
 
@@ -256,7 +256,7 @@ namespace O2DESNet.Traffic
                 var toEnter = Path.Vacancy > 0;
                 if (This.ToEnter.ContainsKey(Path.Config)) This.ToEnter[Path.Config] = toEnter;
                 else This.ToEnter.Add(Path.Config, toEnter);
-                Execute(new ExitEvent());
+                Execute(new AtptExitEvent());
             }
         }
 
@@ -274,7 +274,6 @@ namespace O2DESNet.Traffic
                 Count();
             }
         }
-
         // Beta_1
         private class UpdCompletionEvent : InternalEvent
         {
@@ -302,21 +301,37 @@ namespace O2DESNet.Traffic
                 This.VehicleCompletionTimes.Remove(Vehicle);
                 This.VehiclesCompleted.Enqueue(Vehicle);
                 UpdPositions();
-                Execute(new ExitEvent());
+                Execute(new AtptExitEvent());
             }
         }
 
         // Beta_3
-        private class ExitEvent : InternalEvent
+        private class AtptExitEvent : InternalEvent
         {
             public override void Invoke()
             {
-                if (This.VehiclesCompleted.Count == 0) return;
-
+                if (This.VehiclesCompleted.Count == 0)
+                {
+                    This.LockedByPaths = false;
+                    return;
+                }
                 var prevLockedByPaths = This.LockedByPaths;
                 var vehicle = This.VehiclesCompleted.First();
-                var target = vehicle.Targets.First();
-                if (vehicle.Targets.Count > 1 && target.Equals(Config.End)) target = vehicle.Targets[1]; // if multiple targets exists, and the 1st target is to be reached, look at the 2nd target
+                var toExit = Exitable(vehicle.Targets.ToList());
+                if (toExit)
+                {
+                    var veh = This.VehiclesCompleted.Dequeue();
+                    Execute(This.OnExit.Select(e => e(veh)));                    
+                    Execute(new AtptExitEvent());
+                    Execute(new UpdCompletionEvent());
+                    Execute(new VacancyChgEvent());
+                }
+                if (This.LockedByPaths && Config.Capacity == This.Occupancy) Execute(This.OnLockedByPaths.Select(e => e()));
+            }
+            private bool Exitable(List<ControlPoint> targets)
+            {
+                while (targets.Count > 1 && targets.First().Equals(Config.End)) targets.RemoveAt(0); // if multiple targets exists, and the 1st target is to be reached, look at the 2nd target
+                var target = targets.First();
                 var exit = false;
                 if (target == This.Config.End)  // target is reached at the End
                 {
@@ -331,12 +346,13 @@ namespace O2DESNet.Traffic
 
                     if (next.CrossHatched)
                     {
-                        if (target == next.End)
+                        if (target == next.End && targets.Count == 1)
                         {
                             exit &= This.ToArrive[next];
                         }
                         else
                         {
+                            target = targets.First(cp => !cp.Equals(next.End));
                             var next2 = next.End.PathTo(target);
                             exit &= This.ToEnter[next2];
                             This.LockedByPaths = !exit;
@@ -344,20 +360,21 @@ namespace O2DESNet.Traffic
                         }
                     }
                 }
-                if (exit)
-                {
-                    var veh = This.VehiclesCompleted.Dequeue();
-                    //Log("Exit,{0},{1}", veh, This);
-                    Execute(This.OnExit.Select(e => e(veh)));
-                    Execute(new ExitEvent());
-                    Execute(new UpdCompletionEvent());
-                    Execute(new VacancyChgEvent());
-                }
-                if (!prevLockedByPaths && This.LockedByPaths || This.VehiclesCompleted.Count == 0)
-                    Execute(This.OnLockedByPaths.Select(e => e()));
+                return exit;
             }
         }
-
+        /// <summary>
+        /// Dequeue the first vehicle, for teleporting
+        /// </summary>
+        private class DequeueEvent : InternalEvent
+        {
+            public override void Invoke()
+            {
+                This.VehiclesCompleted.Dequeue();
+                Execute(new AtptExitEvent());
+                Execute(new VacancyChgEvent());
+            }
+        }
         // Time Gap between entrances
         private class SuspendEvent : InternalEvent
         {
@@ -408,6 +425,7 @@ namespace O2DESNet.Traffic
         /// Reset the Path by emptying all the Vehicles, and releasing all locks cause by other congested paths (the locks for arriving which is not caused by congestion remain).
         /// </summary>
         public Event Reset() { return new ResetEvent { This = this }; }
+        public Event Dequeue() { return new DequeueEvent { This = this }; }
         #endregion
 
         #region Output Events - Reference to Getters
