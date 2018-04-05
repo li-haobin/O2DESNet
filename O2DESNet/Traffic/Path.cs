@@ -326,7 +326,7 @@ namespace O2DESNet.Traffic
                     Execute(new UpdCompletionEvent());
                     Execute(new VacancyChgEvent());
                 }
-                if (This.LockedByPaths && Config.Capacity == This.Occupancy) Execute(This.OnLockedByPaths.Select(e => e()));
+                if (This.LockedByPaths && Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
             }
             private bool Exitable(List<ControlPoint> targets)
             {

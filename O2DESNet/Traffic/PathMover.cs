@@ -283,7 +283,7 @@ namespace O2DESNet.Traffic
         public double AverageSpeed { get { return TotalMilage / TotalVehicleTime.TotalHours; } }
         public Dictionary<ControlPoint, bool> ToArrive { get; private set; }
         public HourCounter HCounter_Deadlocks { get; private set; } = new HourCounter();
-        public List<Path> DeadlockedPaths { get; private set; } = null;
+        public List<Path> DeadlockedPaths { get; private set; } = new List<Path>();
         #endregion
 
         #region Events
@@ -424,7 +424,7 @@ namespace O2DESNet.Traffic
                         var path = LockedBy(paths.Last());
                         if (path == null)
                         {
-                            This.DeadlockedPaths = null;
+                            This.DeadlockedPaths = new List<Path>();
                             return;
                         } 
                         if (!hashset.Contains(path))
@@ -447,8 +447,8 @@ namespace O2DESNet.Traffic
             {
                 if (!path.LockedByPaths)
                 {
-                    if (!This.ToArrive[path.Config.End] /// cannot exit
-                        && path.Config.End.PathsOut.Count(p => This.Paths[p].Vacancy > 0) == 0) /// the subsequent paths cannot be accessed
+                    if (path.Occupancy == path.Config.Capacity && !This.ToArrive[path.Config.End] /// cannot exit
+                        && path.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity > This.Paths[p].Occupancy) == 0) /// the subsequent paths cannot be accessed
                         return This.Paths[path.Config.End.PathsOut.First()];
                     return null;
                 }
@@ -473,12 +473,14 @@ namespace O2DESNet.Traffic
         {
             public override void Invoke()
             {
-                if (This.DeadlockedPaths == null) return;
-                var from = Uniform.Sample(DefaultRS, This.DeadlockedPaths);
+                if (This.DeadlockedPaths.Count == 0) return;
+
+                var from = Uniform.Sample(DefaultRS, This.DeadlockedPaths
+                    .Where(p => p.VehiclesCompleted.Count > 0)); /// in case the deadlock is joined by an inaccessible work point
                 var vehicle = from.VehiclesCompleted.First();
                 Execute(from.Dequeue());
 
-                var to = Uniform.Sample(DefaultRS, This.Paths.Values.Where(p => p.Vacancy > 0));
+                var to = Uniform.Sample(DefaultRS, This.Paths.Values.Except(This.DeadlockedPaths).Where(p => p.Vacancy > 0 && !p.Config.CrossHatched));
                 Execute(to.Enter(vehicle));
             }
         }
