@@ -16,6 +16,7 @@ namespace O2DESNet
         /// Tag for the module instance
         /// </summary>
         string Tag { get; set; }
+        int Id { get; }
     }
     public abstract class State : IModule
     {

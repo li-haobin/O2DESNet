@@ -189,7 +189,7 @@ namespace O2DESNet.Traffic
         public double CurrentSpeed { get; private set; }
         public int Occupancy { get { return VehiclePositions.Count + VehiclesCompleted.Count; } }
         public int Vacancy { get { return Suspended ? 0 : Config.Capacity - Occupancy; } }
-        public bool LockedByPaths { get; private set; } = false;
+        public bool Locked { get; private set; } = false;
         /// <summary>
         /// Control time gap between entrances. Suspended is true if the path is temporarily closed.
         /// </summary>
@@ -270,7 +270,7 @@ namespace O2DESNet.Traffic
                 This.VehiclesCompleted = new Queue<IVehicle>();
                 This.LastTimeStamp = ClockTime;
                 foreach (var path in This.ToEnter.Keys.ToList()) This.ToEnter[path] = true;
-                This.LockedByPaths = false;
+                This.Locked = false;
                 Count();
             }
         }
@@ -312,10 +312,10 @@ namespace O2DESNet.Traffic
             {
                 if (This.VehiclesCompleted.Count == 0)
                 {
-                    This.LockedByPaths = false;
+                    This.Locked = false;
                     return;
                 }
-                var prevLockedByPaths = This.LockedByPaths;
+                var prevLockedByPaths = This.Locked;
                 var vehicle = This.VehiclesCompleted.First();
                 var toExit = Exitable(vehicle.Targets.ToList());
                 if (toExit)
@@ -326,7 +326,7 @@ namespace O2DESNet.Traffic
                     Execute(new UpdCompletionEvent());
                     Execute(new VacancyChgEvent());
                 }
-                if (This.LockedByPaths && Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
+                if (This.Locked && Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
             }
             private bool Exitable(List<ControlPoint> targets)
             {
@@ -336,13 +336,13 @@ namespace O2DESNet.Traffic
                 if (target == This.Config.End)  // target is reached at the End
                 {
                     exit = This.ToArrive[Config];
-                    This.LockedByPaths = false;
+                    This.Locked = !exit;
                 }
                 else
                 {
                     var next = Config.End.PathTo(target);
                     exit = This.ToEnter[next];
-                    This.LockedByPaths = !exit;
+                    This.Locked = !exit;
 
                     if (next.CrossHatched)
                     {
@@ -355,7 +355,7 @@ namespace O2DESNet.Traffic
                             target = targets.First(cp => !cp.Equals(next.End));
                             var next2 = next.End.PathTo(target);
                             exit &= This.ToEnter[next2];
-                            This.LockedByPaths = !exit;
+                            This.Locked = !exit;
                             // both next and next^2 path should be available if the next is cross-hatched
                         }
                     }
@@ -530,14 +530,34 @@ namespace O2DESNet.Traffic
                 if (drw.Parent != null) ((Canvas)drw.Parent).Children.Remove(drw);
                 _drawing.Children.Add(drw);
             }
+            #region vehicle position to display
+            double perVehicle = 20;
+            int nLanes = (int)Math.Ceiling(Config.Capacity * perVehicle / Config.Length);
+            var positions = new Dictionary<IVehicle, double>();
+            var idx = new Dictionary<IVehicle, int>();
+            int k = 0;
+            double r = 1 - 0.0 / Config.Capacity;
+            foreach (var veh in VehiclesCompleted)
+            {
+                positions.Add(veh, 1 - (0.0 + k / nLanes) / (1.0 * Config.Capacity / nLanes));
+                idx.Add(veh, k);
+                k++;
+            }
+            foreach (var veh in VehiclePositions.Keys)
+            {
+                positions.Add(veh, Math.Min(
+                    1 - (0.0 + k / nLanes) / (1.0 * Config.Capacity / nLanes), 
+                    Math.Min(1.0, (VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed) / Config.Length)));
+                idx.Add(veh, k);
+                k++;
+            }
+            #endregion
             foreach (var veh in _drawing_vehicles.Keys)
             {
                 veh.ShowTag = ShowTag;
-                var tg = Config.SlipOnCurve(
-                    VehiclePositions.ContainsKey(veh) ?
-                    Math.Min(1.0, (VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed) / Config.Length) : 1.0
-                    );
+                var tg = Config.SlipOnCurve(positions[veh]);
                 foreach (var t in TransformGroup.Children) tg.Children.Add(t);
+                tg.Children.Add(new TranslateTransform(0, (idx[veh] % nLanes - 0.5 * (nLanes - 1)) * 4)); /// for lane offset
                 _drawing_vehicles[veh].RenderTransform = tg;
             }
             //if (Occupancy > 0)

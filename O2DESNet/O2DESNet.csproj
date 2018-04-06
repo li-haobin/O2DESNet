@@ -89,7 +89,6 @@
     <Compile Include="Modules\RestoreServer.cs" />
     <Compile Include="Modules\Server.cs" />
     <Compile Include="Traffic\ControlPoint.cs" />
-    <Compile Include="Traffic\Dijkstra.cs" />
     <Compile Include="Traffic\Path.cs" />
     <Compile Include="Traffic\PathMover.cs" />
     <Compile Include="Traffic\Vehicle.cs" />

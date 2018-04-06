@@ -9,6 +9,7 @@ using System.Windows;
 using O2DESNet.Drawing;
 using System.Xml.Serialization;
 using O2DESNet.Distributions;
+using System.Diagnostics;
 
 namespace O2DESNet.Traffic
 {
@@ -80,7 +81,7 @@ namespace O2DESNet.Traffic
 
             #region For Static Routing (Distance-Based)
             private bool _initialized = false;
-            internal void Initialize()
+            public void Initialize()
             {
                 if (!_initialized)
                 {
@@ -88,86 +89,13 @@ namespace O2DESNet.Traffic
                     _initialized = true;
                 }
             }
-            public void OutputRoutingTables()
+            private void OutputRoutingTables()
             {
                 var controlPoints = ControlPoints.Values.OrderBy(cp => cp.Index).ToList();
                 if (RoutingTablesFile == null) return;
                 if (!_initialized) Initialize();
                 var str = string.Join(";", controlPoints.Select(cp => string.Format("{0}.{1}", cp.Index, string.Join(",", cp.RoutingTable.Where(i => i.Value != null).Select(i => string.Format("{0}:{1}", i.Key.Index, i.Value.Index))))));
                 using (StreamWriter sw = new StreamWriter(RoutingTablesFile)) sw.Write(str);
-            }
-            private void ConstructRoutingTables()
-            {
-                var controlPoints = ControlPoints.Values.OrderBy(cp => cp.Index).ToList();
-                var paths = Paths.Values.ToList();
-                if (RoutingTablesFile != null)
-                {
-                    try
-                    {
-                        var str = File.ReadAllText(RoutingTablesFile);
-                        foreach (var rt in str.Split(';'))
-                        {
-                            var ln = rt.Split('.');
-                            int index = Convert.ToInt32(ln[0]);
-                            if (ln[1].Length > 0) controlPoints[index].RoutingTable = ln[1].Split(',').Select(r => r.Split(':')).ToDictionary(r => controlPoints[Convert.ToInt32(r[0])], r => controlPoints[Convert.ToInt32(r[1])]);
-                            else controlPoints[index].RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
-                            foreach (var cp in controlPoints)
-                                if (cp != controlPoints[index] && !controlPoints[index].RoutingTable.ContainsKey(cp))
-                                    controlPoints[index].RoutingTable.Add(cp, null);
-                        }
-                        return;
-                    }
-                    catch { }
-                }
-                foreach (var cp in controlPoints) cp.RoutingTable = new Dictionary<ControlPoint, ControlPoint>();
-                var incompleteSet = controlPoints.ToList();
-                var edges = paths.Select(path => new Tuple<int, int, double>(path.Start.Index, path.End.Index, path.Length)).ToList();
-                while (incompleteSet.Count > 0)
-                {
-                    Parallel.ForEach(incompleteSet, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                        cp => ConstructRoutingTables(cp.Index, edges));
-                    //ConstructRoutingTables(incompleteSet.First().Index, edges);
-                    incompleteSet.RemoveAll(cp => cp.RoutingTable.Count == ControlPoints.Count - 1);
-                }
-            }
-            private void ConstructRoutingTables(int sourceIndex, List<Tuple<int, int, double>> edges)
-            {
-                var controlPoints = ControlPoints.Values.OrderBy(cp => cp.Index).ToList();
-                var edgeList = edges.ToList();
-                var dijkstra = new Dijkstra(edges);
-
-                var sinkIndices = new HashSet<int>(controlPoints.Select(cp => cp.Index));
-                sinkIndices.Remove(sourceIndex);
-                foreach (var target in controlPoints[sourceIndex].RoutingTable.Keys.ToList()) sinkIndices.Remove(target.Index);
-
-                while (sinkIndices.Count > 0)
-                {
-                    lock (ControlPoints)
-                    {
-                        Console.Clear();
-                        Console.WriteLine("Constructing routing table...\t\n{0:F3}% of entire PathMover Completed!\t", 100.0 * ControlPoints.Values.Sum(cp => cp.RoutingTable.Count) / ControlPoints.Count / (ControlPoints.Count - 1));
-                    }
-
-                    var sinkIndex = sinkIndices.First();
-                    var path = dijkstra.ShortestPath(sourceIndex, sinkIndex);
-                    if (path.Count > 0)
-                    {
-                        path.Add(sourceIndex);
-                        path.Reverse();
-                        for (int i = 0; i < path.Count - 1; i++)
-                        {
-                            for (int j = i + 1; j < path.Count; j++)
-                                lock (ControlPoints)
-                                    controlPoints[path[i]].RoutingTable[controlPoints[path[j]]] = controlPoints[path[i + 1]];
-                            sinkIndices.Remove(path[i + 1]);
-                        }
-                    }
-                    else
-                    {
-                        lock (ControlPoints) controlPoints[sourceIndex].RoutingTable[controlPoints[sinkIndex]] = null;
-                        sinkIndices.Remove(sinkIndex);
-                    }
-                }
             }
             private void CheckFeasibility()
             {
@@ -177,6 +105,34 @@ namespace O2DESNet.Traffic
                         if (p.CrossHatched)
                             throw new Exception(string.Format("Consecutive CrossHatched Paths, i.e., {0} & {1}, is not allowed.", path, p));
                 }
+            }
+            private void ConstructRoutingTables()
+            {
+                var to_at_next = ControlPoints.Values.ToDictionary(to => to, 
+                    to => (Dictionary<ControlPoint, Tuple<ControlPoint, double>>)null);
+                Parallel.ForEach(ControlPoints.Values, to =>
+                {
+                    to_at_next[to] = ControlPoints.Values.ToDictionary(cp => cp, 
+                        cp => new Tuple<ControlPoint, double>(null, double.PositiveInfinity));
+                    to_at_next[to][to] = new Tuple<ControlPoint, double>(null, 0);
+                    var toProcess = new Queue<ControlPoint>(new ControlPoint[] { to });
+                    while (toProcess.Count > 0)
+                    {
+                        var at = toProcess.Dequeue();
+                        foreach (var path in at.PathsIn)
+                        {
+                            var start = path.Start;
+                            var dist = to_at_next[to][at].Item2 + path.Length;
+                            if (dist < to_at_next[to][start].Item2)
+                            {
+                                to_at_next[to][start] = new Tuple<ControlPoint, double>(at, dist);
+                                toProcess.Enqueue(start);
+                            }
+                        }
+                    }
+                });
+                foreach (var at in ControlPoints.Values)
+                    at.RoutingTable = ControlPoints.Values.ToDictionary(to => to, to => to_at_next[to][at].Item1);
             }
             #endregion
 
@@ -418,7 +374,7 @@ namespace O2DESNet.Traffic
                 {
                     var paths = new List<Path> { LockedBy(Path) };
                     var hashset = new HashSet<Path>();
-                    
+
                     while (!paths.Last().Equals(Path))
                     {
                         var path = LockedBy(paths.Last());
@@ -426,7 +382,7 @@ namespace O2DESNet.Traffic
                         {
                             This.DeadlockedPaths = new List<Path>();
                             return;
-                        } 
+                        }
                         if (!hashset.Contains(path))
                         {
                             hashset.Add(path);
@@ -445,15 +401,24 @@ namespace O2DESNet.Traffic
             }
             private Path LockedBy(Path path)
             {
-                if (!path.LockedByPaths)
+                if (!path.Locked) return null;
+                var target = path.VehiclesCompleted.First().Targets.First();
+                if (target == path.Config.End)
                 {
                     if (path.Occupancy == path.Config.Capacity && !This.ToArrive[path.Config.End] /// cannot exit
                         && path.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity > This.Paths[p].Occupancy) == 0) /// the subsequent paths cannot be accessed
                         return This.Paths[path.Config.End.PathsOut.First()];
                     return null;
                 }
-                var next = This.Paths[path.Config.End.PathTo(path.VehiclesCompleted.First().Targets.First())];
-                if (next.Config.CrossHatched) next = This.Paths[next.Config.End.PathTo(path.VehiclesCompleted.First().Targets.First())];
+                var next = This.Paths[path.Config.End.PathTo(target)];
+                if (target == next.Config.End)
+                {
+                    if (!This.ToArrive[next.Config.End] /// cannot exit
+                        && next.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity > This.Paths[p].Occupancy) == 0) /// the subsequent paths cannot be accessed
+                        return This.Paths[next.Config.End.PathsOut.First()];
+                    return null;
+                }
+                if (next.Config.CrossHatched) next = This.Paths[next.Config.End.PathTo(target)];
                 return next;
             }
         }
