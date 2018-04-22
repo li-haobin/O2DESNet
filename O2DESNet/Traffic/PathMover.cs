@@ -406,16 +406,16 @@ namespace O2DESNet.Traffic
                 if (target == path.Config.End)
                 {
                     if (path.Occupancy == path.Config.Capacity && !This.ToArrive[path.Config.End] /// cannot exit
-                        && path.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity > This.Paths[p].Occupancy) == 0) /// the subsequent paths cannot be accessed
-                        return This.Paths[path.Config.End.PathsOut.First()];
+                        && path.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity == This.Paths[p].Occupancy) > 0) /// the subsequent paths cannot be accessed
+                        return This.Paths[path.Config.End.PathsOut.First(p => This.Paths[p].Config.Capacity == This.Paths[p].Occupancy)];
                     return null;
                 }
                 var next = This.Paths[path.Config.End.PathTo(target)];
-                if (target == next.Config.End)
+                if (target == next.Config.End && next.Config.CrossHatched)
                 {
                     if (!This.ToArrive[next.Config.End] /// cannot exit
-                        && next.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity > This.Paths[p].Occupancy) == 0) /// the subsequent paths cannot be accessed
-                        return This.Paths[next.Config.End.PathsOut.First()];
+                        && next.Config.End.PathsOut.Count(p => This.Paths[p].Config.Capacity == This.Paths[p].Occupancy) > 0) /// the subsequent paths cannot be accessed
+                        return This.Paths[next.Config.End.PathsOut.First(p => This.Paths[p].Config.Capacity == This.Paths[p].Occupancy)];
                     return null;
                 }
                 if (next.Config.CrossHatched) next = This.Paths[next.Config.End.PathTo(target)];

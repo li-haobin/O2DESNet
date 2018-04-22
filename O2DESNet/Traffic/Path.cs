@@ -30,6 +30,7 @@ namespace O2DESNet.Traffic
 
             public double Length { get; set; }
             public int Capacity { get; set; }
+            public int NLanes { get; set; } = 1;
             /// <summary>
             /// Function map vehicle density in # vehicles per meter,  to the speed in meters per second
             /// </summary>
@@ -321,12 +322,12 @@ namespace O2DESNet.Traffic
                 if (toExit)
                 {
                     var veh = This.VehiclesCompleted.Dequeue();
-                    Execute(This.OnExit.Select(e => e(veh)));                    
+                    Execute(This.OnExit.Select(e => e(veh)));
                     Execute(new AtptExitEvent());
                     Execute(new UpdCompletionEvent());
                     Execute(new VacancyChgEvent());
                 }
-                if (This.Locked && Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
+                else if (Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
             }
             private bool Exitable(List<ControlPoint> targets)
             {
@@ -531,24 +532,22 @@ namespace O2DESNet.Traffic
                 _drawing.Children.Add(drw);
             }
             #region vehicle position to display
-            double perVehicle = 20;
-            int nLanes = (int)Math.Ceiling(Config.Capacity * perVehicle / Config.Length);
             var positions = new Dictionary<IVehicle, double>();
             var idx = new Dictionary<IVehicle, int>();
             int k = 0;
             double r = 1 - 0.0 / Config.Capacity;
             foreach (var veh in VehiclesCompleted)
             {
-                positions.Add(veh, 1 - (0.0 + k / nLanes) / (1.0 * Config.Capacity / nLanes));
+                positions.Add(veh, 1 - (0.0 + k / Config.NLanes) / (1.0 * Config.Capacity / Config.NLanes));
                 idx.Add(veh, k);
                 k++;
             }
             foreach (var veh in VehiclePositions.Keys)
             {
                 positions.Add(veh, Math.Min(
-                    1 - (0.0 + k / nLanes) / (1.0 * Config.Capacity / nLanes), 
+                    1 - (0.0 + k / Config.NLanes) / (1.0 * Config.Capacity / Config.NLanes), 
                     Math.Min(1.0, (VehiclePositions[veh] + (clockTime.Value - LastTimeStamp).TotalSeconds * CurrentSpeed) / Config.Length)));
-                idx.Add(veh, k);
+                idx.Add(veh, veh.Id);
                 k++;
             }
             #endregion
@@ -557,7 +556,16 @@ namespace O2DESNet.Traffic
                 veh.ShowTag = ShowTag;
                 var tg = Config.SlipOnCurve(positions[veh]);
                 foreach (var t in TransformGroup.Children) tg.Children.Add(t);
-                tg.Children.Add(new TranslateTransform(0, (idx[veh] % nLanes - 0.5 * (nLanes - 1)) * 4)); /// for lane offset
+                #region For Lane Offset
+                var d = (idx[veh] % Config.NLanes - 0.5 * (Config.NLanes - 1)) * 4; /// lane offset
+                //var a = Config.Trajectory.Last().X - Config.Trajectory.First().X;
+                //var b = Config.Trajectory.Last().Y - Config.Trajectory.First().Y;
+                //var y = d / Math.Sqrt(1 + b * b / a / a);
+                //var x = -b / a * y;
+                if (Config.Trajectory.Last().X == Config.Trajectory.First().X) tg.Children.Add(new TranslateTransform(d, 0));
+                else if (Config.Trajectory.Last().Y == Config.Trajectory.First().Y) tg.Children.Add(new TranslateTransform(0, d));
+                #endregion
+
                 _drawing_vehicles[veh].RenderTransform = tg;
             }
             //if (Occupancy > 0)
