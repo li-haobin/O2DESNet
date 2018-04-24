@@ -452,13 +452,13 @@ namespace O2DESNet.Traffic
         #endregion
 
         #region Input Events - Getters
-        public Event CallToDepart(IVehicle vehicle, ControlPoint at) { return new CallToDepartEvent { This = this, Vehicle = vehicle, At = at }; }
-        public Event UpdToArrive(ControlPoint at, bool toArrive) { return new UpdToArriveEvent { This = this, At = at, ToArrive = toArrive }; }
+        public virtual Event CallToDepart(IVehicle vehicle, ControlPoint at) { return new CallToDepartEvent { This = this, Vehicle = vehicle, At = at }; }
+        public virtual Event UpdToArrive(ControlPoint at, bool toArrive) { return new UpdToArriveEvent { This = this, At = at, ToArrive = toArrive }; }
         /// <summary>
         /// Reset the PathMover by removing all vehicles, and releasing locks caused by congested paths.
         /// </summary>
-        public Event Reset() { return new ResetEvent { This = this }; }
-        public Event Teleport() { return new TeleportEvent { This = this }; }
+        public virtual Event Reset() { return new ResetEvent { This = this }; }
+        public virtual Event Teleport() { return new TeleportEvent { This = this }; }
         #endregion
 
         #region Output Events - Reference to Getters
