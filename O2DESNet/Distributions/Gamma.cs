@@ -6,6 +6,7 @@ namespace O2DESNet.Distributions
     {
         public static double Sample(Random rs, double mean, double cv)
         {
+            if (mean == 0) return 0;
             if (cv == 0) return mean;
             var k = 1 / cv / cv;
             var lambda = k / mean;
