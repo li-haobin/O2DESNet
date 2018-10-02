@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="O2DESNet.Database.Project">
+    <Position X="1.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQACAAAAAAAAQABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Project.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="OutputDescs" />
+      <Property Name="InputDescs" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.InputDesc">
+    <Position X="1.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>InputDesc.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="O2DESNet.Database.OutputDesc">
+    <Position X="1.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAACAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>OutputDesc.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
