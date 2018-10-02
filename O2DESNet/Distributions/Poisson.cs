@@ -10,6 +10,7 @@ namespace O2DESNet.Distributions
     {
         public static int Sample(Random rs, double lambda)
         {
+            if (lambda == 0) return 0;
             return MathNet.Numerics.Distributions.Poisson.Sample(rs, lambda);
         }
 

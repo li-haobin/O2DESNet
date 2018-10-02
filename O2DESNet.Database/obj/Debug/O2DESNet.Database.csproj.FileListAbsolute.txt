@@ -1,0 +1,12 @@
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\O2DESNet.Database.exe.config
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\O2DESNet.Database.exe
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\O2DESNet.Database.pdb
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\EntityFramework.dll
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\EntityFramework.SqlServer.dll
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\EntityFramework.xml
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\bin\Debug\EntityFramework.SqlServer.xml
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\obj\Debug\O2DESNet.Database.csprojResolveAssemblyReference.cache
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\obj\Debug\O2DESNet.Database.csproj.CoreCompileInputs.cache
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\obj\Debug\O2DESNet.Database.csproj.CopyComplete
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\obj\Debug\O2DESNet.Database.exe
+C:\Users\iselhao\source\repos\O2DES.Net\O2DESNet.Database\obj\Debug\O2DESNet.Database.pdb
