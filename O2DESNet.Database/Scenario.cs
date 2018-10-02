@@ -10,6 +10,7 @@ namespace O2DESNet.Database
         public int Id { get; set; }
         public Version Version { get; set; }
         public string Comment { get; set; }
+        public DateTime CreateTime { get; set; }
         public ICollection<InputValue> InputValues { get; set; } = new HashSet<InputValue>();
         public ICollection<Replication> Replications { get; set; } = new HashSet<Replication>();
     }

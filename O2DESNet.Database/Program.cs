@@ -12,16 +12,21 @@ namespace O2DESNet.Database
         {
             var db = new DbContext();
 
-            var prj = new Project { Name = "TestProject" };
+            var ver = db.GetVersion("TuasFinger3", "1.0.0.3");
+            //db.SaveChanges();
+
+            var inputs = new Dictionary<string, string> { { "c", "1" }, { "b", "3" } };
+
+            var s = ver.GetScenario(db, inputs);
+
             //var prj = db.Projects.Where(p => p.Id == 2).First();
 
-            prj.InputDescs.Add(new InputDesc());
-            prj.OutputDescs.Add(new OutputDesc());
+            //prj.InputDescs.Add(new InputDesc());
+            //prj.OutputDescs.Add(new OutputDesc());
 
             //prj.InputDescs = new Add(new InputDesc());
             //prj.OutputDescs.Add(new OutputDesc());
 
-            db.Projects.Add(prj);
 
             db.SaveChanges();
         }
