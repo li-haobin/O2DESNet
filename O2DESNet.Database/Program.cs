@@ -12,8 +12,8 @@ namespace O2DESNet.Database
         {
             var db = new DbContext();
 
-            //var prj = new Project { Name = "TestProject" };
-            var prj = db.Projects.Where(p => p.ProjectId == 2).First();
+            var prj = new Project { Name = "TestProject" };
+            //var prj = db.Projects.Where(p => p.Id == 2).First();
 
             prj.InputDescs.Add(new InputDesc());
             prj.OutputDescs.Add(new OutputDesc());
@@ -21,7 +21,7 @@ namespace O2DESNet.Database
             //prj.InputDescs = new Add(new InputDesc());
             //prj.OutputDescs.Add(new OutputDesc());
 
-            //db.Projects.Add(prj);
+            db.Projects.Add(prj);
 
             db.SaveChanges();
         }

@@ -3,27 +3,139 @@
   <Class Name="O2DESNet.Database.Project">
     <Position X="1.25" Y="3.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAQACAAAAAAAAQABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAQACAAAAAAAAQABAAAAAEAAAAAAAAAAAA=</HashCode>
       <FileName>Project.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
       <Property Name="OutputDescs" />
       <Property Name="InputDescs" />
+      <Property Name="Versions" />
     </ShowAsCollectionAssociation>
   </Class>
   <Class Name="O2DESNet.Database.InputDesc">
     <Position X="1.25" Y="1" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAgAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAACAAAEAAAAAAAAAAAQCAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>InputDesc.cs</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Project" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="InputParas" />
+    </ShowAsCollectionAssociation>
   </Class>
   <Class Name="O2DESNet.Database.OutputDesc">
-    <Position X="1.25" Y="5.25" Width="1.5" />
+    <Position X="1.25" Y="5.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAACAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAACAAAEAAAAAAAAAAAACAQAAAAAAAAABAAAAAAAAAA=</HashCode>
       <FileName>OutputDesc.cs</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Project" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="OutputParas" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.Version">
+    <Position X="5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAEAAAAAAAAAEAQCAAAACAAAAAABAAAAAAAAAI=</HashCode>
+      <FileName>Version.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Project" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Scenarios" />
+      <Property Name="InputParas" />
+      <Property Name="OutputParas" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.InputPara">
+    <Position X="5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAACAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>InputPara.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="InputDesc" />
+      <Property Name="Version" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.OutputPara">
+    <Position X="5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAACAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>OutputPara.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Version" />
+      <Property Name="OutputDesc" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.Scenario">
+    <Position X="8.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>KAACAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>Scenario.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Version" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="InputValues" />
+      <Property Name="Replications" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.InputValue">
+    <Position X="8.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAgAAAAAAI=</HashCode>
+      <FileName>InputValue.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="InputPara" />
+      <Property Name="Scenario" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.Replication">
+    <Position X="11.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Replication.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Scenario" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Snapshots" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.Snapshot">
+    <Position X="14.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>Snapshot.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Replication" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="OutputValues" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="O2DESNet.Database.OutputValue">
+    <Position X="14.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgAAAAAAAAAAAAAIAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>OutputValue.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="OutputPara" />
+      <Property Name="Snapshot" />
+    </ShowAsAssociation>
   </Class>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

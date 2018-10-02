@@ -7,7 +7,10 @@ namespace O2DESNet.Database
 {
     public class OutputDesc
     {
-        public int OutputDescId { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Comment { get; set; }
         public Project Project { get; set; }
+        public ICollection<OutputPara> OutputParas { get; set; } = new HashSet<OutputPara>();
     }
 }

@@ -7,7 +7,10 @@ namespace O2DESNet.Database
 {
     public class InputDesc
     {
-        public int InputDescId { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Comment { get; set; }
         public Project Project { get; set; }
+        public ICollection<InputPara> InputParas { get; set; } = new HashSet<InputPara>();
     }
 }
