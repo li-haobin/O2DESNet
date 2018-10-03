@@ -19,11 +19,10 @@ namespace O2DESNet.Database
         public string URL { get; set; }
         public Scenario GetScenario(DbContext db, Dictionary<string, double> inputs)
         {
-            var entry = db.Entry(this);
-            if (entry.State != EntityState.Added && entry.State != EntityState.Detached)
+            if (db.Loadable(this))
             {
-                entry.Collection(p => p.Scenarios).Query().Include(s => s.InputValues).Load();
-                entry.Collection(p => p.InputParas).Query().Include(p => p.InputDesc).Load();
+                db.Entry(this).Collection(p => p.Scenarios).Query().Include(s => s.InputValues).Load();
+                db.Entry(this).Collection(p => p.InputParas).Query().Include(p => p.InputDesc).Load();
             }
 
             var scenario = Scenarios.Where(s => MapInputs(db, s, inputs)).FirstOrDefault();
@@ -46,9 +45,8 @@ namespace O2DESNet.Database
         }
         private bool MapInputs(DbContext db, Scenario scenario, Dictionary<string, double> inputs)
         {
-            var entry = db.Entry(scenario);
-            if (entry.State != EntityState.Added && entry.State != EntityState.Detached)
-                entry.Collection(s => s.InputValues).Query().Include(i => i.InputPara.InputDesc).Load();
+            if (db.Loadable(scenario))
+                db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara.InputDesc).Load();
 
             if (scenario.InputValues.Count != inputs.Count) return false;
             foreach (var i in scenario.InputValues)
