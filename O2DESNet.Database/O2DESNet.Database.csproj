@@ -49,20 +49,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DbContext.cs" />
-    <Compile Include="InputDesc.cs" />
-    <Compile Include="InputPara.cs" />
-    <Compile Include="InputValue.cs" />
-    <Compile Include="OutputDesc.cs" />
-    <Compile Include="OutputPara.cs" />
-    <Compile Include="OutputValue.cs" />
+    <Compile Include="Model\DbContext.cs" />
+    <Compile Include="Model\InputDesc.cs" />
+    <Compile Include="Model\InputPara.cs" />
+    <Compile Include="Model\InputValue.cs" />
+    <Compile Include="Model\OutputDesc.cs" />
+    <Compile Include="Model\OutputPara.cs" />
+    <Compile Include="Model\OutputValue.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Project.cs" />
+    <Compile Include="Model\Project.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Replication.cs" />
-    <Compile Include="Scenario.cs" />
-    <Compile Include="Snapshot.cs" />
-    <Compile Include="Version.cs" />
+    <Compile Include="Model\Replication.cs" />
+    <Compile Include="Model\Scenario.cs" />
+    <Compile Include="Model\Snapshot.cs" />
+    <Compile Include="Model\Version.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
