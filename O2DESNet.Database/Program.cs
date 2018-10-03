@@ -16,12 +16,11 @@ namespace O2DESNet.Database
             while (true)
             {
                 var db = new DbContext();
-                var ver = db.GetVersion("TuasFinger3", "1.0.0.3");
 
-                var inputs = new Dictionary<string, double> { { "b", 1 }, { "c", 4 } };
-                var s = ver.GetScenario(db, inputs);
+                var s = db.GetScenario("TuasFinger3", "1.0.0.3", new Dictionary<string, double> { { "b", 1 }, { "c", 4 } });
 
-                s.AddSnapshot(db, 2, new DateTime(2, 1, 1, 0, 0, 0), new Dictionary<string, double> { { "f", 0.01 }, { "g", 400 } }, "Haobin");
+                //s.AddSnapshot(db, 2, new DateTime(2, 1, 1, 0, 1, 0), new Dictionary<string, double> { { "f", 0.01 }, { "g", 400 } }, Environment.MachineName);
+                var res = s.RemoveReplication(db, 2);
 
 
                 db.SaveChanges();         

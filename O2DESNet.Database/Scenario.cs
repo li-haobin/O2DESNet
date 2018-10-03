@@ -45,9 +45,18 @@ namespace O2DESNet.Database
             }
             return snapshot;
         }
-        public bool RemoveReplication(int seed)
+        public bool RemoveReplication(DbContext db, int seed)
         {
-            throw new NotImplementedException();
+            if (db.Loadable(this)) db.Entry(this).Collection(s => s.Replications).Query().Load();
+
+            var rep = Replications.Where(r => r.Seed == seed).FirstOrDefault();
+            if (rep == null) return false;
+            try
+            {
+                db.Replications.Remove(rep);
+            }
+            catch { return false; }
+            return true;            
         }
 
 

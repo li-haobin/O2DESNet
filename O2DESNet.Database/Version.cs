@@ -17,7 +17,7 @@ namespace O2DESNet.Database
         public string Number { get; set; }
         public string Comment { get; set; }
         public string URL { get; set; }
-        public Scenario GetScenario(DbContext db, Dictionary<string, double> inputs)
+        internal Scenario GetScenario(DbContext db, Dictionary<string, double> inputs)
         {
             if (db.Loadable(this))
             {
