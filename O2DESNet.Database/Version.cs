@@ -17,31 +17,34 @@ namespace O2DESNet.Database
         public string Number { get; set; }
         public string Comment { get; set; }
         public string URL { get; set; }
-        public Scenario GetScenario(DbContext db, Dictionary<string, string> inputs)
+        public Scenario GetScenario(DbContext db, Dictionary<string, double> inputs)
         {
             var entry = db.Entry(this);
             if (entry.State != EntityState.Added && entry.State != EntityState.Detached)
+            {
                 entry.Collection(p => p.Scenarios).Query().Include(s => s.InputValues).Load();
+                entry.Collection(p => p.InputParas).Query().Include(p => p.InputDesc).Load();
+            }
 
             var scenario = Scenarios.Where(s => MapInputs(db, s, inputs)).FirstOrDefault();
             if (scenario == null)
             {
-                scenario = new Scenario { CreateTime = DateTime.Now };
+                scenario = new Scenario { Version = this, CreateTime = DateTime.Now };
                 Scenarios.Add(scenario);
                 foreach (var i in inputs)
                 {
                     var para = InputParas.Where(p => p.InputDesc.Name == i.Key).FirstOrDefault();
                     if (para == null)
                     {
-                        para = new InputPara { InputDesc = Project.GetInputDesc(i.Key) };
+                        para = new InputPara { Version = this, InputDesc = Project.GetInputDesc(db, i.Key) };
                         InputParas.Add(para);
                     }                    
-                    scenario.InputValues.Add(new InputValue { InputPara = para, Value = i.Value });
+                    scenario.InputValues.Add(new InputValue { InputPara = para, Value = i.Value, Scenario = scenario });
                 }
             }
             return scenario;
         }
-        private bool MapInputs(DbContext db, Scenario scenario, Dictionary<string, string> inputs)
+        private bool MapInputs(DbContext db, Scenario scenario, Dictionary<string, double> inputs)
         {
             var entry = db.Entry(scenario);
             if (entry.State != EntityState.Added && entry.State != EntityState.Detached)

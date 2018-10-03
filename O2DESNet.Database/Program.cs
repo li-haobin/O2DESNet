@@ -10,25 +10,19 @@ namespace O2DESNet.Database
     {
         static void Main(string[] args)
         {
-            var db = new DbContext();
+            
 
-            var ver = db.GetVersion("TuasFinger3", "1.0.0.3");
             //db.SaveChanges();
 
-            var inputs = new Dictionary<string, string> { { "c", "1" }, { "b", "3" } };
-
-            var s = ver.GetScenario(db, inputs);
-
-            //var prj = db.Projects.Where(p => p.Id == 2).First();
-
-            //prj.InputDescs.Add(new InputDesc());
-            //prj.OutputDescs.Add(new OutputDesc());
-
-            //prj.InputDescs = new Add(new InputDesc());
-            //prj.OutputDescs.Add(new OutputDesc());
-
-
-            db.SaveChanges();
+            while (true)
+            {
+                var db = new DbContext();
+                var ver = db.GetVersion("TuasFinger3", "1.0.0.3");
+                var inputs = new Dictionary<string, double> { { "b", 1 }, { "c", 4 } };
+                var s = ver.GetScenario(db, inputs);
+                db.SaveChanges();         
+            }
+                       
         }
     }
 }
