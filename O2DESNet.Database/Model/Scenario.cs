@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace O2DESNet.Database
 {
@@ -22,8 +23,8 @@ namespace O2DESNet.Database
             db.Entry(this).Collection(s => s.Replications).Query().Load();
             db.Entry(this).Reference(s => s.Version).Query().Load();
             double completedDays = 0;
-            foreach(var rep in Replications.Where(r => r.Scenario.Id == Id && r.Seed < TargetNReps))
-                if (db.Snapshots.Count(sn => sn.Replication.Id == rep.Id) > 0)
+            foreach (var rep in Replications.Where(r => r.Scenario.Id == Id && !r.Excluded).OrderBy(r => r.Seed).Take(TargetNReps))
+                    if (db.Snapshots.Count(sn => sn.Replication.Id == rep.Id) > 0)
                     completedDays += db.Snapshots.Where(sn => sn.Replication.Id == rep.Id).Max(sn => sn.ClockTime);
             return completedDays / (TargetNReps * (Version.RunLength + Version.WarmUpPeriod));
         }
@@ -46,15 +47,10 @@ namespace O2DESNet.Database
             rep.Snapshots.Add(snapshot);
             
             if (db.Loadable(Version))
-                db.Entry(Version).Collection(v => v.OutputParas).Query().Include(p => p.OutputDesc).Load();            
+                db.Entry(Version).Collection(v => v.OutputParas).Query().Include(p => p.OutputDesc).Load();
             foreach (var i in outputs)
             {
-                var para = Version.OutputParas.Where(p => p.OutputDesc.Name == i.Key).FirstOrDefault();
-                if (para == null)
-                {
-                    para = new OutputPara { Version = Version, OutputDesc = Version.Project.GetOutputDesc(db, i.Key) };
-                    Version.OutputParas.Add(para);
-                }
+                var para = Version.GetOutputPara(db, i.Key);
                 snapshot.OutputValues.Add(new OutputValue { OutputPara = para, Value = i.Value, Snapshot = snapshot });
             }
             return snapshot;

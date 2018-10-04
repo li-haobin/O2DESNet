@@ -82,17 +82,19 @@ namespace O2DESNet.Database
             {
                 //Console.WriteLine("Thread {0} is listening, total {1}/{2} working threads...",
                 //    threadIdx % 100, NThreads_Working, NThreads);                
-                var scenario = db.Scenarios.Where(s => s.Replications.Count < s.TargetNReps).FirstOrDefault();
+                var scenario = db.Scenarios.Where(s => s.Replications.Count(r => !r.Excluded) < s.TargetNReps).FirstOrDefault();
                 if (scenario != null)
                 {
                     #region Create Replication
                     int seed = 0;
                     Replication rep;
                     int thread_uid = Guid.NewGuid().GetHashCode();
-                    lock (this) /// need to be taken care if multiple machines are executing this at the same time
+                    //using (var transaction = db.Database.BeginTransaction())
+                    //{
+                    lock (this)
                     {
-                        db.Entry(scenario).Collection(s => s.Replications).Query().Load();                        
-                        while (scenario.Replications.Count(r => r.Seed == seed) > 0) seed++;                        
+                        db.Entry(scenario).Collection(s => s.Replications).Query().Load();
+                        while (scenario.Replications.Count(r => r.Seed == seed) > 0) seed++;
                         rep = new Replication
                         {
                             Scenario = scenario,
@@ -104,6 +106,8 @@ namespace O2DESNet.Database
                         scenario.Replications.Add(rep);
                         db.SaveChanges();
                     }
+                    //    transaction.Commit();
+                    //}               
                     #endregion
 
                     #region Run and Checkin Snapshot

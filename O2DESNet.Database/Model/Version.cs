@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace O2DESNet.Database
 {
@@ -71,6 +72,32 @@ namespace O2DESNet.Database
                 if (!inputs.ContainsKey(key) || inputs[key] != i.Value) return false;
             }
             return true;
+        }
+        internal OutputPara GetOutputPara(DbContext db, string name)
+        {
+            db.Entry(this).Collection(v => v.OutputParas).Query().Load();
+            db.Entry(this).Reference(v => v.Project).Query().Load();
+            var para = OutputParas.Where(p => p.OutputDesc.Name == name).FirstOrDefault();
+            if (para == null)
+            {
+                //using (var transaction = db.Database.BeginTransaction())
+                //{
+                //    try
+                //    {
+                //        para = new OutputPara { Version = this, OutputDesc = Project.GetOutputDesc(db, name) };
+                //        OutputParas.Add(para);
+                //    }
+                //    catch (Exception)
+                //    {
+                //        transaction.Rollback();
+                //        Thread.Sleep(50);
+                //        return GetOutputPara(db, name);
+                //    }
+                //}
+                para = new OutputPara { Version = this, OutputDesc = Project.GetOutputDesc(db, name) };
+                OutputParas.Add(para);
+            }            
+            return para;
         }
     }
 }

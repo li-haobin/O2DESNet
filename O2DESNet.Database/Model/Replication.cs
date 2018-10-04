@@ -15,5 +15,9 @@ namespace O2DESNet.Database
         public string Operator { get; set; }
         public int Thread_UID { get; set; }
         public ICollection<Snapshot> Snapshots { get; set; } = new HashSet<Snapshot>();
+        /// <summary>
+        /// Wether the replication should be excluded from the experiment statistics
+        /// </summary>
+        public bool Excluded { get; set; } = false;
     }
 }

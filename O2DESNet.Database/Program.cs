@@ -38,6 +38,8 @@ namespace O2DESNet.Database
 
         static void Main(string[] args)
         {
+            //var db = new DbContext();
+            //db.Replications.Find(12).Excluded = true;
             //db.SaveChanges();
             
             var expr = new Experimenter<GGnQueue>(
@@ -68,7 +70,7 @@ namespace O2DESNet.Database
                 { ServerCapacity, 2 },
             }, 30);
 
-            expr.RunExperiment(20);
+            expr.RunExperiment(10);
 
             while (true)
             {
