@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace O2DESNet.Database
         public int NThreads_Working { get; private set; }
 
         public Experimenter(DbContext dbContext, string projectName, string versionNumber,
+            IEnumerable<string> inputKeys,
+            IEnumerable<string> outputKeys,
             Func<int, Dictionary<string, double>, TState> inputFunc,
             Func<TState, Dictionary<string, double>> outputFunc,
             TimeSpan runInterval, TimeSpan warmUpPeriod, TimeSpan runLength,
@@ -31,12 +34,38 @@ namespace O2DESNet.Database
             OutputFunc = outputFunc;
             Operator = operatr ?? Environment.MachineName;
             var db = new DbContext();
-            var version = db.GetVersion(ProjectName, VersionNumber);
-            version.RunInterval = runInterval.TotalDays;
-            version.WarmUpPeriod = warmUpPeriod.TotalDays;
-            version.RunLength = runLength.TotalDays;
-            version.Timestamp = DateTime.Now;
-            version.Operator = Operator;
+            var ver = db.GetVersion(ProjectName, VersionNumber);
+            ver.RunInterval = runInterval.TotalDays;
+            ver.WarmUpPeriod = warmUpPeriod.TotalDays;
+            ver.RunLength = runLength.TotalDays;
+            ver.Timestamp = DateTime.Now;
+            ver.Operator = Operator;
+            #region Setup input / output parameters
+            if (db.IsLoadable(ver))
+            {
+                db.Entry(ver).Reference(v => v.Project).Query().Load();
+                db.Entry(ver).Collection(v => v.InputParas).Query().Include(p => p.InputDesc).Load();
+                db.Entry(ver).Collection(v => v.OutputParas).Query().Include(p => p.OutputDesc).Load();
+            }
+            foreach (var key in inputKeys)
+            {
+                var para = ver.InputParas.Where(p => p.InputDesc.Name == key).FirstOrDefault();
+                if (para == null)
+                {
+                    para = new InputPara { Version = ver, InputDesc = ver.Project.GetInputDesc(db, key) };
+                    ver.InputParas.Add(para);
+                }
+            }
+            foreach (var key in outputKeys)
+            {
+                var para = ver.OutputParas.Where(p => p.OutputDesc.Name == key).FirstOrDefault();
+                if (para == null)
+                {
+                    para = new OutputPara { Version = ver, OutputDesc = ver.Project.GetOutputDesc(db, key) };
+                    ver.OutputParas.Add(para);
+                }
+            }
+            #endregion
             db.SaveChanges();
         }
 
@@ -145,6 +174,62 @@ namespace O2DESNet.Database
                 Thread.Sleep(2000); /// wait for 2 seconds before attempting next run
             }
             lock (this) NThreads_Working--;
+        }
+        public void ResultsToCSV(string path = null)
+        {
+            var db = new DbContext();
+            var ver = db.Versions.Where(v => v.Project.Name == ProjectName && v.Number == VersionNumber)
+                .Include(v => v.Scenarios)
+                .Include(v => v.InputParas)
+                .Include(v => v.OutputParas)
+                .FirstOrDefault();
+            var file = path + String.Format("{0} {1}.csv", ProjectName, VersionNumber);
+            using (StreamWriter sw = new StreamWriter(file))
+            {
+                #region Write the head
+                sw.Write("scenario id,progress,#reps effective,,");
+                foreach (var para in ver.InputParas.OrderBy(p => p.Id))
+                {
+                    db.Entry(para).Reference(p => p.InputDesc).Query().Load();
+                    sw.Write("{0},", para.InputDesc.Name);
+                }
+                sw.Write(",");
+                foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
+                {
+                    db.Entry(para).Reference(p => p.OutputDesc).Query().Load();
+                    sw.Write("{0},", para.OutputDesc.Name);
+                }
+                sw.WriteLine();
+                #endregion
+
+                Func<Replication, Dictionary<int, double>> getOutputValues = rep =>
+                {
+                    var snapshot = db.Snapshots.Where(sn => sn.Replication.Id == rep.Id && sn.ClockTime >= ver.RunLength + ver.WarmUpPeriod).Include(ss => ss.OutputValues).OrderBy(sn => sn.ClockTime).FirstOrDefault();
+                    if (snapshot == null) return null;
+                    db.Entry(snapshot).Collection(ss => ss.OutputValues).Query().Include(v => v.OutputPara).Load();
+                    return snapshot.OutputValues.OrderBy(v => v.OutputPara.Id).ToDictionary(v => v.OutputPara.Id, v => v.Value);
+                };
+                foreach(var scenario in ver.Scenarios)
+                {
+                    /// prepare output
+                    db.Entry(scenario).Collection(s => s.Replications).Query().Load();
+                    var outputValues = scenario.GetTargetedReps(db).Select(rep => getOutputValues(rep)).Where(dict => dict != null).ToList();
+
+                    sw.Write("{0},{1}%,{2},,", scenario.Id, scenario.GetProgress(db) * 100, outputValues.Count);
+                    /// for input
+                    db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara).Load();
+                    foreach (var i in scenario.InputValues.OrderBy(i => i.InputPara.Id)) sw.Write("{0},", i.Value);
+                    sw.Write(",");
+                    /// for output                    
+                    foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
+                    {
+                        sw.Write("{0},", outputValues.Count == 0 ? double.NaN : 
+                            outputValues.Average(dict => dict[para.Id]));
+                    }
+                    sw.WriteLine();
+                }
+            }
+            System.Diagnostics.Process.Start(file);
         }
     }
 }

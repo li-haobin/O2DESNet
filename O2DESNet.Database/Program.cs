@@ -15,6 +15,9 @@ namespace O2DESNet.Database
         static string HourlyArrivalRate = "hourly arrival rate";
         static string HourlyServiceRate = "hourly service rate";
         static string ServerCapacity = "server capacity";
+        static string AverageQueueLength = "average queue length";
+        static string ServerUtilization = "server utilization";
+        static string NumberOfProcessed = "number of processed";
 
         static GGnQueue InputFunc(int seed, Dictionary<string, double> inputValues)
         {
@@ -30,9 +33,9 @@ namespace O2DESNet.Database
         {
             return new Dictionary<string, double>
             {
-                { "average queue length", state.Queue.HourCounter.AverageCount },
-                { "server utilization", state.Server.Utilization },
-                { "number of processed", state.Processed.Count }
+                { AverageQueueLength, state.Queue.HourCounter.AverageCount },
+                { ServerUtilization, state.Server.Utilization },
+                { NumberOfProcessed, state.Processed.Count }
             };
         }
 
@@ -44,6 +47,8 @@ namespace O2DESNet.Database
             
             var expr = new Experimenter<GGnQueue>(
                 dbContext: new DbContext(),
+                inputKeys: new string[] { HourlyArrivalRate, HourlyServiceRate, ServerCapacity },
+                outputKeys: new string[] { AverageQueueLength, ServerUtilization, NumberOfProcessed },
                 projectName: "GGnQ_Experiment", versionNumber: "1.0.0.0",
                 inputFunc: InputFunc, outputFunc: OutputFunc,
                 runInterval: TimeSpan.FromHours(1),
@@ -69,14 +74,16 @@ namespace O2DESNet.Database
                 { HourlyServiceRate, 4 },
                 { ServerCapacity, 2 },
             }, 30);
+            
+            expr.ResultsToCSV();
 
             expr.RunExperiment(10);
-
+            
             while (true)
             {
-                Console.Clear();
                 var progress = expr.GetProgress();
-                foreach(var i in progress)
+                Console.Clear();
+                foreach (var i in progress)
                 {
                     Console.WriteLine("{0}\t{1:F4}", i.Key.Id, i.Value);
                 }

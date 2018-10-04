@@ -48,7 +48,7 @@ namespace O2DESNet.Database
             modelBuilder.Entity<OutputValue>().HasRequired(v => v.Snapshot).WithMany(s => s.OutputValues).WillCascadeOnDelete(true);
         }
 
-        internal bool Loadable(object obj)
+        public bool IsLoadable(object obj)
         {
             return Entry(obj).State != EntityState.Added && Entry(obj).State != EntityState.Detached;
         }
