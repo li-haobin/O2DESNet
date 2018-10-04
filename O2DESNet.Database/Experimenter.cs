@@ -57,7 +57,8 @@ namespace O2DESNet.Database
             var scenario = _db.Scenarios.Where(s => s.Replications.Count < s.TargetNReps).FirstOrDefault();
             if (scenario == null) return false;
 
-            _db.Entry(scenario).Collection(s => s.Replications).Query().Load();
+            #region Create Replication
+            _db.Entry(scenario).Collection(s => s.Replications).Query().Load();            
             int seed = 0;
             while (scenario.Replications.Count(r => r.Seed == seed) > 0) seed++;
             int thread_uid = Guid.NewGuid().GetHashCode();
@@ -71,11 +72,45 @@ namespace O2DESNet.Database
             };
             scenario.Replications.Add(rep);
             _db.SaveChanges();
+            #endregion
 
-
-            /// implement run and checkin snapshot
+            #region Run and Checkin Snapshot
+            bool thread_check = true;
+            _db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara.InputDesc).Load();
+            _db.Entry(scenario).Reference(s => s.Version).Query().Load();
+            var state = InputFunc(seed, scenario.InputValues.ToDictionary(i => i.InputPara.InputDesc.Name, i => i.Value));
+            var sim = new Simulator(state);
+            var ver = scenario.Version;
+            Func<bool> addSnapShot = () =>
+            {
+                _db.Entry(rep).GetDatabaseValues();
+                if (rep.Thread_UID == thread_uid)
+                {
+                    scenario.AddSnapshot(_db, rep.Seed, sim.ClockTime, OutputFunc(state), Environment.MachineName);
+                    _db.SaveChanges();
+                    Console.WriteLine("Checked in Scenatio {0} Replication {1} Snapshot {2}", scenario.Id, rep.Id, sim.ClockTime);
+                    return true;
+                }
+                return false;
+            };
+            while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod))
+            {
+                sim.Run(TimeSpan.FromDays(ver.RunInterval));
+                thread_check = addSnapShot();
+            }
+            if (thread_check) sim.WarmUp(TimeSpan.FromSeconds(0));
+            while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod + ver.RunLength))
+            {
+                sim.Run(TimeSpan.FromDays(ver.RunInterval));
+                thread_check = addSnapShot();
+            }
+            #endregion
 
             return true;
         }
+        //private bool Snapshot(int repId, int thread_uid)
+        //{
+
+        //}
     }
 }
