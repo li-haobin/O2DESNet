@@ -14,6 +14,7 @@ namespace O2DESNet.Database
         public DbSet<Version> Versions { get; set; }
         public DbSet<Scenario> Scenarios { get; set; }
         public DbSet<Replication> Replications { get; set; }
+        public DbSet<Snapshot> Snapshots { get; set; }
 
         public Project GetProject(string name)
         {

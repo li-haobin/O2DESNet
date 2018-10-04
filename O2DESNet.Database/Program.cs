@@ -2,6 +2,7 @@
 using O2DESNet.Distributions;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -38,7 +39,7 @@ namespace O2DESNet.Database
         static void Main(string[] args)
         {
             //db.SaveChanges();
-
+            
             var expr = new Experimenter<GGnQueue>(
                 dbContext: new DbContext(),
                 projectName: "GGnQ_Experiment", versionNumber: "1.0.0.0",
@@ -59,15 +60,29 @@ namespace O2DESNet.Database
                 { HourlyArrivalRate, 3 },
                 { HourlyServiceRate, 4 },
                 { ServerCapacity, 2 },
-            }, 3);
+            }, 30);
 
             expr.SetExperiment(new Dictionary<string, double> {
                 { HourlyArrivalRate, 4 },
                 { HourlyServiceRate, 4 },
                 { ServerCapacity, 2 },
-            }, 3);
+            }, 30);
 
-            while (expr.RunExperiment()) ;
+            expr.RunExperiment(20);
+
+            while (true)
+            {
+                Console.Clear();
+                var progress = expr.GetProgress();
+                foreach(var i in progress)
+                {
+                    Console.WriteLine("{0}\t{1:F4}", i.Key.Id, i.Value);
+                }
+                Thread.Sleep(1000);
+            }
+
+            Console.ReadKey();
+            //while (expr.RunExperiment(0)) ;
 
 
             //while (true)
@@ -83,7 +98,7 @@ namespace O2DESNet.Database
 
             //    db.SaveChanges();         
             //}
-                       
+
         }
     }
 }

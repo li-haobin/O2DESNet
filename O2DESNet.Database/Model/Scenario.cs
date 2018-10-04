@@ -17,6 +17,17 @@ namespace O2DESNet.Database
         public ICollection<Replication> Replications { get; set; } = new HashSet<Replication>();        
         public int TargetNReps { get; set; }
 
+        public double GetProgress(DbContext db)
+        {
+            db.Entry(this).Collection(s => s.Replications).Query().Load();
+            db.Entry(this).Reference(s => s.Version).Query().Load();
+            double completedDays = 0;
+            foreach(var rep in Replications.Where(r => r.Scenario.Id == Id && r.Seed < TargetNReps))
+                if (db.Snapshots.Count(sn => sn.Replication.Id == rep.Id) > 0)
+                    completedDays += db.Snapshots.Where(sn => sn.Replication.Id == rep.Id).Max(sn => sn.ClockTime);
+            return completedDays / (TargetNReps * (Version.RunLength + Version.WarmUpPeriod));
+        }
+
         public Snapshot AddSnapshot(DbContext db, int seed, DateTime clockTime, Dictionary<string, double> outputs, string by)
         {
             if (db.Loadable(this)) db.Entry(this).Collection(s => s.Replications).Query().Load();
