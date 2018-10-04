@@ -52,7 +52,7 @@ namespace O2DESNet.Database
             var version = Versions.Where(i => i.Number == number).FirstOrDefault();
             if (version == null)
             {
-                version = new Version { Project = this, Number = number, CreateTime = DateTime.Now };
+                version = new Version { Project = this, Number = number, Timestamp = DateTime.Now };
                 Versions.Add(version);
             }
             return version;

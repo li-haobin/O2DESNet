@@ -15,14 +15,14 @@ namespace O2DESNet.Demos.GGnQueue
             var hourlyServiceRate = 5;
 
             var scenario = 
-                new GGnQueueSystem.Statics
+                new GGnQueue.Statics
                 {
                     InterArrivalTime = rs => TimeSpan.FromHours(Exponential.Sample(rs, hourlyArrivalRate)), // G: Inter-Arrival-Time Distribution
                     ServiceTime = (l, rs) => TimeSpan.FromHours(Exponential.Sample(rs, hourlyServiceRate)), // G: Service Time Distribution
                     ServerCapacity = 1, // n: number of concurrent servers
                 };
 
-            var sim = new Simulator(new GGnQueueSystem(scenario, seed: 0));
+            var sim = new Simulator(new GGnQueue(scenario, seed: 0));
 
             while (true)
             {

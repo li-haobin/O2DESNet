@@ -54,7 +54,7 @@
   <ItemGroup>
     <Compile Include="FIFOQueues\Program.cs" />
     <Compile Include="FIFOQueues\TwoFIFOServers.cs" />
-    <Compile Include="GGnQueue\GGnQueueSystem.cs" />
+    <Compile Include="GGnQueue\GGnQueue.cs" />
     <Compile Include="GGnQueue\Program.cs" />
     <Compile Include="PMTraffic\ExamplePM.cs" />
     <Compile Include="PMTraffic\Program.cs" />

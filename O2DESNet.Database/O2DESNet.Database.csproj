@@ -38,9 +38,14 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="MathNet.Numerics, Version=4.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.4.4.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Experimenter.cs" />
     <Compile Include="Model\DbContext.cs" />
     <Compile Include="Model\InputDesc.cs" />
     <Compile Include="Model\InputPara.cs" />
@@ -68,6 +74,16 @@
     <None Include="App.config" />
     <None Include="ClassDiagram.cd" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\O2DESNet.Demos\O2DESNet.Demos.csproj">
+      <Project>{4ab72d0d-d445-43f8-b175-69b6e781e7ed}</Project>
+      <Name>O2DESNet.Demos</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\O2DESNet\O2DESNet.csproj">
+      <Project>{b956a1f8-1241-4cd7-9d3d-74c97bde3438}</Project>
+      <Name>O2DESNet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

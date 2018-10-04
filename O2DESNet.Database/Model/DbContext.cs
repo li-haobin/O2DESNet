@@ -29,9 +29,9 @@ namespace O2DESNet.Database
         {
             return GetProject(projectName).GetVersion(this, versionNumber);
         }
-        public Scenario GetScenario(string projectName, string versionNumber, Dictionary<string, double> inputs)
+        public Scenario GetScenario(string projectName, string versionNumber, Dictionary<string, double> inputValues)
         {
-            return GetVersion(projectName, versionNumber).GetScenario(this, inputs);
+            return GetVersion(projectName, versionNumber).GetScenario(this, inputValues, Environment.MachineName);
         }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

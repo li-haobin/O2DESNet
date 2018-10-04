@@ -11,9 +11,12 @@ namespace O2DESNet.Database
         public int Id { get; set; }
         public Version Version { get; set; }
         public string Comment { get; set; }
-        public DateTime CreateTime { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Operator { get; set; }
         public ICollection<InputValue> InputValues { get; set; } = new HashSet<InputValue>();
-        public ICollection<Replication> Replications { get; set; } = new HashSet<Replication>();
+        public ICollection<Replication> Replications { get; set; } = new HashSet<Replication>();        
+        public int TargetNReps { get; set; }
+
         public Snapshot AddSnapshot(DbContext db, int seed, DateTime clockTime, Dictionary<string, double> outputs, string by)
         {
             if (db.Loadable(this)) db.Entry(this).Collection(s => s.Replications).Query().Load();
@@ -22,7 +25,7 @@ namespace O2DESNet.Database
             var rep = Replications.Where(r => r.Seed == seed).FirstOrDefault();
             if (rep == null)
             {
-                rep = new Replication { Scenario = this, Seed = seed, CreateTime = DateTime.Now, CreateBy = by };
+                rep = new Replication { Scenario = this, Seed = seed, Timestamp = DateTime.Now, Operator = by };
                 Replications.Add(rep);
             }
             #endregion

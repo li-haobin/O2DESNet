@@ -10,14 +10,30 @@ namespace O2DESNet.Database
     {
         public int Id { get; set; }
         public Project Project { get; set; }
-        public DateTime CreateTime { get; set; }
         public ICollection<Scenario> Scenarios { get; set; } = new HashSet<Scenario>();
         public ICollection<InputPara> InputParas { get; set; } = new HashSet<InputPara>();
         public ICollection<OutputPara> OutputParas { get; set; } = new HashSet<OutputPara>();
         public string Number { get; set; }
         public string Comment { get; set; }
         public string URL { get; set; }
-        internal Scenario GetScenario(DbContext db, Dictionary<string, double> inputs)
+        public DateTime Timestamp { get; set; }
+        public string Operator { get; set; }
+        #region Experiment Setting
+        /// <summary>
+        /// In unit of days
+        /// </summary>
+        public double RunInterval { get; set; }
+        /// <summary>
+        /// In unit of days
+        /// </summary>
+        public double WarmUpPeriod { get; set; }
+        /// <summary>
+        /// In unit of days
+        /// </summary>
+        public double RunLength { get; set; }
+        #endregion
+
+        internal Scenario GetScenario(DbContext db, Dictionary<string, double> inputValues, string by)
         {
             if (db.Loadable(this))
             {
@@ -25,12 +41,12 @@ namespace O2DESNet.Database
                 db.Entry(this).Collection(p => p.InputParas).Query().Include(p => p.InputDesc).Load();
             }
 
-            var scenario = Scenarios.Where(s => MapInputs(db, s, inputs)).FirstOrDefault();
+            var scenario = Scenarios.Where(s => MapInputs(db, s, inputValues)).FirstOrDefault();
             if (scenario == null)
             {
-                scenario = new Scenario { Version = this, CreateTime = DateTime.Now };
+                scenario = new Scenario { Version = this, Timestamp = DateTime.Now, Operator = by };
                 Scenarios.Add(scenario);
-                foreach (var i in inputs)
+                foreach (var i in inputValues)
                 {
                     var para = InputParas.Where(p => p.InputDesc.Name == i.Key).FirstOrDefault();
                     if (para == null)
