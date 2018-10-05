@@ -221,7 +221,7 @@ namespace O2DESNet.Database
                         foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
                         {
                             sw.Write("{0},", outputValues.Count == 0 ? double.NaN :
-                                outputValues.Average(i => i.Value[para.Id]));
+                                outputValues.Where(i => i.Value.ContainsKey(para.Id)).Average(i => i.Value[para.Id]));
                         }
                         sw.WriteLine();
                         if (outputValues.Count > 1)
@@ -232,7 +232,10 @@ namespace O2DESNet.Database
                                 foreach (var j in scenario.InputValues) sw.Write(",");
                                 sw.Write("{0},", i.Key);
                                 foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
-                                    sw.Write("{0},", i.Value[para.Id]);
+                                {
+                                    if (i.Value.ContainsKey(para.Id)) sw.Write("{0},", i.Value[para.Id]);
+                                    else sw.Write(",");
+                                }
                                 sw.WriteLine();
                             }
                         }

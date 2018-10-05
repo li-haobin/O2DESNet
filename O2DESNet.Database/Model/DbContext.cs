@@ -40,11 +40,13 @@ namespace O2DESNet.Database
             modelBuilder.Entity<Scenario>().HasRequired(s => s.Version).WithMany(v => v.Scenarios).WillCascadeOnDelete(true);
             modelBuilder.Entity<InputDesc>().HasRequired(d => d.Project).WithMany(p => p.InputDescs).WillCascadeOnDelete(true);
             modelBuilder.Entity<InputPara>().HasRequired(p => p.Version).WithMany(v => v.InputParas).WillCascadeOnDelete(true);
+            modelBuilder.Entity<InputPara>().HasRequired(p => p.InputDesc).WithMany(v => v.InputParas).WillCascadeOnDelete(false);
             modelBuilder.Entity<InputValue>().HasRequired(v => v.Scenario).WithMany(s => s.InputValues).WillCascadeOnDelete(true);
             modelBuilder.Entity<Replication>().HasRequired(r => r.Scenario).WithMany(s => s.Replications).WillCascadeOnDelete(true);
             modelBuilder.Entity<Snapshot>().HasRequired(s => s.Replication).WithMany(r => r.Snapshots).WillCascadeOnDelete(true);
             modelBuilder.Entity<OutputDesc>().HasRequired(d => d.Project).WithMany(p => p.OutputDescs).WillCascadeOnDelete(true);
             modelBuilder.Entity<OutputPara>().HasRequired(p => p.Version).WithMany(v => v.OutputParas).WillCascadeOnDelete(true);
+            modelBuilder.Entity<OutputPara>().HasRequired(p => p.OutputDesc).WithMany(v => v.OutputParas).WillCascadeOnDelete(false);
             modelBuilder.Entity<OutputValue>().HasRequired(v => v.Snapshot).WithMany(s => s.OutputValues).WillCascadeOnDelete(true);
         }
 

@@ -47,15 +47,25 @@ namespace O2DESNet.Database
             #endregion
 
             //if (db.Loadable(rep)) db.Entry(rep).Collection(r => r.Snapshots).Query().Load();
-            var snapshot = new Snapshot { Replication = rep, CheckinTime = DateTime.Now, CheckinBy = by, ClockTime = (clockTime - DateTime.MinValue).TotalDays };
+            var snapshot = new Snapshot {
+                Replication = rep,
+                CheckinTime = DateTime.Now, CheckinBy = by, ClockTime = (clockTime - DateTime.MinValue).TotalDays };
             rep.Snapshots.Add(snapshot);
             
             if (db.IsLoadable(Version))
                 db.Entry(Version).Collection(v => v.OutputParas).Query().Include(p => p.OutputDesc).Load();
             foreach (var i in outputs)
             {
-                var para = Version.GetOutputPara(db, i.Key);
-                snapshot.OutputValues.Add(new OutputValue { OutputPara = para, Value = i.Value, Snapshot = snapshot });
+                if (!double.IsNaN(i.Value))
+                {
+                    var para = Version.GetOutputPara(db, i.Key);
+                    snapshot.OutputValues.Add(new OutputValue
+                    {
+                        OutputPara = para,
+                        Value = i.Value,
+                        Snapshot = snapshot
+                    });
+                }
             }
             return snapshot;
         }
