@@ -41,10 +41,6 @@ namespace O2DESNet.Database
 
         static void Main(string[] args)
         {
-            //var db = new DbContext();
-            //db.Replications.Find(12).Excluded = true;
-            //db.SaveChanges();
-            
             var expr = new Experimenter<GGnQueue>(
                 dbContext: new DbContext(),
                 inputKeys: new string[] { HourlyArrivalRate, HourlyServiceRate, ServerCapacity },
@@ -53,61 +49,10 @@ namespace O2DESNet.Database
                 inputFunc: InputFunc, outputFunc: OutputFunc,
                 runInterval: TimeSpan.FromHours(1),
                 warmUpPeriod: TimeSpan.FromHours(2), 
-                runLength: TimeSpan.FromDays(1),
-                operatr: "Haobin"
+                runLength: TimeSpan.FromDays(1)
                 );
 
-            expr.SetExperiment(new Dictionary<string, double> {
-                { HourlyArrivalRate, 3 },
-                { HourlyServiceRate, 4 },
-                { ServerCapacity, 2 },
-            }, 2);
-
-            expr.SetExperiment(new Dictionary<string, double> {
-                { HourlyArrivalRate, 3 },
-                { HourlyServiceRate, 4 },
-                { ServerCapacity, 2 },
-            }, 30);
-
-            expr.SetExperiment(new Dictionary<string, double> {
-                { HourlyArrivalRate, 4 },
-                { HourlyServiceRate, 4 },
-                { ServerCapacity, 2 },
-            }, 30);
-            
-            expr.ResultsToCSV();
-
-            expr.RunExperiment(10);
-            
-            while (true)
-            {
-                var progress = expr.GetProgress();
-                Console.Clear();
-                foreach (var i in progress)
-                {
-                    Console.WriteLine("{0}\t{1:F4}", i.Key.Id, i.Value);
-                }
-                Thread.Sleep(1000);
-            }
-
-            Console.ReadKey();
-            //while (expr.RunExperiment(0)) ;
-
-
-            //while (true)
-            //{
-            //    var db = new DbContext();
-
-            //    var s = db.GetScenario("TuasFinger3", "1.0.0.3",
-            //        new Dictionary<string, double> { { "b", 1 }, { "c", 4 } });
-
-            //    s.AddSnapshot(db, 2, new DateTime(2, 1, 1, 0, 1, 0), new Dictionary<string, double> { { "f", 0.01 }, { "g", 400 } }, Environment.MachineName);
-            //    //var res = s.RemoveReplication(db, 2);
-
-
-            //    db.SaveChanges();         
-            //}
-
+            expr.Main();
         }
     }
 }

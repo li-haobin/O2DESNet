@@ -32,7 +32,7 @@ namespace O2DESNet.Database
             VersionNumber = versionNumber;
             InputFunc = inputFunc;
             OutputFunc = outputFunc;
-            Operator = operatr ?? Environment.MachineName;
+            ///Operator = operatr ?? Environment.MachineName;
             var db = new DbContext();
             var ver = db.GetVersion(ProjectName, VersionNumber);
             ver.RunInterval = runInterval.TotalDays;
@@ -68,14 +68,7 @@ namespace O2DESNet.Database
             #endregion
             db.SaveChanges();
         }
-
-        public Dictionary<Scenario, double> GetProgress()
-        {
-            var db = new DbContext();
-            var scenarios = db.Scenarios.Where(s => s.Version.Number == VersionNumber && s.Version.Project.Name == ProjectName);
-            return scenarios.ToDictionary(s => s, s => s.GetProgress(db));
-        }
-
+        
         public void SetExperiment(Dictionary<string, double> inputValues, int targetNReps = 1)
         {
             var db = new DbContext();
@@ -177,59 +170,202 @@ namespace O2DESNet.Database
         }
         public void ResultsToCSV(string path = null)
         {
-            var db = new DbContext();
-            var ver = db.Versions.Where(v => v.Project.Name == ProjectName && v.Number == VersionNumber)
-                .Include(v => v.Scenarios)
-                .Include(v => v.InputParas)
-                .Include(v => v.OutputParas)
-                .FirstOrDefault();
-            var file = path + String.Format("{0} {1}.csv", ProjectName, VersionNumber);
-            using (StreamWriter sw = new StreamWriter(file))
+            try
             {
-                #region Write the head
-                sw.Write("scenario id,progress,#reps effective,,");
-                foreach (var para in ver.InputParas.OrderBy(p => p.Id))
+                var db = new DbContext();
+                var ver = db.Versions.Where(v => v.Project.Name == ProjectName && v.Number == VersionNumber)
+                    .Include(v => v.Scenarios)
+                    .Include(v => v.InputParas)
+                    .Include(v => v.OutputParas)
+                    .FirstOrDefault();
+                var file = path + String.Format("{0} {1}.csv", ProjectName, VersionNumber);
+                using (StreamWriter sw = new StreamWriter(file))
                 {
-                    db.Entry(para).Reference(p => p.InputDesc).Query().Load();
-                    sw.Write("{0},", para.InputDesc.Name);
-                }
-                sw.Write(",");
-                foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
-                {
-                    db.Entry(para).Reference(p => p.OutputDesc).Query().Load();
-                    sw.Write("{0},", para.OutputDesc.Name);
-                }
-                sw.WriteLine();
-                #endregion
-
-                Func<Replication, Dictionary<int, double>> getOutputValues = rep =>
-                {
-                    var snapshot = db.Snapshots.Where(sn => sn.Replication.Id == rep.Id && sn.ClockTime >= ver.RunLength + ver.WarmUpPeriod).Include(ss => ss.OutputValues).OrderBy(sn => sn.ClockTime).FirstOrDefault();
-                    if (snapshot == null) return null;
-                    db.Entry(snapshot).Collection(ss => ss.OutputValues).Query().Include(v => v.OutputPara).Load();
-                    return snapshot.OutputValues.OrderBy(v => v.OutputPara.Id).ToDictionary(v => v.OutputPara.Id, v => v.Value);
-                };
-                foreach(var scenario in ver.Scenarios)
-                {
-                    /// prepare output
-                    db.Entry(scenario).Collection(s => s.Replications).Query().Load();
-                    var outputValues = scenario.GetTargetedReps(db).Select(rep => getOutputValues(rep)).Where(dict => dict != null).ToList();
-
-                    sw.Write("{0},{1}%,{2},,", scenario.Id, scenario.GetProgress(db) * 100, outputValues.Count);
-                    /// for input
-                    db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara).Load();
-                    foreach (var i in scenario.InputValues.OrderBy(i => i.InputPara.Id)) sw.Write("{0},", i.Value);
+                    #region Write the head
+                    sw.Write("scenario id,progress,#reps effective,,");
+                    foreach (var para in ver.InputParas.OrderBy(p => p.Id))
+                    {
+                        db.Entry(para).Reference(p => p.InputDesc).Query().Load();
+                        sw.Write("{0},", para.InputDesc.Name);
+                    }
                     sw.Write(",");
-                    /// for output                    
                     foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
                     {
-                        sw.Write("{0},", outputValues.Count == 0 ? double.NaN : 
-                            outputValues.Average(dict => dict[para.Id]));
+                        db.Entry(para).Reference(p => p.OutputDesc).Query().Load();
+                        sw.Write("{0},", para.OutputDesc.Name);
                     }
                     sw.WriteLine();
+                    #endregion
+
+                    Func<Replication, Dictionary<int, double>> getOutputValues = rep =>
+                    {
+                        var snapshot = db.Snapshots.Where(sn => sn.Replication.Id == rep.Id && sn.ClockTime >= ver.RunLength + ver.WarmUpPeriod).Include(ss => ss.OutputValues).OrderBy(sn => sn.ClockTime).FirstOrDefault();
+                        if (snapshot == null) return null;
+                        db.Entry(snapshot).Collection(ss => ss.OutputValues).Query().Include(v => v.OutputPara).Load();
+                        return snapshot.OutputValues.OrderBy(v => v.OutputPara.Id).ToDictionary(v => v.OutputPara.Id, v => v.Value);
+                    };
+                    foreach (var scenario in ver.Scenarios)
+                    {
+                        /// prepare output
+                        db.Entry(scenario).Collection(s => s.Replications).Query().Load();
+                        var outputValues = scenario.GetTargetedReps(db).Select(rep => getOutputValues(rep)).Where(dict => dict != null).ToList();
+
+                        sw.Write("{0},{1}%,{2},,", scenario.Id, scenario.GetProgress(db) * 100, outputValues.Count);
+                        /// for input
+                        db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara).Load();
+                        foreach (var i in scenario.InputValues.OrderBy(i => i.InputPara.Id)) sw.Write("{0},", i.Value);
+                        sw.Write(",");
+                        /// for output                    
+                        foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
+                        {
+                            sw.Write("{0},", outputValues.Count == 0 ? double.NaN :
+                                outputValues.Average(dict => dict[para.Id]));
+                        }
+                        sw.WriteLine();
+                    }
+                }
+                new Thread(() => System.Diagnostics.Process.Start(file)).Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.Write("Press any key to continue...");
+                Console.ReadKey();
+            }
+        }
+        
+        private string Head
+        {
+            get
+            {
+                string head = string.Format("O2DES.Net Experimenter - {0} v{1}\n", ProjectName, VersionNumber);
+                head += DateTime.Now.ToLongDateString() + " ";
+                head += DateTime.Now.ToLongTimeString() + " ";
+                head += " - operator: " + Operator + "\n";
+                head += _dline;
+                return head;
+            }
+        }
+        private string _dline = "=====================================================";
+        private string _line = "-----------------------------------------------------";
+        public void Main()
+        {
+            Console.WriteLine(Head);
+            Console.WriteLine("Machine name:\t" + Environment.MachineName);
+            Console.Write("Your name:\t");
+            Operator = Console.ReadLine();
+            var db = new DbContext();
+            var ver = db.Versions.Where(v => v.Project.Name == ProjectName && v.Number == VersionNumber)
+                .Include(v => v.Scenarios).First();
+            
+            while (true)
+            {
+                db.Entry(ver).Collection(v => v.Scenarios).Query().Load();
+                var overllProgress = ver.Scenarios.Sum(s => s.GetProgress(db) * s.TargetNReps) / ver.Scenarios.Sum(s => s.TargetNReps);
+                Console.Clear();
+                Console.WriteLine(Head);
+                Console.WriteLine("1. Set Experiment (Total {0})", ver.Scenarios.Count);
+                Console.WriteLine("2. Set Number of Threads (Curr. {0})", NThreads);
+                Console.WriteLine("3. View Progress (Overall {0:F0}%)", overllProgress * 100);
+                Console.WriteLine("4. View Results (in .CSV)");
+                Console.WriteLine(_line);
+                var option = ReadLineToInt32("Your Option");
+                switch (option)
+                {
+                    case 1: Main_SetExperiment(); break;
+                    case 2: Main_SetNThreads(); break;
+                    case 3: Main_ViewProgress(); break;
+                    case 4: ResultsToCSV(); break;
                 }
             }
-            System.Diagnostics.Process.Start(file);
+        }
+        private void Main_SetExperiment()
+        {
+            var db = new DbContext();
+            var ver = db.Versions.Where(v => v.Project.Name == ProjectName && v.Number == VersionNumber)
+                .Include(v => v.InputParas).First();
+
+            Console.Clear();
+            Console.WriteLine(Head);
+            Console.WriteLine("Set Experiment\n" + _line);
+            Console.WriteLine("\n--- Please set scenario values ---\n");
+            var inputValues = new Dictionary<string, double>();
+            foreach (var para in ver.InputParas.OrderBy(p => p.Id))
+            {
+                db.Entry(para).Reference(p => p.InputDesc).Query().Load();
+                var key = para.InputDesc.Name;           
+                inputValues.Add(key, ReadLineToDouble(key));
+            }
+            Console.WriteLine("\n--- Please set # replications ---\n");
+            var nReps = ReadLineToInt32("Number of Replications");
+            SetExperiment(inputValues, nReps);
+        }
+        private void Main_SetNThreads()
+        {
+            Console.Clear();
+            Console.WriteLine(Head);
+            Console.WriteLine("Set Number of Threads\n" + _line);
+            Console.WriteLine("Current Number:\t{0}", NThreads);
+            Console.WriteLine("Working Number:\t{0}", NThreads_Working);
+            var nThreads = ReadLineToInt32("Set Number");
+            RunExperiment(nThreads);
+        }
+        private void Main_ViewProgress()
+        {
+            while (true)
+            {
+                var db = new DbContext();
+                var scenarios = db.Scenarios.Where(s => s.Version.Number == VersionNumber && s.Version.Project.Name == ProjectName);
+                Console.Clear();
+                Console.WriteLine(Head);
+                Console.WriteLine("View Progress\n" + _line);
+                Console.WriteLine("Scenario Id\tTarget #Reps.\tProgress");
+                double overall = 0;
+                foreach (var s in scenarios)
+                {
+                    var p = s.GetProgress(db);
+                    Console.WriteLine("{0}\t\t{1}\t\t{2:F2}%", s.Id, s.TargetNReps, p * 100);
+                    overall += s.TargetNReps * p;
+                }
+                overall /= scenarios.Sum(s => s.TargetNReps);
+                Console.WriteLine("\nOverall Progress:\t\t{0:F2}%", overall * 100);
+                Console.WriteLine("Working Number:\t{0}", NThreads_Working);
+                Console.Write("\nPress Enter to refresh, \nor any other key to return...");
+                ///int i = (int)Console.ReadKey().Key;
+                if ((int)Console.ReadKey().Key != 13) break;
+            }
+        }
+        private double ReadLineToDouble(string key)
+        {
+            while (true)
+            {
+                try
+                {
+                    Console.Write("{0}:\t", key);
+                    return Convert.ToDouble(Console.ReadLine());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    Console.WriteLine("Input again...");
+                }
+            }
+        }
+        private int ReadLineToInt32(string key)
+        {
+            while (true)
+            {
+                try
+                {
+                    Console.Write("{0}:\t", key);
+                    return Convert.ToInt32(Console.ReadLine());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    Console.WriteLine("Input again...");
+                }
+            }
         }
     }
 }
