@@ -151,17 +151,22 @@ namespace O2DESNet.Database
                         }
                         return false;
                     };
-                    while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod))
+                    Action run = () =>
                     {
-                        sim.Run(TimeSpan.FromDays(ver.RunInterval));
-                        thread_check = addSnapShot();
-                    }
+                        try
+                        {
+                            sim.Run(TimeSpan.FromDays(ver.RunInterval));
+                            thread_check = addSnapShot();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                            Thread.Sleep(30000);
+                        }
+                    };
+                    while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod)) run();
                     if (thread_check) sim.WarmUp(TimeSpan.FromSeconds(0));
-                    while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod + ver.RunLength))
-                    {
-                        sim.Run(TimeSpan.FromDays(ver.RunInterval));
-                        thread_check = addSnapShot();
-                    }
+                    while (thread_check && sim.ClockTime < DateTime.MinValue.AddDays(ver.WarmUpPeriod + ver.RunLength)) run();
                     #endregion
                 }
                 Thread.Sleep(2000); /// wait for 2 seconds before attempting next run
