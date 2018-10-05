@@ -216,7 +216,8 @@ namespace O2DESNet.Database
                         foreach (var i in scenario.InputValues.OrderBy(i => i.InputPara.Id)) sw.Write("{0},", i.Value);
                         /// for output     
                         if (outputValues.Count > 1) sw.Write("avg.,");
-                        else sw.Write("{0},", outputValues.First().Key);
+                        else if (outputValues.Count > 0) sw.Write("{0},", outputValues.First().Key);
+                        else sw.Write(",");
                         foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
                         {
                             sw.Write("{0},", outputValues.Count == 0 ? double.NaN :
