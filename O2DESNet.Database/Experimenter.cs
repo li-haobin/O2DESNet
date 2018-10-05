@@ -182,13 +182,13 @@ namespace O2DESNet.Database
                 using (StreamWriter sw = new StreamWriter(file))
                 {
                     #region Write the head
-                    sw.Write("scenario id,progress,#reps effective,,");
+                    sw.Write("scenario id,progress,#reps effective,");
                     foreach (var para in ver.InputParas.OrderBy(p => p.Id))
                     {
                         db.Entry(para).Reference(p => p.InputDesc).Query().Load();
                         sw.Write("{0},", para.InputDesc.Name);
                     }
-                    sw.Write(",");
+                    sw.Write("rep. id,");
                     foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
                     {
                         db.Entry(para).Reference(p => p.OutputDesc).Query().Load();
@@ -208,20 +208,33 @@ namespace O2DESNet.Database
                     {
                         /// prepare output
                         db.Entry(scenario).Collection(s => s.Replications).Query().Load();
-                        var outputValues = scenario.GetTargetedReps(db).Select(rep => getOutputValues(rep)).Where(dict => dict != null).ToList();
+                        var outputValues = scenario.GetTargetedReps(db).ToDictionary(rep => rep.Id, rep => getOutputValues(rep)).Where(i => i.Value != null).ToDictionary(i => i.Key, i => i.Value);
 
-                        sw.Write("{0},{1}%,{2},,", scenario.Id, scenario.GetProgress(db) * 100, outputValues.Count);
+                        sw.Write("{0},{1}%,{2},", scenario.Id, scenario.GetProgress(db) * 100, outputValues.Count);
                         /// for input
                         db.Entry(scenario).Collection(s => s.InputValues).Query().Include(i => i.InputPara).Load();
                         foreach (var i in scenario.InputValues.OrderBy(i => i.InputPara.Id)) sw.Write("{0},", i.Value);
-                        sw.Write(",");
-                        /// for output                    
+                        /// for output     
+                        if (outputValues.Count > 1) sw.Write("avg.,");
+                        else sw.Write("{0},", outputValues.First().Key);
                         foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
                         {
                             sw.Write("{0},", outputValues.Count == 0 ? double.NaN :
-                                outputValues.Average(dict => dict[para.Id]));
+                                outputValues.Average(i => i.Value[para.Id]));
                         }
                         sw.WriteLine();
+                        if (outputValues.Count > 1)
+                        {
+                            foreach (var i in outputValues)
+                            {
+                                sw.Write(",,,");
+                                foreach (var j in scenario.InputValues) sw.Write(",");
+                                sw.Write("{0},", i.Key);
+                                foreach (var para in ver.OutputParas.OrderBy(p => p.Id))
+                                    sw.Write("{0},", i.Value[para.Id]);
+                                sw.WriteLine();
+                            }
+                        }
                     }
                 }
                 new Thread(() => System.Diagnostics.Process.Start(file)).Start();
@@ -233,7 +246,8 @@ namespace O2DESNet.Database
                 Console.ReadKey();
             }
         }
-        
+
+        #region For Console Controller
         private string Head
         {
             get
@@ -367,5 +381,6 @@ namespace O2DESNet.Database
                 }
             }
         }
+        #endregion
     }
 }
