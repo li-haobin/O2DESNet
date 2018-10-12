@@ -39,9 +39,25 @@ namespace O2DESNet
         public double AverageCount { get { if (TotalHours == 0) return LastCount; return CumValue / TotalHours; } }
         public bool Paused { get; private set; }
 
-        public HourCounter() { Init(DateTime.MinValue); }
-        public HourCounter(DateTime initialTime) { Init(initialTime); }
-        private void Init(DateTime initialTime)
+        #region For history keeping
+        private Dictionary<DateTime, double> _history;
+        public bool KeepHistory { get; private set; }
+        /// <summary>
+        /// Scatter points of (time in hours, count)
+        /// </summary>
+        public List<Tuple<double, double>> History
+        {
+            get
+            {
+                if (!KeepHistory) return null;
+                return _history.OrderBy(i => i.Key).Select(i => new Tuple<double, double>((i.Key - _initialTime).TotalHours, i.Value)).ToList();
+            }
+        }
+        #endregion
+
+        public HourCounter(bool keepHistory = false) { Init(DateTime.MinValue, keepHistory); }
+        public HourCounter(DateTime initialTime, bool keepHistory = false) { Init(initialTime, keepHistory); }
+        private void Init(DateTime initialTime, bool keepHistory)
         {
             _initialTime = initialTime;
             LastTime = initialTime;
@@ -50,6 +66,8 @@ namespace O2DESNet
             TotalDecrementCount = 0;
             TotalHours = 0;
             CumValue = 0;
+            KeepHistory = keepHistory;
+            if (KeepHistory) _history = new Dictionary<DateTime, double>();
         }
         public void ObserveCount(double count, DateTime clockTime)
         {
@@ -69,6 +87,7 @@ namespace O2DESNet
                 HoursForCount[LastCount] += hours;
             }
             LastCount = count;
+            if (KeepHistory) _history[clockTime] = count;          
         }
         public void ObserveChange(double change, DateTime clockTime) { ObserveCount(LastCount + change, clockTime); }
         public void Pause() { Pause(LastTime); }
