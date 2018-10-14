@@ -177,7 +177,7 @@ namespace O2DESNet.Traffic
         #region Dynamics
         public Dictionary<IVehicle, double> VehiclePositions { get; private set; } = new Dictionary<IVehicle, double>();
         public Dictionary<IVehicle, DateTime> VehicleCompletionTimes { get; private set; } = new Dictionary<IVehicle, DateTime>();
-        public Queue<IVehicle> VehiclesCompleted { get; private set; } = new Queue<IVehicle>();
+        public List<IVehicle> VehiclesCompleted { get; private set; } = new List<IVehicle>();
         public DateTime LastTimeStamp { get; private set; }
         /// <summary>
         /// Record the availabilities of the following paths for the vehicle to exit to,
@@ -268,7 +268,7 @@ namespace O2DESNet.Traffic
             {
                 This.VehiclePositions = new Dictionary<IVehicle, double>();
                 This.VehicleCompletionTimes = new Dictionary<IVehicle, DateTime>();
-                This.VehiclesCompleted = new Queue<IVehicle>();
+                This.VehiclesCompleted = new List<IVehicle>();
                 This.LastTimeStamp = ClockTime;
                 foreach (var path in This.ToEnter.Keys.ToList()) This.ToEnter[path] = true;
                 This.Locked = false;
@@ -300,7 +300,7 @@ namespace O2DESNet.Traffic
                 if (!This.VehicleCompletionTimes.ContainsKey(Vehicle) || !This.VehicleCompletionTimes[Vehicle].Equals(ClockTime)) return;
                 This.VehiclePositions.Remove(Vehicle);
                 This.VehicleCompletionTimes.Remove(Vehicle);
-                This.VehiclesCompleted.Enqueue(Vehicle);
+                This.VehiclesCompleted.Add(Vehicle);
                 UpdPositions();
                 Execute(new AtptExitEvent());
             }
@@ -316,18 +316,40 @@ namespace O2DESNet.Traffic
                     This.Locked = false;
                     return;
                 }
-                var prevLockedByPaths = This.Locked;
-                var vehicle = This.VehiclesCompleted.First();
-                var toExit = Exitable(vehicle.Targets.ToList());
-                if (toExit)
+                var blockedDirections = new HashSet<ControlPoint>();
+                int idx = 0;
+                while (idx < This.VehiclesCompleted.Count && 
+                    blockedDirections.Count < Config.NLanes) /// allow by-pass at multiple lanes
                 {
-                    var veh = This.VehiclesCompleted.Dequeue();
-                    Execute(This.OnExit.Select(e => e(veh)));
-                    Execute(new AtptExitEvent());
-                    Execute(new UpdCompletionEvent());
-                    Execute(new VacancyChgEvent());
+                    var vehicle = This.VehiclesCompleted[idx];
+                    var toExit = Exitable(vehicle.Targets.ToList());
+                    if (toExit)
+                    {
+                        //if (blockedDirections.Count > 0) ;
+
+                        This.VehiclesCompleted.RemoveAt(idx);
+                        Execute(This.OnExit.Select(e => e(vehicle)));
+                        Execute(new AtptExitEvent());
+                        Execute(new UpdCompletionEvent());
+                        Execute(new VacancyChgEvent());
+                        return;
+                    }
+                    #region Count number of directions being blocked
+                    var next = Config.End.PathTo(vehicle.Targets.First());
+                    if (next == null) blockedDirections.Add(null); /// for reaching destination
+                    else if (!next.CrossHatched) blockedDirections.Add(next.End);
+                    else
+                    {
+                        var next2 = next.End.PathTo(vehicle.Targets.First());
+                        if (next2 == null) blockedDirections.Add(next.End); /// for reaching destination after cross-hatching
+                        else blockedDirections.Add(next2.End);
+                    }
+                    #endregion
+                    idx++;
                 }
-                else if (Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
+                if (Config.NLanes > 1 && This.VehiclesCompleted.Count > Config.NLanes) ;
+                if (Config.Capacity == This.Occupancy) Schedule(This.OnLockedByPaths.Select(e => e()));
+
             }
             private bool Exitable(List<ControlPoint> targets)
             {
@@ -371,7 +393,7 @@ namespace O2DESNet.Traffic
         {
             public override void Invoke()
             {
-                This.VehiclesCompleted.Dequeue();
+                This.VehiclesCompleted.RemoveAt(0);
                 Execute(new AtptExitEvent());
                 Execute(new VacancyChgEvent());
             }
