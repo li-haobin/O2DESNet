@@ -38,13 +38,10 @@ namespace O2DESNet
             History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(clockTime, LastPhase) };
             TimeSpans = new Dictionary<TPhase, TimeSpan>();
         }
-        public Dictionary<TPhase, double> Proportions
+        public double GetProportion(TPhase phase)
         {
-            get
-            {
-                var sum = TimeSpans.Sum(i => i.Value.TotalHours);
-                return TimeSpans.OrderBy(i => i.Key).ToDictionary(i => i.Key, i => i.Value.TotalHours / sum);
-            }
+            if (!TimeSpans.ContainsKey(phase)) return 0;
+            return TimeSpans[phase].TotalHours / TimeSpans.Sum(i => i.Value.TotalHours);
         }
         public Canvas GetDrawing(DateTime clockTime, Dictionary<TPhase, SolidColorBrush> colors, double length = 300, double height = 20)
         {
