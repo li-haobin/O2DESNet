@@ -40,11 +40,12 @@ namespace O2DESNet
         }
         public double GetProportion(TPhase phase, DateTime clockTime)
         {
-            if (!TimeSpans.ContainsKey(phase)) return 0;
-            double sum = (clockTime - _initialTime).TotalHours;
-            double timespan = TimeSpans[phase].TotalHours;
+            double timespan;
+            if (!TimeSpans.ContainsKey(phase)) timespan = 0;
+            else timespan = TimeSpans[phase].TotalHours;
             if (phase.Equals(LastPhase)) timespan += (clockTime - LastTime).TotalHours;
-            return TimeSpans[phase].TotalHours / sum;
+            double sum = (clockTime - _initialTime).TotalHours;
+            return timespan / sum;
         }
         public Canvas GetDrawing(DateTime clockTime, Dictionary<TPhase, SolidColorBrush> colors, double length = 300, double height = 20)
         {
