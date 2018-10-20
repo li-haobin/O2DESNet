@@ -22,7 +22,7 @@ namespace O2DESNet
             History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(LastTime, LastPhase) };
             TimeSpans = new Dictionary<TPhase, TimeSpan>();
         }
-        public void ObservePhase(TPhase phase, DateTime clockTime)
+        public void UpdPhase(TPhase phase, DateTime clockTime)
         {
             History.Add(new Tuple<DateTime, TPhase>(clockTime, phase));
             var duration = clockTime - LastTime;
@@ -38,10 +38,13 @@ namespace O2DESNet
             History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(clockTime, LastPhase) };
             TimeSpans = new Dictionary<TPhase, TimeSpan>();
         }
-        public double GetProportion(TPhase phase)
+        public double GetProportion(TPhase phase, DateTime clockTime)
         {
             if (!TimeSpans.ContainsKey(phase)) return 0;
-            return TimeSpans[phase].TotalHours / TimeSpans.Sum(i => i.Value.TotalHours);
+            double sum = (clockTime - _initialTime).TotalHours;
+            double timespan = TimeSpans[phase].TotalHours;
+            if (phase.Equals(LastPhase)) timespan += (clockTime - LastTime).TotalHours;
+            return TimeSpans[phase].TotalHours / sum;
         }
         public Canvas GetDrawing(DateTime clockTime, Dictionary<TPhase, SolidColorBrush> colors, double length = 300, double height = 20)
         {
