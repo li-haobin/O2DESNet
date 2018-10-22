@@ -14,17 +14,19 @@ namespace O2DESNet
         public DateTime LastTime;
         public TPhase LastPhase { get; private set; }
         public List<Tuple<DateTime, TPhase>> History { get; private set; }
+        public bool HistoryOn { get; private set; }
         public Dictionary<TPhase, TimeSpan> TimeSpans { get; private set; }
-        public PhaseTracker(TPhase initPhase)
+        public PhaseTracker(TPhase initPhase, bool historyOn = false)
         {
             LastTime = _initialTime;
             LastPhase = initPhase;
-            History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(LastTime, LastPhase) };
+            HistoryOn = historyOn;
+            if (HistoryOn) History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(LastTime, LastPhase) };
             TimeSpans = new Dictionary<TPhase, TimeSpan>();
         }
         public void UpdPhase(TPhase phase, DateTime clockTime)
         {
-            History.Add(new Tuple<DateTime, TPhase>(clockTime, phase));
+            if (HistoryOn) History.Add(new Tuple<DateTime, TPhase>(clockTime, phase));
             var duration = clockTime - LastTime;
             if (!TimeSpans.ContainsKey(LastPhase)) TimeSpans.Add(LastPhase, duration);
             else TimeSpans[LastPhase] += duration;
@@ -35,7 +37,7 @@ namespace O2DESNet
         {
             _initialTime = clockTime;
             LastTime = clockTime;
-            History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(clockTime, LastPhase) };
+            if (HistoryOn) History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(clockTime, LastPhase) };
             TimeSpans = new Dictionary<TPhase, TimeSpan>();
         }
         public double GetProportion(TPhase phase, DateTime clockTime)
@@ -50,6 +52,7 @@ namespace O2DESNet
         public Canvas GetDrawing(DateTime clockTime, Dictionary<TPhase, SolidColorBrush> colors, double length = 300, double height = 20)
         {
             var canvas = new Canvas();
+            if (!HistoryOn) return canvas;
             var totalHours = (clockTime - _initialTime).TotalHours;
             for (int i = 0; i < History.Count - 1; i++)
             {
