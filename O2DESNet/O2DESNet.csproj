@@ -76,6 +76,7 @@
     <Compile Include="Drawing\Background.cs" />
     <Compile Include="Drawing\Drawer.cs" />
     <Compile Include="Drawing\IDrawable.cs" />
+    <Compile Include="Drawing\TrajInfo.cs" />
     <Compile Include="Modules\FIFOServer.cs" />
     <Compile Include="Modules\Load.cs" />
     <Compile Include="Modules\Synchronizer.cs" />

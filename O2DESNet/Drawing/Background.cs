@@ -12,14 +12,15 @@ namespace O2DESNet.Drawing
         /// <summary>
         /// The scale of background image against the foreground
         /// </summary>
-        public double Scale { get; set; }
+        public double ScaleX { get; set; } = 1;
+        public double ScaleY { get; set; } = 1;
         /// <summary>
         /// Translate X of background image against the foreground
         /// </summary>
-        public double Translate_X { get; set; }
+        public double TranslateX { get; set; }
         /// <summary>
         /// Translate Y of background image against the foreground
         /// </summary>
-        public double Translate_Y { get; set; }
+        public double TranslateY { get; set; }
     }
 }

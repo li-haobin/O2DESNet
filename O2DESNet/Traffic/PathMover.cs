@@ -164,7 +164,7 @@ namespace O2DESNet.Traffic
                 public XML() { }
                 public XML(Statics pm)
                 {
-                    Tag = Tag;
+                    Tag = pm.Tag;
                     ControlPoints = pm.ControlPoints.Values.OrderBy(cp => cp.Index).Select(cp => new ControlPoint.XML(cp)).ToList();
                     Paths = pm.Paths.Values.OrderBy(p => p.Start.Index).ThenBy(p => p.End.Index).Select(path => new Path.Statics.XML(path)).ToList();
                 }
