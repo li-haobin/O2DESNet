@@ -40,7 +40,7 @@ namespace O2DESNet.Traffic
             public ControlPoint CreateControlPoint(string tag = null)
             {
                 CheckInitialized();
-                var cp = new ControlPoint { Tag = tag, Index = ControlPoints.Count };
+                var cp = new ControlPoint { Tag = tag, Index = ControlPoints.Count == 0 ? 0 : ControlPoints.Max(i => i.Value.Index) + 1 };
                 if (cp.Tag == null || cp.Tag.Length == 0) cp.Tag = string.Format(" {0}", cp.Index);
                 ControlPoints.Add(cp.Tag, cp);
                 return cp;
@@ -60,7 +60,7 @@ namespace O2DESNet.Traffic
                 {
                     //PathMover = this,
                     Tag = tag,
-                    Index = Paths.Count,
+                    Index = Paths.Count == 0 ? 0 : Paths.Max(i => i.Value.Index) + 1,
                     Length = length,
                     Capacity = capacity,
                     CrossHatched = crossHatched,
@@ -72,7 +72,17 @@ namespace O2DESNet.Traffic
                 Paths.Add(path.Tag, path);
                 return path;
             }
-
+            public void Remove(Path.Statics path)
+            {
+                path.Start.PathsOut.Remove(path);
+                path.End.PathsIn.Remove(path);
+                Paths.Remove(path.Tag);
+            }
+            public void Remove(ControlPoint cp)
+            {
+                foreach (var p in cp.PathsOut.Concat(cp.PathsIn).ToList()) Remove(p);
+                ControlPoints.Remove(cp.Tag);
+            }
             private void CheckInitialized()
             {
                 if (_initialized) throw new Exception("PathMover cannot be modified after initialization.");
@@ -146,8 +156,20 @@ namespace O2DESNet.Traffic
             public virtual void UpdDrawing(DateTime? clockTime = null)
             {
                 if (_drawing == null) _drawing = new Canvas();
-                foreach (var cp in ControlPoints.Values) { cp.ShowTag = ShowTag; _drawing.Children.Add(cp.Drawing); }
-                foreach (var path in Paths.Values) { path.ShowTag = ShowTag; _drawing.Children.Add(path.Drawing); }
+                foreach (var cp in ControlPoints.Values)
+                {
+                    cp.ShowTag = ShowTag;
+                    if (cp.Drawing.Parent != null) ((Canvas)cp.Drawing.Parent).Children.Remove(cp.Drawing);
+                    _drawing.Children.Add(cp.Drawing);
+                    cp.UpdDrawing(clockTime);
+                }
+                foreach (var path in Paths.Values)
+                {
+                    path.ShowTag = ShowTag;
+                    if (path.Drawing.Parent != null) ((Canvas)path.Drawing.Parent).Children.Remove(path.Drawing);
+                    _drawing.Children.Add(path.Drawing);                    
+                    path.UpdDrawing(clockTime);
+                }
                 _drawing.RenderTransform = TransformGroup;
             }
             #endregion

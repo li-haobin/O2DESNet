@@ -76,7 +76,8 @@ namespace O2DESNet.Traffic
             public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
             public void UpdDrawing(DateTime? clockTime = null)
             {
-                _drawing = new Canvas();
+                if (_drawing == null) _drawing = new Canvas();
+                else _drawing.Children.Clear();
                 _drawing.Children.Add(new System.Windows.Shapes.Path // Trajectory
                 {
                     Stroke = Brushes.Black,

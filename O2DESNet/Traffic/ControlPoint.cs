@@ -37,7 +37,13 @@ namespace O2DESNet.Traffic
         public bool ShowTag { get { return _showTag; } set { if (_showTag != value) { _showTag = value; UpdDrawing(); } } }
         public void UpdDrawing(DateTime? clockTime = null)
         {
-            if (_drawing == null) _drawing = new Canvas();
+            if (_drawing == null)
+            {
+                _drawing = new Canvas();
+                TransformGroup.Children.Add(new RotateTransform(Degree));
+                TransformGroup.Children.Add(new TranslateTransform(X, Y));
+                _drawing.RenderTransform = TransformGroup;
+            }
             else _drawing.Children.Clear();
             _drawing.Children.Add(new System.Windows.Shapes.Path // Cross
             {
@@ -60,10 +66,7 @@ namespace O2DESNet.Traffic
                 Text = Tag ?? ToString(),
                 FontSize = 4,
                 Margin = new Thickness(-10, 4, 0, 0),
-            });
-            TransformGroup.Children.Add(new RotateTransform(Degree));
-            TransformGroup.Children.Add(new TranslateTransform(X, Y));
-            _drawing.RenderTransform = TransformGroup;
+            });            
         }
         #endregion
 
