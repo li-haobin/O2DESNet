@@ -116,7 +116,7 @@ namespace O2DESNet.Traffic
                             throw new Exception(string.Format("Consecutive CrossHatched Paths, i.e., {0} & {1}, is not allowed.", path, p));
                 }
             }
-            private void ConstructRoutingTables()
+            protected virtual void ConstructRoutingTables()
             {
                 var to_at_next = ControlPoints.Values.ToDictionary(to => to, 
                     to => (Dictionary<ControlPoint, Tuple<ControlPoint, double>>)null);

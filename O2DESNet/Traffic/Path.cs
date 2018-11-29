@@ -35,6 +35,7 @@ namespace O2DESNet.Traffic
             /// Function map vehicle density in # vehicles per meter,  to the speed in meters per second
             /// </summary>
             public Func<double, double> SpeedByDensity { get; set; } //= d => 4.5;
+            public Func<Random, DateTime, double, double> SpeedByClockTimeDensity { get; set; }
             public ControlPoint Start { get; internal set; }
             public ControlPoint End { get; internal set; }
             public bool CrossHatched { get; set; } = false;
@@ -282,7 +283,15 @@ namespace O2DESNet.Traffic
             public override void Invoke()
             {
                 Count();
-                This.CurrentSpeed = This.Config.SpeedByDensity(This.Occupancy / This.Config.Length);
+                Double density = This.Occupancy / This.Config.Length;
+                if (Config.SpeedByDensity != null)
+                {
+                    This.CurrentSpeed = This.Config.SpeedByDensity(density);
+                }
+                else if(Config.SpeedByClockTimeDensity != null)
+                {
+                    This.CurrentSpeed = This.Config.SpeedByClockTimeDensity(DefaultRS, ClockTime, density);
+                }
                 foreach (var veh in This.VehiclePositions.Keys)
                 {
                     var completionTime = ClockTime + TimeSpan.FromSeconds(Math.Max(0, (Config.Length - This.VehiclePositions[veh]) / This.CurrentSpeed));

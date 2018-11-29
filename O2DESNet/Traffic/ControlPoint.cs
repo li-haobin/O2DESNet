@@ -21,7 +21,7 @@ namespace O2DESNet.Traffic
 
         public List<Path.Statics> PathsIn { get; private set; } = new List<Path.Statics>();
         public List<Path.Statics> PathsOut { get; private set; } = new List<Path.Statics>();
-        public Dictionary<ControlPoint, ControlPoint> RoutingTable { get; internal set; }        
+        public Dictionary<ControlPoint, ControlPoint> RoutingTable { get; set; }        
         public Path.Statics PathTo(ControlPoint target)
         {
             if (Equals(target)) return null;

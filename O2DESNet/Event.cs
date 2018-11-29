@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Animation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,6 +20,7 @@ namespace O2DESNet
         internal protected void Log(string format, params object[] args) { State.Log(ClockTime, string.Format(format, args)); }
         internal protected void Log(params object[] args) { State.Log(ClockTime, args); }
         protected virtual void Execute(Event evnt) { Simulator.Execute(evnt); }
+        internal protected IAnimator Animator { get { return Simulator.Animator; } }
     }
     public abstract class Event<TState, TScenario> : Event 
         where TState : State<TScenario>

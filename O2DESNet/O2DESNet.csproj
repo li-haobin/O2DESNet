@@ -72,6 +72,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\Animator.cs" />
+    <Compile Include="Animation\DummyAnimator.cs" />
+    <Compile Include="Animation\IAnimator.cs" />
     <Compile Include="Distributions\Poisson.cs" />
     <Compile Include="Drawing\Background.cs" />
     <Compile Include="Drawing\Drawer.cs" />

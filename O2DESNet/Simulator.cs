@@ -1,4 +1,5 @@
-﻿using System;
+﻿using O2DESNet.Animation;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,15 @@ namespace O2DESNet
         internal SortedSet<Event> FutureEventList { get; } = new SortedSet<Event>(new FutureEventComparer());
         public DateTime ClockTime { get; protected set; } = DateTime.MinValue;
         public State State { get; private set; }
+        /// <summary>
+        /// Set animator for simulation
+        /// </summary>
+        public IAnimator Animator { get; private set; } = new DummyAnimator();
+
+        public Simulator(State state, IAnimator animator):this(state)
+        {
+            Animator = animator;
+        }
 
         public Simulator(State state)
         {
