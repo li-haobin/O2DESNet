@@ -34,6 +34,7 @@ namespace O2DESNet.Animation
             public bool StoryboardIsPlaying { get; set; }
             public Canvas Canvas { get; set; }
             public bool AddedToScene { get; set; }
+            public double CurrentDegree { get; set; }
 
             public ObjectData(String name, Canvas cvs)
             {
@@ -42,6 +43,7 @@ namespace O2DESNet.Animation
                 StoryboardIsPlaying = false;
                 Canvas = cvs;
                 AddedToScene = false;
+                CurrentDegree = 0;
             }
         };
 
@@ -67,10 +69,6 @@ namespace O2DESNet.Animation
         public Animator()
         {
             MyCanvas.Margin = new Thickness(10);
-
-            //mainWindow = Application.Current.MainWindow;
-            //mainWindow.Content = MyCanvas;
-            //NameScope.SetNameScope(mainWindow, new NameScope());
         }
 
         public void Start()
@@ -86,35 +84,36 @@ namespace O2DESNet.Animation
 
         public void Add(Canvas canvas, string id, double x, double y, double degree, DateTime simlationTimeStamp)
         {
-            if (CheckIfObjectInCanvas(id))
-            {
-                return;
-            }
-
             double timeToDelay = (ConvertToCompTime(simlationTimeStamp) - DateTime.Now).TotalMilliseconds;
             if (timeToDelay < 0)
             {
                 timeToDelay = 0;
             }
 
-            objectDataList.Add(id, new ObjectData(id, canvas));
-
-            Storyboard storyboard = new Storyboard
+            if (!objectDataList.ContainsKey(id))
             {
-                Name = "StoryboardName" + id
-            };
-            MyCanvas.RegisterName("myStoryboard" + id, storyboard);
-            MyCanvas.RegisterName("AnimatedTransform" + id, canvas);
-            TranslateTransform animatedTranslateTransform = new TranslateTransform();
-            MyCanvas.RegisterName("AnimatedTranslateTransform" + id, animatedTranslateTransform);
-            RotateTransform animatedRotateTransform = new RotateTransform(degree);
-            MyCanvas.RegisterName("AnimatedRotateTransform" + id, animatedRotateTransform);
+                objectDataList.Add(id, new ObjectData(id, canvas));
 
-            EventData ed = new EventData();
-            ed.Position = new Vector(x, y);
-            ed.Rotation = degree;
-            ed.TimeToArrive = simlationTimeStamp;
-            objectDataList[id].EventDataList.Add(ed);
+                Storyboard storyboard = new Storyboard
+                {
+                    Name = "StoryboardName" + id
+                };
+                MyCanvas.RegisterName("myStoryboard" + id, storyboard);
+                MyCanvas.RegisterName("AnimatedTransform" + id, canvas);
+                TranslateTransform animatedTranslateTransform = new TranslateTransform();
+                MyCanvas.RegisterName("AnimatedTranslateTransform" + id, animatedTranslateTransform);
+                RotateTransform animatedRotateTransform = new RotateTransform(degree);
+                MyCanvas.RegisterName("AnimatedRotateTransform" + id, animatedRotateTransform);
+
+                canvas.Visibility = Visibility.Collapsed;
+                MyCanvas.Children.Add(canvas);
+
+                EventData ed = new EventData();
+                ed.Position = new Vector(x, y);
+                ed.Rotation = degree;
+                ed.TimeToArrive = simlationTimeStamp;
+                objectDataList[id].EventDataList.Add(ed);
+            }
 
             if (timeToDelay <= 0)
             {
@@ -199,9 +198,12 @@ namespace O2DESNet.Animation
                 return;
             }
 
-            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
+            UpdateObject(canvas, id);
 
-            MyCanvas.Children.Add(canvas);
+            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
+            Canvas myObject = (Canvas)MyCanvas.FindName("AnimatedTransform" + id);
+
+            myObject.Visibility = Visibility.Visible;
 
             EventHandler handler = (s, e) => {
                 Storyboard_MoveCompleted(s, e, id);
@@ -210,6 +212,7 @@ namespace O2DESNet.Animation
 
             ObjectData od = objectDataList[id];
             od.AddedToScene = true;
+            od.Canvas = myObject;
             objectDataList[id] = od;
 
             MoveObject(id, x, y, degree, timeStamp);
@@ -219,7 +222,6 @@ namespace O2DESNet.Animation
         {
             ObjectData od = objectDataList[id];
             od.StoryboardIsPlaying = true;
-            objectDataList[id] = od;
 
             if (!Double.IsNaN(od.Canvas.Height) && !Double.IsNaN(od.Canvas.Width))
             {
@@ -237,17 +239,6 @@ namespace O2DESNet.Animation
                 storyboard.Children.Clear();
                 SetMapScale();
 
-                //Translation
-                DoubleAnimation translationAnimationX = new DoubleAnimation();
-                translationAnimationX.To = (x - (od.Canvas.Width / 2)) * MapScale.X;
-                Storyboard.SetTargetName(translationAnimationX, "AnimatedTranslateTransform" + id);
-                Storyboard.SetTargetProperty(translationAnimationX, new PropertyPath(TranslateTransform.XProperty));
-                DoubleAnimation translationAnimationY = new DoubleAnimation();
-                translationAnimationY.To = (y - (od.Canvas.Height / 2)) * MapScale.Y;
-                Storyboard.SetTargetName(translationAnimationY, "AnimatedTranslateTransform" + id);
-                Storyboard.SetTargetProperty(translationAnimationY, new PropertyPath(TranslateTransform.YProperty));
-                //Trace.WriteLine("MoveX: " + x + ", " + mapScale.X + ", " + translationAnimationX.To);
-
                 DateTime timeStamp_comp = ConvertToCompTime(timeStamp_sim);
                 TimeSpan timeElasped_comp = DateTime.Now - CompStartTime;
                 TimeSpan timeFromStart_sim = timeStamp_sim - SimStartTime;
@@ -257,30 +248,52 @@ namespace O2DESNet.Animation
                 {
                     timeToTravel = 0;
                 }
-                translationAnimationX.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                translationAnimationY.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                storyboard.Children.Add(translationAnimationX);
-                storyboard.Children.Add(translationAnimationY);
 
                 //Rotation
-                double deg = degree + 180;
-                //double oneeighty = 180;
-                //deg += oneeighty;
+                double deg = (degree + 180) % 360;
+                //if (deg < 360.1 && deg > 359.9)
+                //{
+                //    deg = 0;
+                //}
 
-                if (deg < 360.1 && deg > 359.9)
+                if ((deg > 270 && od.CurrentDegree < 90))
                 {
-                    deg = 0;
+                    AdjustAngle(id, 359.9, 0, storyboard);
+                    ExecuteWithDelay(new Action(delegate { MoveObject(id, x, y, degree, timeStamp_sim); }), TimeSpan.FromMilliseconds(1));
                 }
-                DoubleAnimation rotationAnimation = new DoubleAnimation();
-                rotationAnimation.To = deg;
-                Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform" + id);
-                Storyboard.SetTargetProperty(rotationAnimation, new PropertyPath(RotateTransform.AngleProperty));
-                rotationAnimation.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                storyboard.Children.Add(rotationAnimation);
+                else if ((deg < 90 && od.CurrentDegree > 270))
+                {
+                    AdjustAngle(id, 0, 0, storyboard);
+                    ExecuteWithDelay(new Action(delegate { MoveObject(id, x, y, degree, timeStamp_sim); }), TimeSpan.FromMilliseconds(1));
+                }
+                else
+                {
+                    DoubleAnimation rotationAnimation = new DoubleAnimation();
+                    rotationAnimation.To = deg;
+                    Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform" + id);
+                    Storyboard.SetTargetProperty(rotationAnimation, new PropertyPath(RotateTransform.AngleProperty));
+                    rotationAnimation.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
+                    storyboard.Children.Add(rotationAnimation);
 
+                    //Translation
+                    DoubleAnimation translationAnimationX = new DoubleAnimation();
+                    translationAnimationX.To = (x - (od.Canvas.Width / 2)) * MapScale.X;
+                    Storyboard.SetTargetName(translationAnimationX, "AnimatedTranslateTransform" + id);
+                    Storyboard.SetTargetProperty(translationAnimationX, new PropertyPath(TranslateTransform.XProperty));
+                    DoubleAnimation translationAnimationY = new DoubleAnimation();
+                    translationAnimationY.To = (y - (od.Canvas.Height / 2)) * MapScale.Y;
+                    Storyboard.SetTargetName(translationAnimationY, "AnimatedTranslateTransform" + id);
+                    Storyboard.SetTargetProperty(translationAnimationY, new PropertyPath(TranslateTransform.YProperty));
+                    translationAnimationX.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
+                    translationAnimationY.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
+                    storyboard.Children.Add(translationAnimationX);
+                    storyboard.Children.Add(translationAnimationY);
+                }
+                od.CurrentDegree = deg;
                 storyboard.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
                 storyboard.Begin(MyCanvas, true);
             }
+            objectDataList[id] = od;
         }
 
         private void RemoveObject(string id)
@@ -296,49 +309,25 @@ namespace O2DESNet.Animation
                 storyboard.CurrentStateInvalidated -= handler;
 
                 string nameRemoveAnimatedTransform = "AnimatedTransform" + id;
-                string nameRemoveAnimatedTranslateTransform = "AnimatedTranslateTransform" + id;
-                string nameRemoveAnimatedRotateTransform = "AnimatedRotateTransform" + id;
-                string nameRemoveStoryboard = "myStoryboard" + id;
 
                 Canvas transform = (Canvas)MyCanvas.FindName(nameRemoveAnimatedTransform);
-                if (transform != null)
-                {
-                    MyCanvas.UnregisterName(nameRemoveAnimatedTransform);
-                    MyCanvas.UnregisterName(nameRemoveAnimatedTranslateTransform);
-                    MyCanvas.UnregisterName(nameRemoveAnimatedRotateTransform);
-                    MyCanvas.UnregisterName(nameRemoveStoryboard);
-                }
-                MyCanvas.Children.Remove(transform);
+                transform.Visibility = Visibility.Collapsed;
             }
-
-            //for (int i = 0; i < MyCanvas.Children.Count; i++)
-            //{
-            //    String shapeName = ((Visual)(MyCanvas.Children[i])).ToString();
-            //    if (shapeName.Contains("Rectangle"))
-            //    {
-            //        Rectangle pointRectElem = (Rectangle)MyCanvas.Children[i];
-            //        if (pointRectElem.Name.Contains(id))
-            //        {
-            //            MyCanvas.Children.Remove(MyCanvas.Children[i]);
-            //            i--;
-            //            continue;
-            //        }
-            //    }
-            //}
         }
 
         private void UpdateObject(Canvas canvas, string id)
         {
             Canvas myObject = (Canvas)MyCanvas.FindName("AnimatedTransform" + id);
-            myObject.Children.Clear();
             UIElement[] elements = new UIElement[canvas.Children.Count];
             canvas.Children.CopyTo(elements, 0);
 
+            myObject.Children.Clear();
             for (int i = 0; i < elements.Length; i++)
             {
                 canvas.Children.Remove(elements[i]);
                 myObject.Children.Add(elements[i]);
             }
+            canvas = myObject;
 
             ObjectData od = objectDataList[id];
             od.Canvas = myObject;
@@ -394,6 +383,16 @@ namespace O2DESNet.Animation
             }
 
             return true;
+        }
+
+        private void AdjustAngle(string id, double deg, double timeInMilliseconds, Storyboard storyboard)
+        {
+            DoubleAnimation rotationAnimation = new DoubleAnimation();
+            rotationAnimation.To = deg;
+            Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform" + id);
+            Storyboard.SetTargetProperty(rotationAnimation, new PropertyPath(RotateTransform.AngleProperty));
+            rotationAnimation.Duration = (TimeSpan.FromMilliseconds(timeInMilliseconds));
+            storyboard.Children.Add(rotationAnimation);
         }
 
         //-----Static-----
