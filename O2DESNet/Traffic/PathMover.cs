@@ -262,6 +262,13 @@ namespace O2DESNet.Traffic
         public Dictionary<ControlPoint, bool> ToArrive { get; private set; }
         public HourCounter HCounter_Deadlocks { get; private set; } = new HourCounter();
         public List<Path> DeadlockedPaths { get; private set; } = new List<Path>();
+
+        public Dictionary<IVehicle, DateTime> CallToDepartTimes { get; private set; } = new Dictionary<IVehicle, DateTime>();
+        public List<TimeSpan> TravellingTimes { get; private set; } = new List<TimeSpan>();
+        /// <summary>
+        /// Average time between CallToDepart and first AtptArrive
+        /// </summary>
+        public TimeSpan AvgTravellingTime { get { return TravellingTimes.Count > 0 ? TimeSpan.FromSeconds(TravellingTimes.Average(t => t.TotalSeconds)) : new TimeSpan(); } }
         #endregion
 
         #region Events
@@ -274,6 +281,7 @@ namespace O2DESNet.Traffic
             internal ControlPoint At { get; set; }
             public override void Invoke()
             {
+                This.CallToDepartTimes.Add(Vehicle, ClockTime);
                 while (At.Equals(Vehicle.Targets.FirstOrDefault())) Execute(Vehicle.RemoveTarget());
                 if (Vehicle.Targets.Count == 0)
                 {
@@ -293,7 +301,7 @@ namespace O2DESNet.Traffic
                 This.DepartingQueues[path].Enqueue(Vehicle);
                 This.HCounter_Departing.ObserveChange(1, ClockTime);
                 This.Timestamps.Add(Vehicle, ClockTime);
-                Execute(new DepartEvent { Path = path });
+                Execute(new DepartEvent { Path = path });                
             }
         }
 
@@ -362,6 +370,9 @@ namespace O2DESNet.Traffic
                     Execute(Vehicle.RemoveTarget());
                     if (Vehicle.Targets.Count == 0)
                     {
+                        This.TravellingTimes.Add(ClockTime - This.CallToDepartTimes[Vehicle]);
+                        This.CallToDepartTimes.Remove(Vehicle);
+
                         Execute(new ArriveEvent { Vehicle = Vehicle, At = At });
                         return;
                     }
