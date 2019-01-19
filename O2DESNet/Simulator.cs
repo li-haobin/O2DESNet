@@ -19,9 +19,22 @@ namespace O2DESNet
             #endregion
 
             State = state;
-            if (State.InitEvents.Count == 0) throw new InitEventsNotFound();
+            //if (State.InitEvents.Count == 0) throw new InitEventsNotFound();
             foreach (var evnt in State.InitEvents) Schedule(evnt, ClockTime);
-        }                
+        }        
+        public bool HasFutureEvents { get { return FutureEventList.Count > 0; } }
+        public DateTime HeadEventTime { get { return FutureEventList.Count > 0 ? FutureEventList.First().ScheduledTime : DateTime.MaxValue; } }
+        /// <summary>
+        /// Reset simulation clock time, used for HLA federate initialization.
+        /// </summary>
+        public void ResetClockTime(DateTime clockTime)
+        {
+            while (ClockTime < clockTime)
+            {
+                FutureEventList.Remove(FutureEventList.First());
+                ClockTime = FutureEventList.Count > 0 ? FutureEventList.First().ScheduledTime : clockTime;
+            }
+        }
         internal protected void Schedule(Event evnt, DateTime time)
         {
             if (evnt.Simulator == null) evnt.Simulator = this;
@@ -44,6 +57,13 @@ namespace O2DESNet
             /// Execute the event
             ClockTime = head.ScheduledTime;
             head.Invoke();
+            return true;
+        }
+        public virtual bool Run(Event evnt)
+        {
+            if (evnt.Simulator != null && !evnt.Simulator.Equals(this))
+                return false;
+            Execute(evnt);
             return true;
         }
         public virtual bool Run(TimeSpan duration) { return Run(ClockTime.Add(duration)); }
