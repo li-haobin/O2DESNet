@@ -38,6 +38,7 @@ namespace O2DESNet
             internal TLoad Load { get; set; }
             public override void Invoke()
             {
+                Log("Enqueue");
                 if (This.Vacancy == 0) throw new HasZeroVacancyException();
                 This.Waiting.Add(Load);
                 This.HourCounter.ObserveChange(1, ClockTime);
@@ -51,6 +52,7 @@ namespace O2DESNet
             internal bool ToDequeue { get; set; }
             public override void Invoke()
             {
+                Log("UpdToDequeue");
                 This.ToDequeue = ToDequeue;
                 if (This.ToDequeue && This.Waiting.Count > 0) Execute(new DequeueEvent());
             }
@@ -58,7 +60,11 @@ namespace O2DESNet
         }
         private class StateChgEvent : InternalEvent
         {
-            public override void Invoke() { Execute(This.OnStateChg.Select(e => e())); }
+            public override void Invoke()
+            {
+                Log("StateChg");
+                Execute(This.OnStateChg.Select(e => e()));
+            }
             public override string ToString() { return string.Format("{0}_StateChange", This); }
         }
         /// <summary>

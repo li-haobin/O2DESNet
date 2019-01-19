@@ -29,17 +29,28 @@ namespace O2DESNet
         {
             public override void Invoke()
             {
-                if (Config.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
-                This.On = true;
-                This.StartTime = ClockTime;
-                This.Count = 0;
-                if (Config.SkipFirst) Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
-                else Schedule(new ArriveEvent());
+                if (!This.On)
+                {
+                    Log("Start");
+                    if (Config.InterArrivalTime == null) throw new InterArrivalTimeNotSpecifiedException();
+                    This.On = true;
+                    This.StartTime = ClockTime;
+                    This.Count = 0;
+                    if (Config.SkipFirst) Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
+                    else Schedule(new ArriveEvent());
+                }
             }
         }
         private class EndEvent : InternalEvent
         {
-            public override void Invoke() { This.On = false; }
+            public override void Invoke()
+            {
+                if (This.On)
+                {
+                    Log("End");
+                    This.On = false;
+                }
+            }
         }
         private class ArriveEvent : InternalEvent
         {
@@ -47,6 +58,7 @@ namespace O2DESNet
             {
                 if (This.On)
                 {
+                    Log("Arrive");
                     var load = Config.Create(DefaultRS);
                     This.Count++;
                     Schedule(new ArriveEvent(), Config.InterArrivalTime(DefaultRS));
