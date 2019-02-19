@@ -17,5 +17,9 @@ namespace O2DESNet.Distributions
             }
             return -1;
         }
+        public static T Sample<T>(Random rs, Dictionary<T, double> ratios)
+        {
+            return ratios.Keys.ElementAt(Sample(rs, ratios.Values));
+        }
     }
 }
