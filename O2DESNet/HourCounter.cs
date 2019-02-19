@@ -37,6 +37,20 @@ namespace O2DESNet
         /// The average count on observation period
         /// </summary>
         public double AverageCount { get { if (TotalHours == 0) return LastCount; return CumValue / TotalHours; } }
+        /// <summary>
+        /// Average timespan that a load stays in the activity, if it is a stationary process, 
+        /// i.e., decrement rate == increment rate
+        /// It is 0 at the initial status, i.e., decrement rate is NaN (no decrement observed).
+        /// </summary>
+        public TimeSpan AverageTimeSpan
+        {
+            get
+            {
+                double hours = AverageCount / DecrementRate;
+                if (double.IsNaN(hours) || double.IsInfinity(hours)) hours = 0;
+                return TimeSpan.FromHours(hours);
+            }
+        }
         public bool Paused { get; private set; }
 
         #region For history keeping
