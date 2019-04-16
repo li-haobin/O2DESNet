@@ -11,7 +11,7 @@ namespace O2DESNet.Animation
     {
         void Add(Canvas canvas, string objectID, double x, double y, double degree, DateTime simlationTimeStamp);
 
-        void Move(string objectID, double x, double y, double degree, DateTime simlationTimeStamp);
+        void Move(string objectID, double x, double y, double degree, TimeSpan duration, DateTime simlationTimeStamp);
 
         void Remove(string objectID, DateTime simlationTimeStamp);
 

@@ -1,0 +1,13 @@
+{
+  "User": {
+    "Id": 2423274,
+    "Username": "carlchung",
+    "Name": "Carl Chung",
+    "Email": "iecarl.hk@gmail.com",
+    "AvatarUrl": "https://secure.gravatar.com/avatar/65876888ea17dbfb8103b56250f50cd8?s=80&d=identicon",
+    "PrivateToken": "2395a26fba7eb140ee355f895b784dd18e8157c36bf3f4c4710827128f137075",
+    "Host": "https://gitlab.com",
+    "TwoFactorEnabled": false,
+    "ApiVersion": 3
+  }
+}

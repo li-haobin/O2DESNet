@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace O2DESNet.Animation
@@ -22,449 +16,252 @@ namespace O2DESNet.Animation
         public double MaxX { get; set; } = 600;
         public double MaxY { get; set; } = 400;
 
-        //private Window mainWindow;
         public Canvas MyCanvas { get; private set; } = new Canvas();
-        private DateTime SimStartTime { get; set; }
-        private DateTime CompStartTime { get; set; }
+        private DateTime _currentTime = DateTime.MinValue;
+        private DispatcherTimer _clockTimer;
 
-        private struct ObjectData
+        public bool IsShowUpdate { get; set; } = true;
+
+        private class ObjectData
         {
-            public string ObjectName { get; set; }
-            public List<EventData> EventDataList { get; set; }
-            public bool StoryboardIsPlaying { get; set; }
+            public string ObjectName { get; set; } = string.Empty;
             public Canvas Canvas { get; set; }
-            public bool AddedToScene { get; set; }
-            public double CurrentDegree { get; set; }
 
-            public ObjectData(String name, Canvas cvs)
-            {
-                ObjectName = name;
-                EventDataList = new List<EventData>();
-                StoryboardIsPlaying = false;
-                Canvas = cvs;
-                AddedToScene = false;
-                CurrentDegree = 0;
-            }
+            //For movement animation
+            public Storyboard Storyboard { get; set; }
+            public RotateTransform RotationTransform { get; set; }
+            public TranslateTransform TranslateTransform { get; set; }
         };
 
-        private struct EventData
-        {
-            public Vector Position { get; set; }
-            public double Rotation { get; set; }
-            public DateTime TimeToArrive { get; set; }
-            //public TimeSpan travelDuration { get; set; }
-
-            public EventData(Vector pos, double rotate, DateTime time, TimeSpan duration)
-            {
-                Position = pos;
-                Rotation = rotate;
-                TimeToArrive = time;
-                //travelDuration = new TimeSpan();
-            }
-        };
-
-        private Dictionary<String, ObjectData> objectDataList = new Dictionary<String, ObjectData>();
-        private Vector MapScale { get; set; }
+        private Dictionary<String, ObjectData> _objectDataList = new Dictionary<String, ObjectData>();
+        private HashSet<DispatcherTimer> _dispatchList = new HashSet<DispatcherTimer>();
 
         public Animator()
         {
             MyCanvas.Margin = new Thickness(10);
         }
 
-        public void Start()
+        private void Start()
         {
-            CompStartTime = DateTime.Now;
-            SimStartTime = new DateTime(1, 1, 1, 0, 0, 0, 0);
-
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(10);
-            timer.Tick += new EventHandler(Updater);
-            timer.Start();
+            _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1) };
+            _clockTimer.Tick += (s, e) =>
+            {
+                _currentTime = _currentTime.AddMilliseconds(_clockTimer.Interval.TotalMilliseconds * Scale);
+            };
+            _clockTimer.Start();
         }
 
         public void Add(Canvas canvas, string id, double x, double y, double degree, DateTime simlationTimeStamp)
         {
-            double timeToDelay = (ConvertToCompTime(simlationTimeStamp) - DateTime.Now).TotalMilliseconds;
-            if (timeToDelay < 0)
+            if (_clockTimer == null)
             {
-                timeToDelay = 0;
+                _currentTime = simlationTimeStamp;
+                Start();
             }
 
-            if (!objectDataList.ContainsKey(id))
+            if (!_objectDataList.ContainsKey(id))
             {
-                objectDataList.Add(id, new ObjectData(id, canvas));
+                Canvas objectCanvas = new Canvas();
+                objectCanvas.Name = canvas.Name;
+                objectCanvas.Children.Add(canvas);
+                objectCanvas.Visibility = Visibility.Collapsed;
+                MyCanvas.Children.Add(objectCanvas);
 
-                Storyboard storyboard = new Storyboard
+                _objectDataList.Add(id, new ObjectData { ObjectName = id, Canvas = objectCanvas });
+
+                Storyboard storyboard = new Storyboard { Name = "Storyboard_" + id };
+                _objectDataList[id].Storyboard = storyboard;
+                MyCanvas.RegisterName("Storyboard_" + id, storyboard);
+
+                if (!Double.IsNaN(canvas.Width) && !Double.IsNaN(canvas.Height))
                 {
-                    Name = "StoryboardName" + id
-                };
-                MyCanvas.RegisterName("myStoryboard" + id, storyboard);
-                MyCanvas.RegisterName("AnimatedTransform" + id, canvas);
-                TranslateTransform animatedTranslateTransform = new TranslateTransform();
-                MyCanvas.RegisterName("AnimatedTranslateTransform" + id, animatedTranslateTransform);
-                RotateTransform animatedRotateTransform = new RotateTransform(degree);
-                MyCanvas.RegisterName("AnimatedRotateTransform" + id, animatedRotateTransform);
+                    TranslateTransform animatedTranslateTransform = new TranslateTransform
+                    {
+                        X = x - (canvas.Width / 2),
+                        Y = y - (canvas.Height / 2)
+                    };
+                    _objectDataList[id].TranslateTransform = animatedTranslateTransform;
 
-                canvas.Visibility = Visibility.Collapsed;
-                MyCanvas.Children.Add(canvas);
+                    RotateTransform animatedRotateTransform = new RotateTransform { Angle = degree };
+                    _objectDataList[id].RotationTransform = animatedRotateTransform;
 
-                EventData ed = new EventData();
-                ed.Position = new Vector(x, y);
-                ed.Rotation = degree;
-                ed.TimeToArrive = simlationTimeStamp;
-                objectDataList[id].EventDataList.Add(ed);
-            }
+                    MyCanvas.RegisterName("AnimatedTranslateTransform_" + id, animatedTranslateTransform);
+                    MyCanvas.RegisterName("AnimatedRotateTransform_" + id, animatedRotateTransform);
 
-            if (timeToDelay <= 0)
-            {
-                AddObject(canvas, id, x, y, degree, simlationTimeStamp);
-            }
-            else
-            {
-                ExecuteWithDelay(new Action(delegate { AddObject(canvas, id, x, y, degree, simlationTimeStamp); }), TimeSpan.FromMilliseconds(timeToDelay / Scale));
-            }
-        }
-
-        public void Move(string id, double x, double y, double degree, DateTime simlationTimeStamp)
-        {
-            DateTime timeStamp = ConvertToCompTime(simlationTimeStamp);
-            if (!CheckIfObjectInCanvas(id))
-            {
-                return;
-            }
-
-            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
-            if (storyboard != null)
-            {
-                double newDuration = (timeStamp - DateTime.Now).TotalMilliseconds;
-                if (newDuration < 0)
-                {
-                    newDuration = 0;
+                    Execute(new Action(delegate { AddObject(id, x, y, degree); }), simlationTimeStamp);
                 }
-
-                //if (storyboard.GetCurrentTime(MyCanvas) != null)
-                //{
-                //    double currentDurationRemaining = (storyboard.Duration.TimeSpan - (TimeSpan)storyboard.GetCurrentTime(MyCanvas)).TotalMilliseconds;
-                //    if (newDuration < currentDurationRemaining)
-                //    {
-                //        //throw new Exception("Invalid time given - Cannot be earlier than previous timeStamp");
-                //    }
-                //}
-
-                EventData ed = new EventData();
-                ed.Position = new Vector(x, y);
-                ed.Rotation = degree;
-                ed.TimeToArrive = simlationTimeStamp;
-                objectDataList[id].EventDataList.Add(ed);
+                else
+                {
+                    if (simlationTimeStamp <= _currentTime)
+                    {
+                        AddObject(id, x, y, degree);
+                    }
+                    else
+                    {
+                        Execute(new Action(delegate { AddObject(id, x, y, degree); }), simlationTimeStamp);
+                    }
+                }
             }
         }
 
-        public void Remove(string id, DateTime timeStamp)
+        public void Move(string id, double x, double y, double degree, TimeSpan duration, DateTime simlationTimeStamp)
         {
-            double timeToDelay = (ConvertToCompTime(timeStamp) - DateTime.Now).TotalMilliseconds;
-            if (timeToDelay < 0)
-            {
-                timeToDelay = 0;
-            }
-            ExecuteWithDelay(new Action(delegate { RemoveObject(id); }), TimeSpan.FromMilliseconds(timeToDelay / Scale));
+            Execute(new Action(delegate { MoveObject(id, x, y, degree, duration); }), simlationTimeStamp);
+        }
+
+        public void Remove(string id, DateTime simlationTimeStamp)
+        {
+            Execute(new Action(delegate { RemoveObject(id); }), simlationTimeStamp);
         }
 
         public void Update(Canvas canvas, string id, DateTime simlationTimeStamp)
         {
-            DateTime timeStamp = ConvertToCompTime(simlationTimeStamp);
-            if (!CheckIfObjectInCanvas(id))
+            if (IsShowUpdate)
             {
-                return;
-            }
-
-            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
-            if (storyboard != null)
-            {
-                double timeToDelay = (timeStamp - DateTime.Now).TotalMilliseconds;
-                if (timeToDelay < 0)
-                {
-                    timeToDelay = 0;
-                }
-                ExecuteWithDelay(new Action(delegate { UpdateObject(canvas, id); }), TimeSpan.FromMilliseconds(timeToDelay / Scale));
+                Execute(new Action(delegate { UpdateObject(canvas, id); }), simlationTimeStamp);
             }
         }
 
         //-----Private-----
-
-        private void AddObject(Canvas canvas, string id, double x, double y, double degree, DateTime timeStamp)
+        private void AddObject(string id, double x, double y, double degree)
         {
-            if (!CheckIfObjectInCanvas(id))
+            if (IsCanvasFound(id))
             {
-                return;
+                _objectDataList[id].Canvas.Visibility = Visibility.Visible;
+                MoveObject(id, x, y, degree, TimeSpan.FromMilliseconds(0));
             }
-
-            UpdateObject(canvas, id);
-
-            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
-            Canvas myObject = (Canvas)MyCanvas.FindName("AnimatedTransform" + id);
-
-            myObject.Visibility = Visibility.Visible;
-
-            EventHandler handler = (s, e) => {
-                Storyboard_MoveCompleted(s, e, id);
-            };
-            storyboard.CurrentStateInvalidated += handler;
-
-            ObjectData od = objectDataList[id];
-            od.AddedToScene = true;
-            od.Canvas = myObject;
-            objectDataList[id] = od;
-
-            MoveObject(id, x, y, degree, timeStamp);
         }
 
-        private void MoveObject(string id, double x, double y, double degree, DateTime timeStamp_sim)
+        private void MoveObject(string id, double x, double y, double degree, TimeSpan duration)
         {
-            ObjectData od = objectDataList[id];
-            od.StoryboardIsPlaying = true;
-
-            if (!Double.IsNaN(od.Canvas.Height) && !Double.IsNaN(od.Canvas.Width))
+            if (IsCanvasFound(id))
             {
-                TranslateTransform animatedTranslateTransform = (TranslateTransform)MyCanvas.FindName("AnimatedTranslateTransform" + id);
-                RotateTransform animatedRotateTransform = (RotateTransform)MyCanvas.FindName("AnimatedRotateTransform" + id);
-                Canvas myObject = (Canvas)MyCanvas.FindName("AnimatedTransform" + id);
-
-                TransformGroup myTransformGroup = new TransformGroup();
-                myTransformGroup.Children.Add(animatedRotateTransform);
-                myTransformGroup.Children.Add(animatedTranslateTransform);
-                myObject.RenderTransform = myTransformGroup;
-                myObject.RenderTransformOrigin = new Point(0.5, 0.5);
-
-                Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
-                storyboard.Children.Clear();
-                SetMapScale();
-
-                DateTime timeStamp_comp = ConvertToCompTime(timeStamp_sim);
-                TimeSpan timeElasped_comp = DateTime.Now - CompStartTime;
-                TimeSpan timeFromStart_sim = timeStamp_sim - SimStartTime;
-                double timeFromStart_comp = (timeFromStart_sim.TotalMilliseconds / Scale);
-                double timeToTravel = (timeFromStart_comp - timeElasped_comp.TotalMilliseconds);// * Scale;
-                if (timeToTravel < 0)
+                ObjectData od = _objectDataList[id];
+                Canvas canvas = od.Canvas;
+                Canvas myObject = null;
+                try
                 {
-                    timeToTravel = 0;
+                    myObject = (Canvas)canvas.Children[0];
+                }
+                catch
+                {
+                    myObject = null;
                 }
 
-                //Rotation
-                double deg = (degree + 180) % 360;
-                //if (deg < 360.1 && deg > 359.9)
-                //{
-                //    deg = 0;
-                //}
+                if (myObject != null && !double.IsNaN(myObject.Height) && !double.IsNaN(myObject.Width))
+                {
+                    TranslateTransform animatedTranslateTransform = _objectDataList[id].TranslateTransform;
+                    RotateTransform animatedRotateTransform = _objectDataList[id].RotationTransform;
 
-                if ((deg > 270 && od.CurrentDegree < 90))
-                {
-                    AdjustAngle(id, 359.9, 0, storyboard);
-                    ExecuteWithDelay(new Action(delegate { MoveObject(id, x, y, degree, timeStamp_sim); }), TimeSpan.FromMilliseconds(1));
-                }
-                else if ((deg < 90 && od.CurrentDegree > 270))
-                {
-                    AdjustAngle(id, 0, 0, storyboard);
-                    ExecuteWithDelay(new Action(delegate { MoveObject(id, x, y, degree, timeStamp_sim); }), TimeSpan.FromMilliseconds(1));
-                }
-                else
-                {
-                    DoubleAnimation rotationAnimation = new DoubleAnimation();
-                    rotationAnimation.To = deg;
-                    Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform" + id);
-                    Storyboard.SetTargetProperty(rotationAnimation, new PropertyPath(RotateTransform.AngleProperty));
-                    rotationAnimation.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                    storyboard.Children.Add(rotationAnimation);
+                    TransformGroup myTransformGroup = new TransformGroup();
+                    myTransformGroup.Children.Add(animatedRotateTransform);
+                    myTransformGroup.Children.Add(animatedTranslateTransform);
+                    myObject.RenderTransform = myTransformGroup;
+                    myObject.RenderTransformOrigin = new Point(0.5, 0.5);
 
-                    //Translation
-                    DoubleAnimation translationAnimationX = new DoubleAnimation();
-                    translationAnimationX.To = (x - (od.Canvas.Width / 2)) * MapScale.X;
-                    Storyboard.SetTargetName(translationAnimationX, "AnimatedTranslateTransform" + id);
-                    Storyboard.SetTargetProperty(translationAnimationX, new PropertyPath(TranslateTransform.XProperty));
-                    DoubleAnimation translationAnimationY = new DoubleAnimation();
-                    translationAnimationY.To = (y - (od.Canvas.Height / 2)) * MapScale.Y;
-                    Storyboard.SetTargetName(translationAnimationY, "AnimatedTranslateTransform" + id);
-                    Storyboard.SetTargetProperty(translationAnimationY, new PropertyPath(TranslateTransform.YProperty));
-                    translationAnimationX.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                    translationAnimationY.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                    storyboard.Children.Add(translationAnimationX);
-                    storyboard.Children.Add(translationAnimationY);
+                    Storyboard storyboard = _objectDataList[id].Storyboard;
+                    storyboard.Children.Clear();
+
+                    double timeToTravel = duration.TotalMilliseconds / Scale;
+                    if (timeToTravel < 0)
+                    {
+                        timeToTravel = 0;
+                    }
+
+                    //Rotation
+                    degree = (degree + 180) % 360;
+
+                    //Rotation Adjustment
+                    if (degree > 270 && animatedRotateTransform.Angle < 90)
+                    {
+                        RotateObject(id, 359.9, 1);
+                    }
+                    else if (degree < 90 && animatedRotateTransform.Angle > 270)
+                    {
+                        RotateObject(id, 0, 1);
+                    }
+
+                    RotateObject(id, degree, timeToTravel);
+                    TransformObject(id, x - (myObject.Width / 2), y - (myObject.Height / 2), timeToTravel);
+
+                    storyboard.Begin(MyCanvas, true);
                 }
-                od.CurrentDegree = deg;
-                storyboard.Duration = (TimeSpan.FromMilliseconds(timeToTravel));// / Scale)); / Scale));
-                storyboard.Begin(MyCanvas, true);
             }
-            objectDataList[id] = od;
         }
 
         private void RemoveObject(string id)
         {
-            Storyboard storyboard = (Storyboard)MyCanvas.FindName("myStoryboard" + id);
-            if (storyboard != null)
+            if (IsCanvasFound(id))
             {
-                EventHandler handler;
-                handler = (s, e) =>
-                {
-                    Storyboard_MoveCompleted(s, e, id);
-                };
-                storyboard.CurrentStateInvalidated -= handler;
-
-                string nameRemoveAnimatedTransform = "AnimatedTransform" + id;
-
-                Canvas transform = (Canvas)MyCanvas.FindName(nameRemoveAnimatedTransform);
-                transform.Visibility = Visibility.Collapsed;
+                Canvas myObject = _objectDataList[id].Canvas;
+                myObject.Visibility = Visibility.Collapsed;
             }
         }
 
         private void UpdateObject(Canvas canvas, string id)
         {
-            Canvas myObject = (Canvas)MyCanvas.FindName("AnimatedTransform" + id);
-            UIElement[] elements = new UIElement[canvas.Children.Count];
-            canvas.Children.CopyTo(elements, 0);
-
-            myObject.Children.Clear();
-            for (int i = 0; i < elements.Length; i++)
+            if (IsCanvasFound(id))
             {
-                canvas.Children.Remove(elements[i]);
-                myObject.Children.Add(elements[i]);
+                Canvas myObject = _objectDataList[id].Canvas;
+                myObject.Children.Clear();
+                myObject.Children.Add(canvas);
             }
-            canvas = myObject;
-
-            ObjectData od = objectDataList[id];
-            od.Canvas = myObject;
-            objectDataList[id] = od;
         }
 
-        private DateTime ConvertToCompTime(DateTime simTime)
+        private void RotateObject(string id, double deg, double timeInMilliseconds)
         {
-            TimeSpan timeDifference = simTime - SimStartTime;
-            DateTime convertedTime = CompStartTime + timeDifference;
-
-            return convertedTime;
-        }
-
-        //private Rectangle DrawRectangleBasicReturn(Canvas canvas, double width, double height, string name, SolidColorBrush colour, Vector position)
-        //{
-        //    Rectangle myRect = new Rectangle
-        //    {
-        //        Name = name
-        //    };
-        //    myRect.Height = height;
-        //    myRect.Width = width;
-        //    myRect.Fill = colour;
-        //    canvas.Children.Add(myRect);
-
-        //    return myRect;
-        //}
-
-        private bool CheckIfObjectInCanvas(string id)
-        {
-            //bool objectInCanvas = false;
-            //for (int i = 0; i < MyCanvas.Children.Count; i++)
-            //{
-            //    String shapeName = ((Visual)(MyCanvas.Children[i])).ToString();
-            //    if (shapeName.Contains("Canvas"))
-            //    {
-            //        Canvas canvasElem = (Canvas)MyCanvas.Children[i];
-            //        if (canvasElem.Name.Contains(id))
-            //        {
-            //            objectInCanvas = true;
-            //            break;
-            //        }
-            //    }
-            //}
-            //return objectInCanvas;
-
-            string nameRemoveAnimatedTransform = "AnimatedTransform" + id;
-            Canvas transform = (Canvas)MyCanvas.FindName(nameRemoveAnimatedTransform);
-
-            if (transform == null)
+            DoubleAnimation rotationAnimation = new DoubleAnimation
             {
-                return false;
-            }
-
-            return true;
-        }
-
-        private void AdjustAngle(string id, double deg, double timeInMilliseconds, Storyboard storyboard)
-        {
-            DoubleAnimation rotationAnimation = new DoubleAnimation();
-            rotationAnimation.To = deg;
-            Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform" + id);
+                To = deg,
+                Duration = TimeSpan.FromMilliseconds(timeInMilliseconds)
+            };
+            Storyboard.SetTargetName(rotationAnimation, "AnimatedRotateTransform_" + id);
             Storyboard.SetTargetProperty(rotationAnimation, new PropertyPath(RotateTransform.AngleProperty));
-            rotationAnimation.Duration = (TimeSpan.FromMilliseconds(timeInMilliseconds));
-            storyboard.Children.Add(rotationAnimation);
+            _objectDataList[id].Storyboard.Children.Add(rotationAnimation);
         }
 
-        //-----Static-----
-        private static void ExecuteWithDelay(Action action, TimeSpan delay)
+        private void TransformObject(string id, double x, double y, double timeInMilliseconds)
         {
-            double timeToDelay = delay.TotalMilliseconds;
-            if (timeToDelay < 0)
+            DoubleAnimation translationAnimationX = new DoubleAnimation
             {
-                timeToDelay = 0;
-            }
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = delay;
-            timer.Tag = action;
-            timer.Tick += new EventHandler(timer_Tick);
-            timer.Start();
-        }
+                To = x,
+                Duration = TimeSpan.FromMilliseconds(timeInMilliseconds)
+            };
+            Storyboard.SetTargetName(translationAnimationX, "AnimatedTranslateTransform_" + id);
+            Storyboard.SetTargetProperty(translationAnimationX, new PropertyPath(TranslateTransform.XProperty));
+            _objectDataList[id].Storyboard.Children.Add(translationAnimationX);
 
-        private static void timer_Tick(object sender, EventArgs e)
-        {
-            DispatcherTimer timer = (DispatcherTimer)sender;
-            Action action = (Action)timer.Tag;
-
-            action.Invoke();
-            timer.Stop();
-            timer = null;
-        }
-
-        //-----Events-----
-        private void Storyboard_MoveCompleted(object sender, EventArgs e, string id)
-        {
-            ObjectData od = objectDataList[id];
-
-            Clock myStoryboardClock = (Clock)sender;
-            if (myStoryboardClock.CurrentState == ClockState.Filling)
+            DoubleAnimation translationAnimationY = new DoubleAnimation
             {
-                od.StoryboardIsPlaying = false;
-                objectDataList[id] = od;
-
-                if (objectDataList[id].EventDataList.Count > 0)
-                {
-                    objectDataList[id].EventDataList.RemoveAt(0);
-                }
-            }
+                To = y,
+                Duration = TimeSpan.FromMilliseconds(timeInMilliseconds)
+            };
+            Storyboard.SetTargetName(translationAnimationY, "AnimatedTranslateTransform_" + id);
+            Storyboard.SetTargetProperty(translationAnimationY, new PropertyPath(TranslateTransform.YProperty));
+            _objectDataList[id].Storyboard.Children.Add(translationAnimationY);
         }
 
-        //-----Misc-----
-        //private TextBlock _clockTime_textblock = new TextBlock();
-        private void Updater(object sender, EventArgs e) //done
+        private bool IsCanvasFound(string id)
         {
-            //DateTime clockTime = DateTime.Now;
-            //_clockTime_textblock.Text = clockTime.ToString();
-            //_clockTime_textblock.Margin = new Thickness(320, 0, 0, 0);
-
-            CheckForNewMove();
+            return _objectDataList.ContainsKey(id) && _objectDataList[id].Canvas != null;
         }
 
-        private void CheckForNewMove()
+        private void Execute(Action action, DateTime simlationTimeStamp)
         {
-            List<ObjectData> objList = objectDataList.Values.ToList();
+            double timeToDelay = (simlationTimeStamp - _currentTime).TotalMilliseconds / Scale;
+            if (timeToDelay < 0) timeToDelay = 0;
+            TimeSpan delay = TimeSpan.FromMilliseconds(timeToDelay);
 
-            foreach (ObjectData obj in objList)
+            DispatcherTimer animateTimer = new DispatcherTimer { Interval = delay };
+            animateTimer.Tick += (s, e) =>
             {
-                if (obj.AddedToScene && !obj.StoryboardIsPlaying && obj.EventDataList.Count > 0)
-                {
-                    MoveObject(obj.ObjectName, obj.EventDataList[0].Position.X, obj.EventDataList[0].Position.Y, obj.EventDataList[0].Rotation, obj.EventDataList[0].TimeToArrive);
-                }
-            }
-        }
-
-        private void SetMapScale()
-        {
-            MapScale = new Vector(MaxWidth / MaxX, MaxHeight / MaxY);
+                action();
+                animateTimer.Stop();
+                _dispatchList.Remove(animateTimer);
+                animateTimer = null;
+            };
+            _dispatchList.Add(animateTimer);
+            animateTimer.Start();
         }
     }
 }

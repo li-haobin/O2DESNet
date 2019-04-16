@@ -14,7 +14,7 @@ namespace O2DESNet.Animation
             
         }
 
-        public void Move(string objectID, double x, double y, double degree, DateTime simlationTimeStamp)
+        public void Move(string objectID, double x, double y, double degree, TimeSpan duration, DateTime simlationTimeStamp)
         {
             
         }
