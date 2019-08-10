@@ -1,35 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace O2DESNet
 {
-    public class PhaseTracker<TPhase>
+    public class PhaseTracer
     {
         private DateTime _initialTime;
-        public DateTime LastTime;
-        public TPhase LastPhase { get; private set; }
-        public List<Tuple<DateTime, TPhase>> History { get; private set; }
-        public bool HistoryOn { get; private set; }
-        public Dictionary<TPhase, TimeSpan> TimeSpans { get; private set; }
-        public PhaseTracker(TPhase initPhase, bool historyOn = false)
+        private int _lastPhaseIndex;
+        private Dictionary<string, int> _indices = new Dictionary<string, int>();
+        private int GetPhaseIndex(string phase)
         {
+            if (!_indices.ContainsKey(phase))
+            {
+                _indices.Add(phase, AllPhases.Count);
+                AllPhases.Add(phase);
+                TimeSpans.Add(new TimeSpan());
+            }
+            return _indices[phase];
+        }
+
+        public DateTime LastTime { get; private set; }
+        public List<string> AllPhases { get; private set; } = new List<string>();
+        public string LastPhase
+        {
+            get { return AllPhases[_lastPhaseIndex]; }
+            private set { _lastPhaseIndex = GetPhaseIndex(value); }
+        }
+
+        public List<Tuple<DateTime, int>> History { get; private set; } = new List<Tuple<DateTime, int>>();
+        public bool HistoryOn { get; private set; }
+        /// <summary>
+        /// TimeSpans at all phases
+        /// </summary>
+        public List<TimeSpan> TimeSpans { get; private set; } = new List<TimeSpan>();
+        public PhaseTracer(string initPhase, DateTime? initialTime = null, bool historyOn = false)
+        {
+            if (initialTime == null) initialTime = DateTime.MinValue;
+            _initialTime = initialTime.Value;
             LastTime = _initialTime;
             LastPhase = initPhase;
             HistoryOn = historyOn;
-            if (HistoryOn) History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(LastTime, LastPhase) };
-            TimeSpans = new Dictionary<TPhase, TimeSpan>();
+            if (HistoryOn) History = new List<Tuple<DateTime, int>> { new Tuple<DateTime, int>(LastTime, _lastPhaseIndex) };
         }
-        public void UpdPhase(TPhase phase, DateTime clockTime)
+        public void UpdPhase(string phase, DateTime clockTime)
         {
-            if (HistoryOn) History.Add(new Tuple<DateTime, TPhase>(clockTime, phase));
             var duration = clockTime - LastTime;
-            if (!TimeSpans.ContainsKey(LastPhase)) TimeSpans.Add(LastPhase, duration);
-            else TimeSpans[LastPhase] += duration;
+            TimeSpans[_lastPhaseIndex] += duration;
+            if (HistoryOn) History.Add(new Tuple<DateTime, int>(clockTime, GetPhaseIndex(phase)));
             LastPhase = phase;
             LastTime = clockTime;
         }
@@ -37,39 +55,17 @@ namespace O2DESNet
         {
             _initialTime = clockTime;
             LastTime = clockTime;
-            if (HistoryOn) History = new List<Tuple<DateTime, TPhase>> { new Tuple<DateTime, TPhase>(clockTime, LastPhase) };
-            TimeSpans = new Dictionary<TPhase, TimeSpan>();
+            if (HistoryOn) History = new List<Tuple<DateTime, int>> { new Tuple<DateTime, int>(clockTime, _lastPhaseIndex) };
+            TimeSpans = TimeSpans.Select(ts => new TimeSpan()).ToList();
         }
-        public double GetProportion(TPhase phase, DateTime clockTime)
+        public double GetProportion(string phase, DateTime clockTime)
         {
+            if (!_indices.ContainsKey(phase)) return 0;
             double timespan;
-            if (!TimeSpans.ContainsKey(phase)) timespan = 0;
-            else timespan = TimeSpans[phase].TotalHours;
+            timespan = TimeSpans[_indices[phase]].TotalHours;
             if (phase.Equals(LastPhase)) timespan += (clockTime - LastTime).TotalHours;
             double sum = (clockTime - _initialTime).TotalHours;
             return timespan / sum;
-        }
-        public Canvas GetDrawing(DateTime clockTime, Dictionary<TPhase, SolidColorBrush> colors, double length = 300, double height = 20)
-        {
-            var canvas = new Canvas();
-            if (!HistoryOn) return canvas;
-            var totalHours = (clockTime - _initialTime).TotalHours;
-            for (int i = 0; i < History.Count - 1; i++)
-            {
-                if (colors.ContainsKey(History[i].Item2))
-                {
-                    var x0 = (History[i].Item1 - _initialTime).TotalHours / totalHours * length;
-                    var x1 = (History[i + 1].Item1 - _initialTime).TotalHours / totalHours * length;
-                    canvas.Children.Add(new System.Windows.Shapes.Rectangle
-                    {
-                        Width = x1 - x0,
-                        Height = height,
-                        RenderTransform = new TranslateTransform(x0, 0),
-                        Fill = colors[History[i].Item2],
-                    });
-                }
-            }
-            return canvas;
         }
     }
 }
