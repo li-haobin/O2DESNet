@@ -14,6 +14,12 @@ A framework for discrete event simulator, highly OOP and with native support of 
 - Option 2: From Visual Studio Installer, go to components and checked option to install .NET Framework 4.7.2.
 
 # Change Log
+
+## Version 2.5.1
+```diff
++ Include Beta, LogNormal, Normal, Triangular distributions
+```
+
 ## Version 2.4.1
 ```diff
 + Include Uniform and Exponential for the random generators.

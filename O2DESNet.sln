@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "O2DESNet", "O2DESNet\O2DESN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "O2DESNet.UnitTests", "O2DESNet.UnitTests\O2DESNet.UnitTests.csproj", "{3D80B354-FB3B-47FE-AFA3-6D04F4C27653}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{32B8B2A1-A5A0-4F94-A023-08C233045D92}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
