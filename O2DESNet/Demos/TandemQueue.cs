@@ -19,27 +19,27 @@ namespace O2DESNet.Demos
         public double AvgNQueueing2 { get { return Queue2.AvgNQueueing; } }
         public double AvgNServing1 { get { return Server1.AvgNServing; } }        
         public double AvgNServing2 { get { return Server2.AvgNServing; } }
-        public double AvgHoursInSystem { get { return HC_InSystem.AverageDuration.TotalHours; } }
+        public double AvgHoursInSystem { get { return HcInSystem.AverageDuration.TotalHours; } }
 
         private readonly IGenerator Generator;
         private readonly IQueue Queue1;
         private readonly IServer Server1;
         private readonly IQueue Queue2;
         private readonly IServer Server2;
-        private readonly HourCounter HC_InSystem = new HourCounter();
+        private readonly HourCounter HcInSystem;
         #endregion
 
         #region Events / Methods
         private void Arrive()
         {
             Log("Arrive");
-            HC_InSystem.ObserveChange(1, ClockTime);
+            HcInSystem.ObserveChange(1, ClockTime);
         }
 
         private void Depart()
         {
             Log("Depart");
-            HC_InSystem.ObserveChange(-1, ClockTime);
+            HcInSystem.ObserveChange(-1, ClockTime);
         }
         #endregion
 
@@ -90,15 +90,12 @@ namespace O2DESNet.Demos
             Server2.OnReadyToDepart += Server2.Depart;
             Server2.OnReadyToDepart += load => Depart();
 
+            HcInSystem = AddHourCounter();
+
             /// Initial event
             Generator.Start();
         }
 
         public override void Dispose() { }
-
-        protected override void WarmedUpHandler()
-        {
-            HC_InSystem.WarmedUp(ClockTime);
-        }
     }
 }

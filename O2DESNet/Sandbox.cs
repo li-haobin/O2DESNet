@@ -172,9 +172,9 @@ namespace O2DESNet
         private readonly List<HourCounter> HourCounters_List = new List<HourCounter>();
         protected HourCounter AddHourCounter(bool keepHistory = false)
         {
-            var hc = new HourCounter(keepHistory);
+            var hc = new HourCounter(this, keepHistory);
             HourCounters_List.Add(hc);
-            OnWarmedUp += () => hc.WarmedUp(ClockTime);
+            OnWarmedUp += () => hc.WarmedUp();
             return hc;
         }
         #endregion
