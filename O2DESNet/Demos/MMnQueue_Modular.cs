@@ -73,10 +73,5 @@ namespace O2DESNet.Demos
         }
 
         public override void Dispose() { }
-
-        protected override void WarmedUpHandler()
-        {
-            HC_InSystem.WarmedUp(ClockTime);
-        }
     }
 }

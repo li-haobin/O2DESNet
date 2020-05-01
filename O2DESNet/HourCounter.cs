@@ -90,6 +90,7 @@ namespace O2DESNet
     }
     public class HourCounter : IHourCounter, IDisposable
     {
+        private ISandbox _sandbox;
         private DateTime _initialTime;
         public DateTime LastTime { get; private set; }
         public double LastCount { get; private set; }
@@ -105,22 +106,34 @@ namespace O2DESNet
         /// Total number of hours since the initial time.
         /// </summary>
         public double TotalHours { get; private set; }
+        private void UpdateToClockTime()
+        {
+            if (LastTime != _sandbox.ClockTime) ObserveCount(LastCount);
+        }
         public double WorkingTimeRatio
         {
             get
             {
+                UpdateToClockTime();
                 if (LastTime == _initialTime) return 0;
                 return TotalHours / (LastTime - _initialTime).TotalHours;
             }
         }
         /// <summary>
-        /// The cumulative count value on time in unit of hours
+        /// The cumulative count value (integral) on time in unit of hours
         /// </summary>
         public double CumValue { get; private set; }
         /// <summary>
         /// The average count on observation period
         /// </summary>
-        public double AverageCount { get { if (TotalHours == 0) return LastCount; return CumValue / TotalHours; } }
+        public double AverageCount
+        {
+            get
+            {
+                UpdateToClockTime();
+                if (TotalHours == 0) return LastCount; return CumValue / TotalHours;
+            }
+        }
         /// <summary>
         /// Average timespan that a load stays in the activity, if it is a stationary process, 
         /// i.e., decrement rate == increment rate
@@ -130,6 +143,7 @@ namespace O2DESNet
         {
             get
             {
+                UpdateToClockTime();
                 double hours = AverageCount / DecrementRate;
                 if (double.IsNaN(hours) || double.IsInfinity(hours)) hours = 0;
                 return TimeSpan.FromHours(hours);
@@ -153,10 +167,17 @@ namespace O2DESNet
         }
         #endregion
 
-        internal HourCounter(bool keepHistory = false) { Init(DateTime.MinValue, keepHistory); }
-        internal HourCounter(DateTime initialTime, bool keepHistory = false) { Init(initialTime, keepHistory); }
-        private void Init(DateTime initialTime, bool keepHistory)
+        internal HourCounter(ISandbox sandbox, bool keepHistory = false)         
         {
+            Init(sandbox, DateTime.MinValue, keepHistory); 
+        }
+        internal HourCounter(ISandbox sandbox, DateTime initialTime, bool keepHistory = false) 
+        {
+            Init(sandbox, initialTime, keepHistory); 
+        }
+        private void Init(ISandbox sandbox, DateTime initialTime, bool keepHistory)
+        {
+            _sandbox = sandbox;
             _initialTime = initialTime;
             LastTime = initialTime;
             LastCount = 0;
@@ -167,8 +188,9 @@ namespace O2DESNet
             KeepHistory = keepHistory;
             if (KeepHistory) _history = new Dictionary<DateTime, double>();
         }
-        public void ObserveCount(double count, DateTime clockTime)
+        public void ObserveCount(double count)
         {
+            var clockTime = _sandbox.ClockTime;
             if (clockTime < LastTime)
                 throw new Exception("Time of new count cannot be earlier than current time.");
             if (!Paused)
@@ -201,12 +223,28 @@ namespace O2DESNet
             LastCount = count;
             if (KeepHistory) _history[clockTime] = count;
         }
-        public void ObserveChange(double change, DateTime clockTime) { ObserveCount(LastCount + change, clockTime); }
-        public void Pause() { Pause(LastTime); }
-        public void Pause(DateTime clockTime)
+        /// <summary>
+        /// Remove parameter clockTime as since Version 3.6, according to Issue 1
+        /// </summary>
+        public void ObserveCount(double count, DateTime clockTime)
         {
+            CheckClockTime(clockTime);
+            ObserveCount(count);
+        }
+        public void ObserveChange(double change) { ObserveCount(LastCount + change); }
+        /// <summary>
+        /// Remove parameter clockTime as since Version 3.6, according to Issue 1
+        /// </summary>
+        public void ObserveChange(double change, DateTime clockTime) 
+        {
+            CheckClockTime(clockTime);
+            ObserveChange(LastCount + change); 
+        }
+        public void Pause() 
+        {
+            var clockTime = _sandbox.ClockTime;
             if (Paused) return;
-            ObserveChange(0, clockTime);
+            ObserveCount(LastCount, clockTime);
             Paused = true;
             if (_logFile != null)
             {
@@ -216,10 +254,18 @@ namespace O2DESNet
                 };
             }
         }
-        public void Resume(DateTime clockTime)
+        /// <summary>
+        /// Remove parameter clockTime as since Version 3.6, according to Issue 1
+        /// </summary>
+        public void Pause(DateTime clockTime)
+        {
+            CheckClockTime(clockTime);
+            Pause();
+        }
+        public void Resume()
         {
             if (!Paused) return;
-            LastTime = clockTime;
+            LastTime = _sandbox.ClockTime;
             Paused = false;
             if (_logFile != null)
             {
@@ -230,14 +276,41 @@ namespace O2DESNet
                 };
             }
         }
-
-        public double IncrementRate { get { return TotalIncrement / TotalHours; } }
-        public double DecrementRate { get { return TotalDecrement / TotalHours; } }
-        internal void WarmedUp(DateTime clockTime)
+        /// <summary>
+        /// Remove parameter clockTime as since Version 3.6, according to Issue 1
+        /// </summary>
+        public void Resume(DateTime clockTime)
         {
+            CheckClockTime(clockTime);
+            Resume();
+        }
+        private void CheckClockTime(DateTime clockTime)
+        {
+            if (clockTime != _sandbox.ClockTime) throw new Exception("ClockTime is not consistent with the Sandbox.");
+        }
+
+        public double IncrementRate
+        {
+            get
+            {
+                UpdateToClockTime();
+                return TotalIncrement / TotalHours;
+            }
+        }
+        public double DecrementRate
+        {
+            get
+            {
+                UpdateToClockTime();
+                return TotalDecrement / TotalHours;
+            }
+        }
+        internal void WarmedUp()
+        {
+
             // all reset except the last count
-            _initialTime = clockTime;
-            LastTime = clockTime;
+            _initialTime = _sandbox.ClockTime;
+            LastTime = _sandbox.ClockTime;
             TotalIncrement = 0;
             TotalDecrement = 0;
             TotalHours = 0;

@@ -19,10 +19,16 @@ It is developed and used by C#, which facilitates flexible integration with the 
 
 # Change Log
 
-## Version 2.5.1
+## Version 3.6.1
+- Improvement of HourCounter to synchronize with simulator ClockTime
+https://github.com/li-haobin/O2DESNet/issues/1
+
+## Version 3.5.1
 ```diff
 + Include Beta, LogNormal, Normal, Triangular distributions
 ```
+
+...
 
 ## Version 2.4.1
 ```diff
