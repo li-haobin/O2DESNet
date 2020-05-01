@@ -238,7 +238,7 @@ namespace O2DESNet
         public void ObserveChange(double change, DateTime clockTime) 
         {
             CheckClockTime(clockTime);
-            ObserveChange(LastCount + change); 
+            ObserveChange(change); 
         }
         public void Pause() 
         {
