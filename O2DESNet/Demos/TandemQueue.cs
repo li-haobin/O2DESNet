@@ -8,18 +8,19 @@ namespace O2DESNet.Demos
     public class TandemQueue : Sandbox
     {
         #region Static Properties
-        public double HourlyArrivalRate { get; private set; }
-        public double HourlyServiceRate1 { get; private set; }
-        public double HourlyServiceRate2 { get; private set; }
-        public int BufferQueueSize { get { return (int)Queue2.Capacity; } }
+        public double HourlyArrivalRate { get; }
+        public double HourlyServiceRate1 { get; }
+        public double HourlyServiceRate2 { get; }
+        public int BufferQueueSize => (int)Queue2.Capacity;
+
         #endregion
 
         #region Dynamic Properties
-        public double AvgNQueueing1 { get { return Queue1.AvgNQueueing; } }
-        public double AvgNQueueing2 { get { return Queue2.AvgNQueueing; } }
-        public double AvgNServing1 { get { return Server1.AvgNServing; } }        
-        public double AvgNServing2 { get { return Server2.AvgNServing; } }
-        public double AvgHoursInSystem { get { return HcInSystem.AverageDuration.TotalHours; } }
+        public double AvgNQueueing1 => Queue1.AvgNQueueing;
+        public double AvgNQueueing2 => Queue2.AvgNQueueing;
+        public double AvgNServing1 => Server1.AvgNServing;
+        public double AvgNServing2 => Server2.AvgNServing;
+        public double AvgHoursInSystem => HcInSystem.AverageDuration.TotalHours;
 
         private readonly IGenerator Generator;
         private readonly IQueue Queue1;

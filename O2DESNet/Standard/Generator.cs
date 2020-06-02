@@ -7,7 +7,7 @@ namespace O2DESNet.Standard
     {
         public class Statics : IAssets
         {
-            public string Id { get { return GetType().Name; } }
+            public string Id => GetType().Name;
             public Func<Random, TimeSpan> InterArrivalTime { get; set; }
             public Generator Sandbox(int seed = 0) { return new Generator(this, seed); }
         }

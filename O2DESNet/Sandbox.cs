@@ -29,8 +29,9 @@ namespace O2DESNet
     public abstract class Sandbox<TAssets> : Sandbox
         where TAssets : IAssets
     {
-        public TAssets Assets { get; private set; }
-        public Sandbox(TAssets assets, int seed = 0, string id = null, Pointer pointer = new Pointer())
+        public TAssets Assets { get; }
+
+        protected Sandbox(TAssets assets, int seed = 0, string id = null, Pointer pointer = new Pointer())
             : base(seed, id, pointer) { Assets = assets; }
     }
 
@@ -40,15 +41,18 @@ namespace O2DESNet
         /// <summary>
         /// Unique index in sequence for all module instances 
         /// </summary>
-        public int Index { get; private set; }
+        public int Index { get; }
         /// <summary>
         /// Tag of the instance of the module
         /// </summary>
-        public string Id { get; private set; }        
-        public Pointer Pointer { get; private set; }
+        public string Id { get; }        
+        public Pointer Pointer { get; }
         protected Random DefaultRS { get; private set; }
+
         private int _seed;
-        public int Seed { get { return _seed; } set { _seed = value; DefaultRS = new Random(_seed); } }
+
+        public int Seed { get => _seed;
+            set { _seed = value; DefaultRS = new Random(_seed); } }
         
         #region Future Event List
         internal SortedSet<Event> FutureEventList = new SortedSet<Event>(EventComparer.Instance);        
@@ -159,8 +163,11 @@ namespace O2DESNet
 
         #region Children - Sub-modules
         public ISandbox Parent { get; private set; } = null;
+
         private readonly List<ISandbox> Children_List = new List<ISandbox>();
-        public IReadOnlyList<ISandbox> Children { get { return Children_List.AsReadOnly(); } }
+
+        public IReadOnlyList<ISandbox> Children => Children_List.AsReadOnly();
+
         protected TSandbox AddChild<TSandbox>(TSandbox child) where TSandbox : Sandbox
         {
             Children_List.Add(child);
@@ -168,7 +175,7 @@ namespace O2DESNet
             OnWarmedUp += child.OnWarmedUp;
             return child;
         }
-        protected IReadOnlyList<HourCounter> HourCounters { get { return HourCounters_List.AsReadOnly(); } }
+        protected IReadOnlyList<HourCounter> HourCounters => HourCounters_List.AsReadOnly();
         private readonly List<HourCounter> HourCounters_List = new List<HourCounter>();
         protected HourCounter AddHourCounter(bool keepHistory = false)
         {
@@ -217,7 +224,7 @@ namespace O2DESNet
         private string _logFile;
         public string LogFile
         {
-            get { return _logFile; }
+            get => _logFile;
             set
             {
                 _logFile = value; if (_logFile != null) using (var sw = new StreamWriter(_logFile)) { };

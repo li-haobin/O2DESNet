@@ -21,15 +21,15 @@ namespace O2DESNet
         }
 
         public DateTime LastTime { get; private set; }
-        public List<string> AllPhases { get; private set; } = new List<string>();
+        public List<string> AllPhases { get; } = new List<string>();
         public string LastPhase
         {
-            get { return AllPhases[_lastPhaseIndex]; }
-            private set { _lastPhaseIndex = GetPhaseIndex(value); }
+            get => AllPhases[_lastPhaseIndex];
+            private set => _lastPhaseIndex = GetPhaseIndex(value);
         }
 
         public List<Tuple<DateTime, int>> History { get; private set; } = new List<Tuple<DateTime, int>>();
-        public bool HistoryOn { get; private set; }
+        public bool HistoryOn { get; }
         /// <summary>
         /// TimeSpans at all phases
         /// </summary>

@@ -51,33 +51,34 @@ namespace O2DESNet
     }
     public class ReadOnlyHourCounter : IReadOnlyHourCounter, IDisposable
     {
-        public DateTime LastTime { get { return HourCounter.LastTime; } }
+        public DateTime LastTime => HourCounter.LastTime;
 
-        public double LastCount { get { return HourCounter.LastCount; } }
+        public double LastCount => HourCounter.LastCount;
 
-        public bool Paused { get { return HourCounter.Paused; } }
+        public bool Paused => HourCounter.Paused;
 
-        public double TotalIncrement { get { return HourCounter.TotalIncrement; } }
+        public double TotalIncrement => HourCounter.TotalIncrement;
 
-        public double TotalDecrement { get { return HourCounter.TotalDecrement; } }
+        public double TotalDecrement => HourCounter.TotalDecrement;
 
-        public double IncrementRate { get { return HourCounter.IncrementRate; } }
+        public double IncrementRate => HourCounter.IncrementRate;
 
-        public double DecrementRate { get { return HourCounter.DecrementRate; } }
+        public double DecrementRate => HourCounter.DecrementRate;
 
-        public double TotalHours { get { return HourCounter.TotalHours; } }
+        public double TotalHours => HourCounter.TotalHours;
 
-        public double WorkingTimeRatio { get { return HourCounter.WorkingTimeRatio; } }
+        public double WorkingTimeRatio => HourCounter.WorkingTimeRatio;
 
-        public double CumValue { get { return HourCounter.CumValue; } }
+        public double CumValue => HourCounter.CumValue;
 
-        public double AverageCount { get { return HourCounter.AverageCount; } }
+        public double AverageCount => HourCounter.AverageCount;
 
-        public TimeSpan AverageDuration { get { return HourCounter.AverageDuration; } }
+        public TimeSpan AverageDuration => HourCounter.AverageDuration;
+
         public string LogFile
         {
-            get { return HourCounter.LogFile; }
-            set { HourCounter.LogFile = value; }
+            get => HourCounter.LogFile;
+            set => HourCounter.LogFile = value;
         }
 
         private readonly HourCounter HourCounter;
@@ -167,7 +168,8 @@ namespace O2DESNet
         }
         #endregion
 
-        internal HourCounter(ISandbox sandbox, bool keepHistory = false)         
+        internal HourCounter(ISandbox sandbox, bool keepHistory = false)   
+            
         {
             Init(sandbox, DateTime.MinValue, keepHistory); 
         }
@@ -175,6 +177,7 @@ namespace O2DESNet
         {
             Init(sandbox, initialTime, keepHistory); 
         }
+
         private void Init(ISandbox sandbox, DateTime initialTime, bool keepHistory)
         {
             _sandbox = sandbox;
@@ -188,6 +191,7 @@ namespace O2DESNet
             KeepHistory = keepHistory;
             if (KeepHistory) _history = new Dictionary<DateTime, double>();
         }
+
         public void ObserveCount(double count)
         {
             var clockTime = _sandbox.ClockTime;
@@ -376,7 +380,7 @@ namespace O2DESNet
         private string _logFile;
         public string LogFile
         {
-            get { return _logFile; }
+            get => _logFile;
             set
             {
                 _logFile = value;

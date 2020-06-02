@@ -9,25 +9,25 @@ namespace O2DESNet.Standard
     {
         public class Statics : IAssets
         {
-            public string Id { get { return GetType().Name; } }
+            public string Id => GetType().Name;
             public double Capacity { get; set; }
             public Func<Random, ILoad, TimeSpan> ServiceTime { get; set; }
         }
 
         #region Dynamic Properties
-        public double Capacity { get { return Assets.Capacity; } }
-        public int Occupancy { get { return HSet_Serving.Count + HSet_PendingToDepart.Count; } }
-        public double Vacancy { get { return Capacity - Occupancy; } }
-        public double AvgNServing { get { return HC_Serving.AverageCount; } }
-        public double AvgNOccupying { get { return HC_Serving.AverageCount + HC_PendingToDepart.AverageCount; } }
-        public double UtilServing { get { return AvgNServing / Capacity; } }
-        public double UtilOccupying { get { return AvgNOccupying / Capacity; } }
-        public IReadOnlyList<ILoad> PendingToStart { get { return List_PendingToStart.AsReadOnly(); } }
-        public IReadOnlyList<ILoad> Serving { get { return HSet_Serving.ToList().AsReadOnly(); } }
-        public IReadOnlyList<ILoad> PendingToDepart { get { return HSet_PendingToDepart.ToList().AsReadOnly(); } }
+        public double Capacity => Assets.Capacity;
+        public int Occupancy => HSet_Serving.Count + HSet_PendingToDepart.Count;
+        public double Vacancy => Capacity - Occupancy;
+        public double AvgNServing => HC_Serving.AverageCount;
+        public double AvgNOccupying => HC_Serving.AverageCount + HC_PendingToDepart.AverageCount;
+        public double UtilServing => AvgNServing / Capacity;
+        public double UtilOccupying => AvgNOccupying / Capacity;
+        public IReadOnlyList<ILoad> PendingToStart => List_PendingToStart.AsReadOnly();
+        public IReadOnlyList<ILoad> Serving => HSet_Serving.ToList().AsReadOnly();
+        public IReadOnlyList<ILoad> PendingToDepart => HSet_PendingToDepart.ToList().AsReadOnly();
 
-        private HourCounter HC_Serving { get; set; }
-        private HourCounter HC_PendingToDepart { get; set; }
+        private HourCounter HC_Serving { get; }
+        private HourCounter HC_PendingToDepart { get; }
         private readonly List<ILoad> List_PendingToStart = new List<ILoad>();
         private readonly HashSet<ILoad> HSet_Serving = new HashSet<ILoad>();
         private readonly HashSet<ILoad> HSet_PendingToDepart = new HashSet<ILoad>();

@@ -10,7 +10,8 @@ namespace O2DESNet.Standard
     {
         public class Statics : IAssets
         {
-            public string Id { get { return GetType().Name; } }
+            public string Id => GetType().Name;
+
             /// <summary>
             /// By default it follow exponential distribution
             /// </summary>
@@ -47,20 +48,20 @@ namespace O2DESNet.Standard
         public DateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
         public int Count { get; private set; }
-        private double PeakHourlyRate { get; set; }
-        private List<double> Adjusted_SeasonalFactors_HoursOfDay { get; set; }
-        private List<double> Adjusted_SeasonalFactors_DaysOfWeek { get; set; }
-        private List<double> Adjusted_SeasonalFactors_DaysOfMonth { get; set; }
-        private List<double> Adjusted_SeasonalFactors_MonthsOfYear { get; set; }
-        private List<double> Adjusted_SeasonalFactors_Years { get; set; }
-        private List<(TimeSpan Interval, List<double> SeasonalFactors)> Adjusted_CustomizedSeasonalFactors { get; set; }
-        private double AdjMax_SeasonalFactor_HoursOfDay { get; set; }
-        private double AdjMax_SeasonalFactor_DaysOfWeek { get; set; }
-        private double AdjMax_SeasonalFactor_DaysOfMonth { get; set; }
-        private double AdjMax_SeasonalFactor_MonthsOfYear { get; set; }
-        private double AdjMax_SeasonalFactor_Years { get; set; }
-        private List<double> AdjMax_CustomizedSeasonalFactors { get; set; }
-        private List<TimeSpan> CustomizedSeasonalRemainders { get; set; }
+        private double PeakHourlyRate { get; }
+        private List<double> Adjusted_SeasonalFactors_HoursOfDay { get; }
+        private List<double> Adjusted_SeasonalFactors_DaysOfWeek { get; }
+        private List<double> Adjusted_SeasonalFactors_DaysOfMonth { get; }
+        private List<double> Adjusted_SeasonalFactors_MonthsOfYear { get; }
+        private List<double> Adjusted_SeasonalFactors_Years { get; }
+        private List<(TimeSpan Interval, List<double> SeasonalFactors)> Adjusted_CustomizedSeasonalFactors { get; }
+        private double AdjMax_SeasonalFactor_HoursOfDay { get; }
+        private double AdjMax_SeasonalFactor_DaysOfWeek { get; }
+        private double AdjMax_SeasonalFactor_DaysOfMonth { get; }
+        private double AdjMax_SeasonalFactor_MonthsOfYear { get; }
+        private double AdjMax_SeasonalFactor_Years { get; }
+        private List<double> AdjMax_CustomizedSeasonalFactors { get; }
+        private List<TimeSpan> CustomizedSeasonalRemainders { get; }
         #endregion
 
         #region Events

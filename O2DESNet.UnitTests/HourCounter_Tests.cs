@@ -106,7 +106,7 @@ namespace O2DESNet.UnitTests
 
         class TestSandbox : Sandbox
         {
-            public HourCounter HC { get; private set; }
+            public HourCounter HC { get; }
             public TestSandbox()
             {
                 HC = AddHourCounter();

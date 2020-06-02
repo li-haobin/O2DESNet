@@ -6,11 +6,11 @@ namespace O2DESNet
     public class Event : IDisposable
     {
         private static int _count = 0;
-        internal int Index { get; private set; } = _count++;
-        internal string Tag { get; private set; }
-        internal Sandbox Owner { get; private set; }
-        internal DateTime ScheduledTime { get; private set; }        
-        internal Action Action { get; private set; }
+        internal int Index { get; } = _count++;
+        internal string Tag { get; }
+        internal Sandbox Owner { get; }
+        internal DateTime ScheduledTime { get; }        
+        internal Action Action { get; }
 
         internal Event(Sandbox owner, Action action, DateTime scheduledTime, string tag = null)
         {
@@ -19,10 +19,12 @@ namespace O2DESNet
             ScheduledTime = scheduledTime;
             Tag = tag;
         }
-        internal void Invoke() { Action.Invoke(); }
+
+        internal void Invoke() { Action?.Invoke(); }
+
         public override string ToString()
         {
-            return string.Format("{0}#{1}", Tag, Index);
+            return $"{Tag}#{Index}";
         }
 
         public void Dispose()
@@ -31,14 +33,16 @@ namespace O2DESNet
     }
     internal sealed class EventComparer : IComparer<Event>
     {
-        private static readonly EventComparer _instance = new EventComparer();
+        private static readonly EventComparer _comparer = new EventComparer();
         private EventComparer() { }
-        public static EventComparer Instance { get { return _instance; } }
+        public static EventComparer Instance => _comparer;
+
         public int Compare(Event x, Event y)
         {
-            int compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
-            if (compare == 0) return x.Index.CompareTo(y.Index);
-            return compare;
+            if (x == null) throw new ArgumentNullException(nameof(x));
+            if (y == null) throw new ArgumentNullException(nameof(y));
+            var compare = x.ScheduledTime.CompareTo(y.ScheduledTime);
+            return compare == 0 ? x.Index.CompareTo(y.Index) : compare;
         }
     }
 }

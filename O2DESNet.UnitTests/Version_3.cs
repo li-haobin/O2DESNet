@@ -64,7 +64,7 @@ namespace O2DESNet.UnitTests
 
         private class Assets : IAssets
         {
-            public string Id { get { return GetType().Name; } }
+            public string Id => GetType().Name;
         }
         private class A : Sandbox<Assets>
         {

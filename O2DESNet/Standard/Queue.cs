@@ -8,20 +8,20 @@ namespace O2DESNet.Standard
     public class Queue : Sandbox, IQueue
     {
         #region Static Properties
-        public double Capacity { get; private set; }
+        public double Capacity { get; }
         #endregion
 
         #region Dynamic Properties        
-        public IReadOnlyList<ILoad> PendingToEnqueue { get { return List_PendingToEnqueue.AsReadOnly(); } }
-        public IReadOnlyList<ILoad> Queueing { get { return List_Queueing.AsReadOnly(); } }
-        public int Occupancy { get { return List_Queueing.Count; } }
-        public double Vacancy { get { return Capacity - Occupancy; } }
-        public double Utilization { get { return AvgNQueueing / Capacity; } }
-        public double AvgNQueueing { get{ return HC_Queueing.AverageCount; } }
+        public IReadOnlyList<ILoad> PendingToEnqueue => List_PendingToEnqueue.AsReadOnly();
+        public IReadOnlyList<ILoad> Queueing => List_Queueing.AsReadOnly();
+        public int Occupancy => List_Queueing.Count;
+        public double Vacancy => Capacity - Occupancy;
+        public double Utilization => AvgNQueueing / Capacity;
+        public double AvgNQueueing => HC_Queueing.AverageCount;
 
         private readonly List<ILoad> List_Queueing = new List<ILoad>();
         private readonly List<ILoad> List_PendingToEnqueue = new List<ILoad>();
-        private HourCounter HC_Queueing { get; set; }
+        private HourCounter HC_Queueing { get; }
         #endregion
 
         #region  Methods / Events
