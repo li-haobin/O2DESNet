@@ -4,7 +4,7 @@ using System;
 
 namespace O2DESNet.UnitTests
 {
-    public class Simulator_Tests
+    public class SimulatorTests
     {
         [Test]
         public void ClockTime_Advance()

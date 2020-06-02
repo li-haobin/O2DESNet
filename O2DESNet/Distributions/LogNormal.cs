@@ -27,7 +27,7 @@ namespace O2DESNet.Distributions
         /// <param name="cv">coefficient of variation</param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static double CDF(double mean, double cv, double x)
+        public static double Cdf(double mean, double cv, double x)
         {
             if (cv == 0) return x >= mean ? 1 : 0;
             if (mean <= 0) throw new Exception("Zero or negative mean not applicable");
@@ -41,7 +41,7 @@ namespace O2DESNet.Distributions
         /// <param name="cv">coefficient of variation</param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static double InvCDF(double mean, double cv, double p)
+        public static double InvCdf(double mean, double cv, double p)
         {
             if (cv == 0) return mean;
             if (mean <= 0) throw new Exception("Zero or negative mean not applicable");

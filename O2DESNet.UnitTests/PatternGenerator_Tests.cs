@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace O2DESNet.UnitTests
 {
-    public class PatternGenerator_Tests
+    public class PatternGeneratorTests
     {
         [Test]
         public void NoSeasonality()
@@ -26,7 +26,7 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 15,
-                SeasonalFactors_HoursOfDay = new List<double>
+                SeasonalFactorsHoursOfDay = new List<double>
                 {
                     1, 2, 3, 3, 3, 3, 3, 10,
                     10, 10, 10, 9, 9, 8, 8, 8,
@@ -43,7 +43,7 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 1,
-                SeasonalFactors_DaysOfWeek = new List<double>
+                SeasonalFactorsDaysOfWeek = new List<double>
                 {
                     1, 2, 3, 3, 1, 0, 0,
                 },
@@ -58,13 +58,13 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 1,
-                SeasonalFactors_HoursOfDay = new List<double>
+                SeasonalFactorsHoursOfDay = new List<double>
                 {
                     1, 2, 3, 3, 3, 3, 3, 10,
                     10, 10, 10, 9, 9, 8, 8, 8,
                     7, 6, 5, 4, 3, 2, 1, 0,
                 },
-                SeasonalFactors_DaysOfWeek = new List<double>
+                SeasonalFactorsDaysOfWeek = new List<double>
                 {
                     1, 2, 3, 3, 1, 0, 0,
                 },
@@ -79,7 +79,7 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 0.5,
-                SeasonalFactors_DaysOfMonth = new List<double>
+                SeasonalFactorsDaysOfMonth = new List<double>
                 {
                     1, 1, 1, 1, 1, 1, 1,
                     2, 2, 2, 2, 2, 2, 2,
@@ -97,7 +97,7 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 0.05,
-                SeasonalFactors_MonthsOfYear = new List<double>
+                SeasonalFactorsMonthsOfYear = new List<double>
                 {
                     1, 1, 1, 1, 1, 1,
                     2, 2, 2, 2, 2, 2,
@@ -113,7 +113,7 @@ namespace O2DESNet.UnitTests
             var diff = Test(new PatternGenerator.Statics
             {
                 MeanHourlyRate = 0.05,
-                SeasonalFactors_Years = new List<double>
+                SeasonalFactorsYears = new List<double>
                 {
                     1, 2, 3,
                 },
@@ -156,7 +156,7 @@ namespace O2DESNet.UnitTests
         {
             var gen = new PatternGenerator(assets, 0);
             gen.Start();
-            for(int i = 0; i < nEvents; i++) gen.Run(1);
+            for(var i = 0; i < nEvents; i++) gen.Run(1);
 
             var expected = 1 / assets.MeanHourlyRate * gen.Count;
             var observed = (gen.ClockTime - DateTime.MinValue).TotalHours;

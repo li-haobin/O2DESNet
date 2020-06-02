@@ -5,12 +5,12 @@ using System.Diagnostics;
 
 namespace O2DESNet.UnitTests
 {
-    public class TandemQueue_Tests
+    public class TandemQueueTests
     {
         [Test]
         public void Test1()
         {
-            for (int seed = 0; seed < 3; seed++)
+            for (var seed = 0; seed < 3; seed++)
             {
                 var q = new TandemQueue(3, 5, 5, 2, seed);
                 var sw = new Stopwatch();

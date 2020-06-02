@@ -16,11 +16,11 @@ namespace O2DESNet.Distributions
         {
             return MathNet.Numerics.Distributions.Triangular.Sample(rs, lower, upper, mode);
         }
-        public static double CDF(double lower, double upper, double mode, double x)
+        public static double Cdf(double lower, double upper, double mode, double x)
         {
             return MathNet.Numerics.Distributions.Triangular.CDF(lower, upper, mode, x);
         }
-        public static double InvCDF(double lower, double upper, double mode, double p)
+        public static double InvCdf(double lower, double upper, double mode, double p)
         {
             return MathNet.Numerics.Distributions.Triangular.InvCDF(lower, upper, mode, p);
         }

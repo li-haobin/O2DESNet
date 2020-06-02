@@ -6,17 +6,17 @@ namespace O2DESNet
 {
     public class PhaseTracer
     {
+        private readonly Dictionary<string, int> _indices = new Dictionary<string, int>();
         private DateTime _initialTime;
         private int _lastPhaseIndex;
-        private Dictionary<string, int> _indices = new Dictionary<string, int>();
+        
         private int GetPhaseIndex(string phase)
         {
-            if (!_indices.ContainsKey(phase))
-            {
-                _indices.Add(phase, AllPhases.Count);
-                AllPhases.Add(phase);
-                TimeSpans.Add(new TimeSpan());
-            }
+            if (_indices.ContainsKey(phase)) return _indices[phase];
+
+            _indices.Add(phase, AllPhases.Count);
+            AllPhases.Add(phase);
+            TimeSpans.Add(new TimeSpan());
             return _indices[phase];
         }
 

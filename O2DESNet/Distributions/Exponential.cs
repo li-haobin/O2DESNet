@@ -9,12 +9,12 @@ namespace O2DESNet.Distributions
             return MathNet.Numerics.Distributions.Exponential.Sample(rs, 1 / mean);
         }
 
-        public static double CDF(double mean, double x)
+        public static double Cdf(double mean, double x)
         {
             return MathNet.Numerics.Distributions.Exponential.CDF(1 / mean, x);
         }
 
-        public static double InvCDF(double mean, double p)
+        public static double InvCdf(double mean, double p)
         {
             return MathNet.Numerics.Distributions.Exponential.InvCDF(1 / mean, p);
         }

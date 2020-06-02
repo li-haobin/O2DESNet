@@ -22,7 +22,7 @@ namespace O2DESNet.Standard
         IReadOnlyList<ILoad> Serving { get; }
         IReadOnlyList<ILoad> PendingToDepart { get; }        
 
-        void RqstStart(ILoad load);
+        void RequestStart(ILoad load);
         void Depart(ILoad load);
 
         event Action<ILoad> OnStarted;

@@ -12,47 +12,50 @@ namespace O2DESNet.Standard
         #endregion
 
         #region Dynamic Properties        
-        public IReadOnlyList<ILoad> PendingToEnqueue => List_PendingToEnqueue.AsReadOnly();
-        public IReadOnlyList<ILoad> Queueing => List_Queueing.AsReadOnly();
-        public int Occupancy => List_Queueing.Count;
+        public IReadOnlyList<ILoad> PendingToEnqueue => _listPendingToEnqueue.AsReadOnly();
+        public IReadOnlyList<ILoad> Queueing => _listQueueing.AsReadOnly();
+        public int Occupancy => _listQueueing.Count;
         public double Vacancy => Capacity - Occupancy;
         public double Utilization => AvgNQueueing / Capacity;
-        public double AvgNQueueing => HC_Queueing.AverageCount;
+        public double AvgNQueueing => HCQueueing.AverageCount;
 
-        private readonly List<ILoad> List_Queueing = new List<ILoad>();
-        private readonly List<ILoad> List_PendingToEnqueue = new List<ILoad>();
-        private HourCounter HC_Queueing { get; }
+        private readonly List<ILoad> _listQueueing = new List<ILoad>();
+        private readonly List<ILoad> _listPendingToEnqueue = new List<ILoad>();
+        private HourCounter HCQueueing { get; }
         #endregion
 
         #region  Methods / Events
-        public void RqstEnqueue(ILoad load)
+        public void RequestEnqueue(ILoad load)
         {
-            Log("RqstEnqueue");
-            if (DebugMode) Debug.WriteLine("{0}:\t{1}\tRqstEnqueue\t{2}", ClockTime, this, load);
-            List_PendingToEnqueue.Add(load);
-            AtmptEnqueue();
+            Log("RequestEnqueue");
+            if (DebugMode) Debug.WriteLine("{0}:\t{1}\tRequestEnqueue\t{2}", ClockTime, this, load);
+            _listPendingToEnqueue.Add(load);
+            AttemptEnqueue();
         }
+
         public void Dequeue(ILoad load)
         {
-            if (List_Queueing.Contains(load))
+            if (_listQueueing.Contains(load))
             {
                 Log("Dequeue", load);
-                if (DebugMode) Debug.WriteLine("{0}:\t{1}\tDequeue\t{2}", ClockTime, this, load);
-                List_Queueing.Remove(load);
-                HC_Queueing.ObserveChange(-1, ClockTime);
-                AtmptEnqueue();
+                if (DebugMode)
+                    Debug.WriteLine("{0}:\t{1}\tDequeue\t{2}", ClockTime, this, load);
+                _listQueueing.Remove(load);
+                HCQueueing.ObserveChange(-1, ClockTime);
+                AttemptEnqueue();
             }
         }
-        private void AtmptEnqueue()
+
+        private void AttemptEnqueue()
         {
-            if (List_PendingToEnqueue.Count > 0 && List_Queueing.Count < Capacity)
+            if (_listPendingToEnqueue.Count > 0 && _listQueueing.Count < Capacity)
             {                
-                var load = List_PendingToEnqueue.First();
+                var load = _listPendingToEnqueue.First();
                 Log("Enqueue", load);
                 if (DebugMode) Debug.WriteLine("{0}:\t{1}\tEnqueue\t{2}", ClockTime, this, load);
-                List_Queueing.Add(load);
-                List_PendingToEnqueue.RemoveAt(0);
-                HC_Queueing.ObserveChange(1, ClockTime);
+                _listQueueing.Add(load);
+                _listPendingToEnqueue.RemoveAt(0);
+                HCQueueing.ObserveChange(1, ClockTime);
                 OnEnqueued.Invoke(load);
             }
         }
@@ -60,16 +63,27 @@ namespace O2DESNet.Standard
         public event Action<ILoad> OnEnqueued = load => { };
         #endregion
 
-        public Queue(double capacity, int seed = 0, string id = null) 
-            : base(seed, id)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Queue"/> class.
+        /// </summary>
+        /// <param name="capacity">The capacity.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="id">The identifier.</param>
+        public Queue(double capacity, int seed, string id) 
+            : base(seed, id, Pointer.Empty)
         {
             Capacity = capacity;
-            HC_Queueing = AddHourCounter();
+            HCQueueing = AddHourCounter();
         }
 
         public override void Dispose()
         {
-            foreach (Action<ILoad> i in OnEnqueued.GetInvocationList()) OnEnqueued -= i;
+            foreach (var @delegate in OnEnqueued.GetInvocationList())
+            {
+                if (@delegate == null) continue;
+                var i = @delegate as Action<ILoad>;
+                OnEnqueued -= i;
+            }
         }        
     }
 }

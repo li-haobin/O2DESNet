@@ -17,7 +17,7 @@ namespace O2DESNet.Standard
         /// </summary>
         double AvgNQueueing { get; }
 
-        void RqstEnqueue(ILoad load);
+        void RequestEnqueue(ILoad load);
         void Dequeue(ILoad load);
 
         event Action<ILoad> OnEnqueued;

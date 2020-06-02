@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace O2DESNet.UnitTests
 {
-    public class Version_3
+    public class Version3
     {
         [Test]
         public void WarmedUp()
@@ -33,9 +33,9 @@ namespace O2DESNet.UnitTests
         [Test]
         public void MMnQueue_Atomic()
         {
-            for (int seed = 0; seed < 3; seed++)
+            for (var seed = 0; seed < 3; seed++)
             {
-                var q = new MMnQueue_Atomic(4, 5, 1, seed);
+                var q = new MMnQueueAtomic(4, 5, 1, seed);
                 var sw = new Stopwatch();
                 sw.Start();
                 q.WarmUp(TimeSpan.FromHours(1000));
@@ -49,9 +49,9 @@ namespace O2DESNet.UnitTests
         [Test]
         public void MMnQueue_Modular()
         {
-            for (int seed = 0; seed < 3; seed++)
+            for (var seed = 0; seed < 3; seed++)
             {
-                var q = new MMnQueue_Modular(4, 5, 1, seed);
+                var q = new MMnQueueModular(4, 5, 1, seed);
                 var sw = new Stopwatch();
                 sw.Start();
                 q.WarmUp(TimeSpan.FromHours(1000));

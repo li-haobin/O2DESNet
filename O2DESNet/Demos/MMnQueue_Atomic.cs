@@ -4,7 +4,7 @@ using System;
 
 namespace O2DESNet.Demos
 {
-    public class MMnQueue_Atomic : Sandbox, IMMnQueue
+    public class MMnQueueAtomic : Sandbox, IMMnQueue
     {
         #region Static Properties
         public double HourlyArrivalRate { get; }
@@ -13,26 +13,26 @@ namespace O2DESNet.Demos
         #endregion
 
         #region Dynamic Properties / Methods
-        public double AvgNQueueing => HC_InQueue.AverageCount;
-        public double AvgNServing => HC_InServer.AverageCount;
-        public double AvgHoursInSystem => HC_InSystem.AverageDuration.TotalHours;
+        public double AvgNQueueing => _hcInQueue.AverageCount;
+        public double AvgNServing => _hcInServer.AverageCount;
+        public double AvgHoursInSystem => _hcInSystem.AverageDuration.TotalHours;
 
-        private HourCounter HC_InServer { get; }
-        private HourCounter HC_InQueue { get; }
-        private HourCounter HC_InSystem { get; }
+        private readonly HourCounter _hcInServer;
+        private readonly HourCounter _hcInQueue;
+        private readonly HourCounter _hcInSystem;
         #endregion
 
         #region Events
         private void Arrive()
         {
             Log("Arrive");
-            HC_InSystem.ObserveChange(1, ClockTime);
+            _hcInSystem.ObserveChange(1, ClockTime);
 
-            if (HC_InServer.LastCount < NServers) Start();
+            if (_hcInServer.LastCount < NServers) Start();
             else
             {
                 Log("Enqueue");
-                HC_InQueue.ObserveChange(1, ClockTime);
+                _hcInQueue.ObserveChange(1, ClockTime);
             }
             Schedule(Arrive, Exponential.Sample(DefaultRS, TimeSpan.FromHours(1 / HourlyArrivalRate)));
         }
@@ -40,37 +40,44 @@ namespace O2DESNet.Demos
         private void Start()
         {
             Log("Start");
-            HC_InServer.ObserveChange(1, ClockTime);
+            _hcInServer.ObserveChange(1, ClockTime);
             Schedule(Depart, Exponential.Sample(DefaultRS, TimeSpan.FromHours(1 / HourlyServiceRate)));
         }
 
         private void Depart()
         {
             Log("Depart");
-            HC_InServer.ObserveChange(-1, ClockTime);
-            HC_InSystem.ObserveChange(-1, ClockTime);
+            _hcInServer.ObserveChange(-1, ClockTime);
+            _hcInSystem.ObserveChange(-1, ClockTime);
 
-            if (HC_InQueue.LastCount > 0)
+            if (_hcInQueue.LastCount > 0)
             {
                 Log("Dequeue");
-                HC_InQueue.ObserveChange(-1, ClockTime);
+                _hcInQueue.ObserveChange(-1, ClockTime);
                 Start();
             }
         }
         #endregion
 
-        public MMnQueue_Atomic(double hourlyArrivalRate, double hourlyServiceRate, int nServers, int seed = 0)
-            : base(seed)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MMnQueueAtomic"/> class.
+        /// </summary>
+        /// <param name="hourlyArrivalRate">The hourly arrival rate.</param>
+        /// <param name="hourlyServiceRate">The hourly service rate.</param>
+        /// <param name="nServers">The n servers.</param>
+        /// <param name="seed">The seed.</param>
+        public MMnQueueAtomic(double hourlyArrivalRate, double hourlyServiceRate, int nServers, int seed = 0)
+            : base(seed: seed, id: null, pointer: Pointer.Empty)
         {
             HourlyArrivalRate = hourlyArrivalRate;
             HourlyServiceRate = hourlyServiceRate;
             NServers = nServers;
 
-            HC_InServer = AddHourCounter();
-            HC_InQueue = AddHourCounter();
-            HC_InSystem = AddHourCounter();
+            _hcInServer = AddHourCounter();
+            _hcInQueue = AddHourCounter();
+            _hcInSystem = AddHourCounter();
 
-            /// Initial event
+            // Initial event
             Arrive();
         }
     }

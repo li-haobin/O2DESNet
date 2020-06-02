@@ -5,7 +5,8 @@ namespace O2DESNet
 {
     public class Event : IDisposable
     {
-        private static int _count = 0;
+        private static int _count;
+
         internal int Index { get; } = _count++;
         internal string Tag { get; }
         internal Sandbox Owner { get; }
@@ -31,11 +32,15 @@ namespace O2DESNet
         {
         }
     }
+
     internal sealed class EventComparer : IComparer<Event>
     {
-        private static readonly EventComparer _comparer = new EventComparer();
+        /// <summary>
+        /// Gets an instance of Event comparer.
+        /// </summary>
+        public static EventComparer Instance => new EventComparer();
+
         private EventComparer() { }
-        public static EventComparer Instance => _comparer;
 
         public int Compare(Event x, Event y)
         {

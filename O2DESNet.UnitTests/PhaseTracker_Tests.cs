@@ -3,7 +3,7 @@ using System;
 
 namespace O2DESNet.UnitTests
 {
-    public class PhaseTracer_Tests
+    public class PhaseTracerTests
     {
         [Test]
         public void PhaseTracer_at_MinDateTime()

@@ -5,27 +5,6 @@ using System.Linq;
 
 namespace O2DESNet
 {
-    public interface ISandbox : IDisposable
-    {
-        int Index { get; }
-        string Id { get; }
-        Pointer Pointer { get; }
-        int Seed { get; }        
-        ISandbox Parent { get; }
-        IReadOnlyList<ISandbox> Children { get; }
-        DateTime ClockTime { get; }
-        DateTime? HeadEventTime { get; }
-        string LogFile { get; set; }
-        bool DebugMode { get; set; }
-        bool Run();
-        bool Run(int eventCount);
-        bool Run(DateTime terminate);
-        bool Run(TimeSpan duration);
-        bool Run(double speed);        
-        bool WarmUp(DateTime till);
-        bool WarmUp(TimeSpan period);        
-    }
-
     public abstract class Sandbox<TAssets> : Sandbox
         where TAssets : IAssets
     {
@@ -37,42 +16,76 @@ namespace O2DESNet
 
     public abstract class Sandbox : ISandbox
     {
-        private static int _count = 0;
+        #region Private Fields
+        private static int _count;
+
+        private readonly int _index;
+        private readonly string _id;
+        private readonly Pointer _pointer;
+
+        private int _seed;
+        private bool _isDisposed;
+        private Action _onWarmedUp; 
+        #endregion
+
         /// <summary>
         /// Unique index in sequence for all module instances 
         /// </summary>
-        public int Index { get; }
+        public int Index => _index;
+
         /// <summary>
         /// Tag of the instance of the module
         /// </summary>
-        public string Id { get; }        
-        public Pointer Pointer { get; }
-        protected Random DefaultRS { get; private set; }
+        public string Id => _id;
 
-        private int _seed;
+        public Pointer Pointer => _pointer;
 
-        public int Seed { get => _seed;
-            set { _seed = value; DefaultRS = new Random(_seed); } }
-        
+        protected Random DefaultRS => _defaultRS;
+
+        public int Seed
+        {
+            get => _seed;
+            set
+            {
+                _seed = value;
+                new Action(SetRandomSeed).Invoke();
+            }
+        }
+
+        private void SetRandomSeed()
+        {
+            _defaultRS = new Random(_seed);
+        }
+
         #region Future Event List
-        internal SortedSet<Event> FutureEventList = new SortedSet<Event>(EventComparer.Instance);        
+        internal SortedSet<Event> FutureEventList = new SortedSet<Event>(EventComparer.Instance);
         /// <summary>
         /// Schedule an event to be invoked at the specified clock-time
         /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="clockTime">The clock time.</param>
+        /// <param name="tag">The tag.</param>
         protected void Schedule(Action action, DateTime clockTime, string tag = null)
         {
             FutureEventList.Add(new Event(this, action, clockTime, tag));
         }
+
         /// <summary>
         /// Schedule an event to be invoked after the specified time delay
         /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="delay">The delay.</param>
+        /// <param name="tag">The tag.</param>
         protected void Schedule(Action action, TimeSpan delay, string tag = null)
         {
             FutureEventList.Add(new Event(this, action, ClockTime + delay, tag));
         }
+
         /// <summary>
         /// Schedule an event at the current clock time.
         /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="tag">The tag.</param>
         protected void Schedule(Action action, string tag = null)
         {
             FutureEventList.Add(new Event(this, action, ClockTime, tag));
@@ -85,7 +98,7 @@ namespace O2DESNet
             get
             {
                 var headEvent = FutureEventList.FirstOrDefault();
-                foreach(Sandbox child in Children_List)
+                foreach (Sandbox child in _childrenList)
                 {
                     var childHeadEvent = child.HeadEvent;
                     if (headEvent == null || (childHeadEvent != null &&
@@ -149,7 +162,7 @@ namespace O2DESNet
                 if (!Run()) return false;
             return true;
         }
-        private DateTime? _realTimeForLastRun = null;
+        private DateTime? _realTimeForLastRun;
         public bool Run(double speed)
         {
             if (Parent != null) return Parent.Run(speed);
@@ -162,66 +175,101 @@ namespace O2DESNet
         #endregion
 
         #region Children - Sub-modules
-        public ISandbox Parent { get; private set; } = null;
+        public ISandbox Parent { get; private set; }
 
-        private readonly List<ISandbox> Children_List = new List<ISandbox>();
+        private readonly List<ISandbox> _childrenList = new List<ISandbox>();
 
-        public IReadOnlyList<ISandbox> Children => Children_List.AsReadOnly();
+        public IReadOnlyList<ISandbox> Children => _childrenList.AsReadOnly();
 
         protected TSandbox AddChild<TSandbox>(TSandbox child) where TSandbox : Sandbox
         {
-            Children_List.Add(child);
+            _childrenList.Add(child);
             child.Parent = this;
-            OnWarmedUp += child.OnWarmedUp;
+            _onWarmedUp += child._onWarmedUp;
             return child;
         }
-        protected IReadOnlyList<HourCounter> HourCounters => HourCounters_List.AsReadOnly();
-        private readonly List<HourCounter> HourCounters_List = new List<HourCounter>();
+
+        /// <summary>
+        /// Gets the hour counters.
+        /// </summary>
+        protected IReadOnlyList<HourCounter> HourCounters => _hourCountersList.AsReadOnly();
+
+        private readonly List<HourCounter> _hourCountersList = new List<HourCounter>();
+
+        /// <summary>
+        /// Adds the hour counter.
+        /// </summary>
+        /// <param name="keepHistory">if set to <c>true</c> [keep history].</param>
         protected HourCounter AddHourCounter(bool keepHistory = false)
         {
             var hc = new HourCounter(this, keepHistory);
-            HourCounters_List.Add(hc);
-            OnWarmedUp += () => hc.WarmedUp();
+            _hourCountersList.Add(hc);
+            _onWarmedUp += () => hc.WarmedUp();
             return hc;
         }
         #endregion
-        
-        public Sandbox(int seed = 0, string id = null, Pointer pointer = new Pointer())
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Sandbox"/> class.
+        /// </summary>
+        /// <param name="seed">The seed.</param>
+        /// <param name="id">The identifier.</param>
+        /// <param name="pointer">The pointer.</param>
+        protected Sandbox(int seed, string id, Pointer pointer)
         {
-            Seed = seed;
-            Index = ++_count;
-            Id = id;
-            Pointer = pointer;
-            OnWarmedUp += WarmedUpHandler;
+            _id = id;
+            _seed = seed;
+            _index = _count++;
+            _pointer = pointer;
+            _onWarmedUp += WarmedUpHandler;
         }
 
+        /// <summary>
+        /// Converts to string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
         public override string ToString()
         {
             var str = Id;
-            if (str == null || str.Length == 0) str = GetType().Name;
+            if (string.IsNullOrEmpty(str)) str = GetType().Name;
             str += "#" + Index.ToString();
             return str;
         }
 
         #region Warm-Up
+        /// <summary>
+        /// Warms up within specified period.
+        /// </summary>
+        /// <param name="period">The period.</param>
         public bool WarmUp(TimeSpan period)
         {
-            if (Parent != null) return Parent.WarmUp(period);
-            return WarmUp(ClockTime + period);
+            return Parent?.WarmUp(period) ?? WarmUp(ClockTime + period);
         }
+
+        /// <summary>
+        /// Warms up till specified time.
+        /// </summary>
+        /// <param name="till">The till.</param>
         public bool WarmUp(DateTime till)
         {
             if (Parent != null) return Parent.WarmUp(till);
             var result = Run(till);
-            OnWarmedUp.Invoke();
+            _onWarmedUp.Invoke();
             return result; // to be continued
         }
-        private Action OnWarmedUp;
+
+        /// <summary>
+        /// Warmed up handler.
+        /// </summary>
         protected virtual void WarmedUpHandler() { }
         #endregion
 
         #region For Logging
         private string _logFile;
+        private Random _defaultRS;
+
         public string LogFile
         {
             get => _logFile;
@@ -247,10 +295,31 @@ namespace O2DESNet
         public bool DebugMode { get; set; } = false;
         #endregion
 
+        #region IDisposable Members
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public virtual void Dispose()
         {
-            foreach (var child in Children_List) child.Dispose();
-            foreach (var hc in HourCounters_List) hc.Dispose();
+            Dispose(true);
         }
+
+        protected void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (!_isDisposed)
+                {
+                    if (_childrenList != null)
+                        foreach (var child in _childrenList) child?.Dispose();
+
+                    if (_hourCountersList != null)
+                        foreach (var hc in _hourCountersList) hc?.Dispose();
+                }
+
+                _isDisposed = true;
+            }
+        } 
+        #endregion
     }
 }

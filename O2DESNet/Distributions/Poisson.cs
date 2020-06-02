@@ -9,7 +9,7 @@ namespace O2DESNet.Distributions
             return MathNet.Numerics.Distributions.Poisson.Sample(rs, lambda);
         }
 
-        public static double CDF(double lambda, double x)
+        public static double Cdf(double lambda, double x)
         {
             return MathNet.Numerics.Distributions.Poisson.CDF(lambda, x);
         }
