@@ -44,7 +44,7 @@ namespace O2DESNet.Standard
             public PatternGenerator Sandbox(int seed = 0) { return new PatternGenerator(this, seed); }
         }
 
-        #region Dyanmic Properties
+        #region Dynamic Properties
         public DateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
         public int Count { get; private set; }

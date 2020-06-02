@@ -12,7 +12,7 @@ namespace O2DESNet.Standard
             public Generator Sandbox(int seed = 0) { return new Generator(this, seed); }
         }
 
-        #region Dyanmic Properties
+        #region Dynamic Properties
         public DateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
         public int Count { get; private set; } // number of loads generated   
@@ -78,7 +78,12 @@ namespace O2DESNet.Standard
 
         public override void Dispose()
         {
-            foreach (Action i in OnArrive.GetInvocationList()) OnArrive -= i;
+            foreach (var @delegate in OnArrive.GetInvocationList())
+            {
+                if (@delegate == null) continue;
+                var i = @delegate as Action;
+                OnArrive -= i;
+            }
         }
 
     }
