@@ -218,10 +218,12 @@ namespace O2DESNet
         protected Sandbox(int seed, string id, Pointer pointer)
         {
             _id = id;
-            _seed = seed;
             _index = _count++;
             _pointer = pointer;
             _onWarmedUp += WarmedUpHandler;
+
+            _seed = seed;
+            new Action(SetRandomSeed).Invoke();
         }
 
         /// <summary>
