@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Normal : RandomVariable
+    public class Normal : IRandomVariable
     {
         private double _mean = 1;
         public double Mean
@@ -52,7 +52,7 @@ namespace O2DESNet.RandomVariables.Continuous
                 _std = _cv * Math.Abs(_mean);
             }
         }
-        public override double Sample(Random rs)
+        public double Sample(Random rs)
         {
             if (CV == 0) return Mean;
             return MathNet.Numerics.Distributions.Normal.Sample(rs, Mean, StandardDeviation);

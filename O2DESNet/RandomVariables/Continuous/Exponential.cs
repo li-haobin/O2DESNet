@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Exponential : RandomVariable
+    public class Exponential : IRandomVariable
     {
         private double _lambda = 1;
         public double Lambda 
@@ -40,7 +40,7 @@ namespace O2DESNet.RandomVariables.Continuous
                 _lambda = 1 / _mean;
             }
         }
-        public override double Sample(Random rs)
+        public double Sample(Random rs)
         {
             return MathNet.Numerics.Distributions.Exponential.Sample(rs, Lambda);
         }

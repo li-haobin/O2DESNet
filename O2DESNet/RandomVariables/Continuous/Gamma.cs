@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Gamma : RandomVariable
+    public class Gamma : IRandomVariable
     {
         private double _mean = 1;
         public double Mean
@@ -96,7 +96,7 @@ namespace O2DESNet.RandomVariables.Continuous
                 _cv = _std / _mean;
             }
         }
-        public override double Sample(Random rs)
+        public double Sample(Random rs)
         {
             if (Mean == 0) return 0;
             if (CV == 0) return Mean;

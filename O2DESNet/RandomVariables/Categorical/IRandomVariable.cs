@@ -8,7 +8,6 @@ namespace O2DESNet.RandomVariables.Categorical
     {
         double Mean { get; set; }
         double StadndardDeviation { get; set; }
-        double CoefficientVariation { get; set; }
         T Sample(Random rs);
     }
 }

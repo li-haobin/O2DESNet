@@ -104,8 +104,6 @@ namespace O2DESNet.RandomVariables.Continuous
             }
         }
 
-        public double StandardDeviation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
         public double Sample(Random rs)
         {
             if (CV == 0) return Mean;

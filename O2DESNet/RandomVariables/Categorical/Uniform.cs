@@ -17,11 +17,6 @@ namespace O2DESNet.RandomVariables.Categorical
             get => throw new Exception("Catigorical random variable standard deviation not available");
             set => throw new Exception("Catigorical random variable standard deviation not available");
         }
-        public double CoefficientVariation 
-        { 
-            get => throw new Exception("Catigorical random variable coefficient variation not available");
-            set => throw new Exception("Catigorical random variable coefficient variation not available");
-        }
         public T Sample(Random rs)
         {
             if (Candidates.Count() == 0) return default;

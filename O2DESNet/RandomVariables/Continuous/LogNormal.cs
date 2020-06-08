@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class LogNormal : RandomVariable
+    public class LogNormal : IRandomVariable
     {
         /// <summary>
         /// Expectation of LogNormal random variable
@@ -109,7 +109,7 @@ namespace O2DESNet.RandomVariables.Continuous
         /// coefficient variation
         /// </summary>
 
-        public override double Sample(Random rs)
+        public double Sample(Random rs)
         {
             return MathNet.Numerics.Distributions.LogNormal.Sample(rs, Mu, Sigma);
         }
