@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Discrete
 {
-    public class Poisson : RandomVariable
+    public class Poisson : IRandomVariable
     {
         /// <summary>
         /// arrival rate
@@ -15,15 +15,38 @@ namespace O2DESNet.RandomVariables.Discrete
             {
                 if (value < 0) throw new Exception("negative arrival rate not applicable");
                 _lambda = value;
+                _mean = value;
+                _std = Math.Sqrt(value);
+
             }
         }
-        public override int Sample(Random rs)
+        private double _mean = 1;
+        public double Mean 
+        { 
+            get { return _mean; }
+            set
+            {
+                if (value < 0) throw new Exception("negative mean value not applicable");
+                _mean = value;
+                _lambda = value;
+                _std = Math.Sqrt(value);
+            }
+        }
+        private double _std = 1;
+        public double StadndardDeviation 
+        {
+            get { return _std; }
+            set
+            {
+                if (value < 0) throw new Exception("negative standard deviation not applicable");
+                _std = value;
+                _mean = value * value;
+                _lambda = value * value;
+            }
+        }
+        public int Sample(Random rs)
         {
             return MathNet.Numerics.Distributions.Poisson.Sample(rs, Lambda);
-        }
-        public Poisson()
-        {
-
         }
     }
 }

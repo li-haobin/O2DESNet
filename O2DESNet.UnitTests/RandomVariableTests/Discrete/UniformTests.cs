@@ -27,8 +27,8 @@ namespace RandomVariableTests.Discrete
             engine.Initialize();
 
             rs.Clear();
-            uniform.LowerBound = 1; uniform.UpperBound = 9;
-            uniform.IncludeBound = true;
+            uniform.LowerBound = 0; uniform.UpperBound = 10;
+            uniform.IncludeBound = false;
             engine.Evaluate("x4 <- sample(" + uniform.LowerBound + ":" + uniform.UpperBound + ", " + numSamples + ", replace = T)");
 
             var meanSample = engine.Evaluate("sampleMean <- mean(x4)").AsNumeric();

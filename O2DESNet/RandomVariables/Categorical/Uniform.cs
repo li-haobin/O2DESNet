@@ -4,10 +4,25 @@ using System.Linq;
 
 namespace O2DESNet.RandomVariables.Categorical
 {
-    public class Uniform<T> : RandomVariable<T>
+    public class Uniform<T> : IRandomVariable<T>
     {
         public IEnumerable<T> Candidates { get; set; }
-        public override T Sample(Random rs)
+        public double Mean 
+        { 
+            get => throw new Exception("Catigorical random variable mean not available"); 
+            set => throw new Exception("Catigorical random variable mean not available");
+        }
+        public double StadndardDeviation
+        {
+            get => throw new Exception("Catigorical random variable standard deviation not available");
+            set => throw new Exception("Catigorical random variable standard deviation not available");
+        }
+        public double CoefficientVariation 
+        { 
+            get => throw new Exception("Catigorical random variable coefficient variation not available");
+            set => throw new Exception("Catigorical random variable coefficient variation not available");
+        }
+        public T Sample(Random rs)
         {
             if (Candidates.Count() == 0) return default;
             return Candidates.ElementAt(rs.Next(Candidates.Count()));

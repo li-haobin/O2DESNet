@@ -24,7 +24,7 @@ namespace O2DESNet.RandomVariables.Continuous
         /// standard deviation
         /// </summary>
         private double _std = 1;
-        public double STD
+        public double StandardDeviation
         {
             get
             {

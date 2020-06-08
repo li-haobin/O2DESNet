@@ -30,7 +30,7 @@ namespace O2DESNet.RandomVariables.Continuous
         /// standard deviation
         /// </summary>
         private double _std = Math.Sqrt(Math.E * Math.E - Math.E);
-        public double STD
+        public double StandardDeviation
         {
             get
             {

@@ -1,14 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using O2DESNet.RandomVariables.Continuous;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 
 namespace RandomVariableTests.Continuous
 {
     [TestClass]
-    public class ExponentialTests
+    public class TriangularTests
     {
         [TestMethod]
         public void TestMeanAndVariacneConsistency()
@@ -17,16 +14,16 @@ namespace RandomVariableTests.Continuous
             double mean, stdev;
             RunningStat rs = new RunningStat();
             Random defaultrs = new Random();
-            Exponential exponential = new Exponential();
+            Triangular tri = new Triangular();
             rs.Clear();
-            mean = 2; stdev = 2;
+            var a = tri.LowerBound; var b = tri.UpperBound; var c = tri.Mode;
+            mean = (a + b + c) / 3; stdev = Math.Sqrt((a * a + b * b + c * c - a * b - a * c - b * c) / 18);
             for (int i = 0; i < numSamples; ++i)
             {
-                exponential.StandardDeviation = 2;
-                //exponential.Mean = mean;
-                rs.Push(exponential.Sample(defaultrs));
+
+                rs.Push(tri.Sample(defaultrs));
             }
-            PrintResult.CompareMeanAndVariance("exponential", mean, stdev * stdev, rs.Mean(), rs.Variance());
+            PrintResult.CompareMeanAndVariance("Triangular", mean, stdev * stdev, rs.Mean(), rs.Variance());
         }
     }
 }

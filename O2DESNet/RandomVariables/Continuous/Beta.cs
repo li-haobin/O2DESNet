@@ -2,7 +2,7 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Beta : RandomVariable
+    public class Beta : IRandomVariable
     {
         private double _mean = 0.5;
         public double Mean
@@ -29,7 +29,7 @@ namespace O2DESNet.RandomVariables.Continuous
         /// standard deviation
         /// </summary>
         private double _std = Math.Sqrt(1.0 / 12.0);
-        public double STD
+        public double StandardDeviation
         {
             get
             {
@@ -103,14 +103,13 @@ namespace O2DESNet.RandomVariables.Continuous
                 _cv = _std / _mean;
             }
         }
-        public override double Sample(Random rs)
+
+        public double StandardDeviation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public double Sample(Random rs)
         {
             if (CV == 0) return Mean;
             return MathNet.Numerics.Distributions.Beta.Sample(rs, AlphaValue, BetaValue);
-        }
-        public Beta()
-        {
-
         }
     }
 }

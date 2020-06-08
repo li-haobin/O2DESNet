@@ -22,7 +22,7 @@ namespace O2DESNet.RandomVariables.Continuous
         /// standard deviation
         /// </summary>
         private double _std = 1;
-        public double STD
+        public double StandardDeviation
         {
             get
             {
@@ -55,7 +55,7 @@ namespace O2DESNet.RandomVariables.Continuous
         public override double Sample(Random rs)
         {
             if (CV == 0) return Mean;
-            return MathNet.Numerics.Distributions.Normal.Sample(rs, Mean, STD);
+            return MathNet.Numerics.Distributions.Normal.Sample(rs, Mean, StandardDeviation);
         }
         public Normal()
         {
