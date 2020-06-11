@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace RandomVariableTests.Continuous
+namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
     [TestClass]
     public class UniformTests
@@ -29,19 +29,19 @@ namespace RandomVariableTests.Continuous
             }
             PrintResult.CompareMeanAndVariance("uniform", mean, stdev * stdev, rs.Mean(), rs.Variance());
         }
+        [TestMethod]
         public void IfLowerBoundLarger()
         {
             Random rs = new Random();
             Uniform uniform = new Uniform();
             uniform.UpperBound = 12;
             uniform.LowerBound = 11;
-            Debug.Assert(uniform.UpperBound == 12);
+            Assert.AreEqual(uniform.UpperBound, 12);
             uniform.UpperBound = 10;
-            Debug.Assert(uniform.UpperBound == 10);
+            Assert.AreEqual(uniform.UpperBound,10);
             Debug.WriteLine(" " + uniform.UpperBound);
             uniform.LowerBound = 13;
-            Debug.Assert(uniform.UpperBound == uniform.LowerBound);
-            Debug.Assert(uniform.LowerBound == 11);
+            Assert.AreEqual(uniform.UpperBound,uniform.LowerBound);
             Debug.WriteLine(uniform.Sample(rs));
             Debug.WriteLine(uniform.UpperBound);
             Debug.WriteLine(uniform.LowerBound);

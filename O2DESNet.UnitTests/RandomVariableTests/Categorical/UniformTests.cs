@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace RandomVariableTests.Categorical
+namespace O2DESNet.UnitTests.RandomVariableTests.Categorical
 {
     [TestClass]
     public class UniformTests

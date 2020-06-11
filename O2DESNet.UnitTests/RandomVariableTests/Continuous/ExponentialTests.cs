@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace RandomVariableTests.Continuous
+namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
     [TestClass]
     public class ExponentialTests

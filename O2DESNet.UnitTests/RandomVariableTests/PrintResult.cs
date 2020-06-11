@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace RandomVariableTests
+namespace O2DESNet.UnitTests.RandomVariableTests
 {
     public static class PrintResult
     {

@@ -33,7 +33,7 @@ namespace O2DESNet.RandomVariables.Discrete
             }
         }
         private double _std = 1;
-        public double StadndardDeviation 
+        public double StandardDeviation 
         {
             get { return _std; }
             set

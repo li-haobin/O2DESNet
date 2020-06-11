@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RandomVariableTests
+namespace O2DESNet.UnitTests.RandomVariableTests
 {
     public class RunningStat
     {

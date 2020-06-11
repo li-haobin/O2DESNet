@@ -12,7 +12,7 @@ namespace O2DESNet.RandomVariables.Categorical
             get => throw new Exception("Catigorical random variable mean not available"); 
             set => throw new Exception("Catigorical random variable mean not available");
         }
-        public double StadndardDeviation
+        public double StandardDeviation
         {
             get => throw new Exception("Catigorical random variable standard deviation not available");
             set => throw new Exception("Catigorical random variable standard deviation not available");

@@ -78,7 +78,7 @@ namespace O2DESNet.RandomVariables.Discrete
             set => throw new Exception("Users not allowed to define discrete uniform random variable by setting mean value"); 
         }
         private double _std = 0.5;
-        public double StadndardDeviation 
+        public double StandardDeviation 
         {
             get { return _std; }
             set => throw new Exception("Users not allowed to define discrete uniform random variable by setting standard deviation value");

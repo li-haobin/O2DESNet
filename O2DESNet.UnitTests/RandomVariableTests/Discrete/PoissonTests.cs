@@ -2,7 +2,7 @@
 using O2DESNet.RandomVariables.Discrete;
 using System;
 
-namespace RandomVariableTests.Discrete
+namespace O2DESNet.UnitTests.RandomVariableTests.Discrete
 {
     [TestClass]
     public class PoissonTests

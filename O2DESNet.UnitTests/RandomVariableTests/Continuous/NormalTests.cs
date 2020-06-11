@@ -2,7 +2,7 @@
 using O2DESNet.RandomVariables.Continuous;
 using System;
 
-namespace RandomVariableTests.Continuous
+namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
     [TestClass]
     public class NormalTests

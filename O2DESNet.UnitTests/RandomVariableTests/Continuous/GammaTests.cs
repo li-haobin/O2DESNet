@@ -2,7 +2,7 @@
 using System;
 using O2DESNet.RandomVariables.Continuous;
 
-namespace RandomVariableTests.Continuous
+namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
     [TestClass]
     public class GammaTests

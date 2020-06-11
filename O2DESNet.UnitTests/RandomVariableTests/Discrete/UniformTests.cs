@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace RandomVariableTests.Discrete
+namespace O2DESNet.UnitTests.RandomVariableTests.Discrete
 {
     [TestClass]
     public class UniformTests
@@ -22,31 +22,18 @@ namespace RandomVariableTests.Discrete
             Random defaultrs = new Random();
             Uniform uniform = new Uniform();
 
-            REngine engine;
-
-            REngine.SetEnvironmentVariables();
-            engine = REngine.GetInstance();
-            engine.Initialize();
-
             rs.Clear();
-            uniform.LowerBound = 0; uniform.UpperBound = 10;
-            uniform.IncludeBound = false;
-            engine.Evaluate("x4 <- sample(" + uniform.LowerBound + ":" + uniform.UpperBound + ", " + numSamples + ", replace = T)");
-
-            var meanSample = engine.Evaluate("sampleMean <- mean(x4)").AsNumeric();
-            var stdSample = engine.Evaluate("sampleStd <- sd(x4)").AsNumeric();
-
-            string getMean = meanSample[0].ToString();
-            string getStd = stdSample[0].ToString();
-
-            mean = Convert.ToDouble(getMean); stdev = Convert.ToDouble(getStd);
-
+            var a = Convert.ToDouble(uniform.UpperBound);
+            var b = Convert.ToDouble(uniform.LowerBound);
+            mean = (a + b) / 2; stdev = Math.Sqrt(0.25);
             for (int i = 0; i < numSamples; ++i)
             {
 
                 rs.Push(uniform.Sample(defaultrs));
             }
             PrintResult.CompareMeanAndVariance("uniform", mean, stdev * stdev, rs.Mean(), rs.Variance());
+            Assert.IsTrue(Math.Abs(mean - rs.Mean()) < 0.1);
+            Assert.IsTrue(Math.Abs(stdev * stdev - rs.Variance()) < 0.1);
         }
 
         [TestMethod]
@@ -54,9 +41,9 @@ namespace RandomVariableTests.Discrete
         {
             Uniform uniform = new Uniform();
             Debug.WriteLine(uniform.Mean);
-            Debug.WriteLine(uniform.StadndardDeviation);
-            Debug.Assert(uniform.Mean == 0.5);
-            Debug.Assert(uniform.StadndardDeviation == 0.5);
+            Debug.WriteLine(uniform.StandardDeviation);
+            Assert.AreEqual(uniform.Mean, 0.5);
+            Assert.AreEqual(uniform.StandardDeviation, 0.5);
         }
 
     }
