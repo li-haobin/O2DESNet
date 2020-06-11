@@ -1,9 +1,11 @@
 ﻿using MathNet.Numerics.Distributions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Bson;
 using O2DESNet.RandomVariables.Discrete;
 using RDotNet;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace RandomVariableTests.Discrete
@@ -45,6 +47,16 @@ namespace RandomVariableTests.Discrete
                 rs.Push(uniform.Sample(defaultrs));
             }
             PrintResult.CompareMeanAndVariance("uniform", mean, stdev * stdev, rs.Mean(), rs.Variance());
+        }
+
+        [TestMethod]
+        public void TestGetterOfMeanAndVariance()
+        {
+            Uniform uniform = new Uniform();
+            Debug.WriteLine(uniform.Mean);
+            Debug.WriteLine(uniform.StadndardDeviation);
+            Debug.Assert(uniform.Mean == 0.5);
+            Debug.Assert(uniform.StadndardDeviation == 0.5);
         }
 
     }
