@@ -2,60 +2,81 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Uniform : IRandomVariable
+    public class Uniform : IContinuousRandomVariable
     {
+        private double lowerBound = 0d;
+        private double upperBound = 1d;
+        private double mean = 0.5d;
+        private double std = 0.5d;
+
         /// <summary>
-        /// lower bound
+        /// Gets or sets the lower bound.
         /// </summary>
-        private double _lowerBound = 0;
         public double LowerBound
         {
             get
             {
-                return _lowerBound;
+                return lowerBound;
             }
             set
             {
                 if (value > UpperBound) UpperBound = value;
-                _lowerBound = value;
-                _mean = (_lowerBound + _upperBound) / 2;
-                _std = (_upperBound - _lowerBound) * (_upperBound - _lowerBound) / 12;
+                lowerBound = value;
+                mean = (lowerBound + upperBound) / 2d;
+                std = (upperBound - lowerBound) * (upperBound - lowerBound) / 12d;
             }
         }
+
         /// <summary>
-        /// upper bound
+        /// Gets or sets the upper bound.
         /// </summary>
-        private double _upperBound = 1;
         public double UpperBound
         {
             get
             {
-                return _upperBound;
+                return upperBound;
             }
             set
             {
                 if (value < LowerBound) LowerBound = value;
-                _upperBound = value;
-                _mean = (_lowerBound + _upperBound) / 2;
-                _std = (_upperBound - _lowerBound) * (_upperBound - _lowerBound) / 12;
+                upperBound = value;
+                mean = (lowerBound + upperBound) / 2d;
+                std = (upperBound - lowerBound) * (upperBound - lowerBound) / 12d;
             }
         }
-        private double _mean = 0.5;
-        public double Mean 
-        { 
-            get { return _mean; }
-            set => throw new Exception("Users not allowed to define continuous uniform random variable by setting mean value");
-        }
-        private double _std = 0.5;
-        public double StandardDeviation
-        { 
-            get { return _std; }
-            set => throw new Exception("Users not allowed to define continuous uniform random variable by setting standard deviation value");
+
+        /// <summary>
+        /// Gets or sets the mean value.
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Users not allowed to define continuous uniform random variable by setting mean value
+        /// </exception>
+        public double Mean
+        {
+            get => mean;
+            set => throw new ArgumentException("Users not allowed to define continuous uniform random variable by setting mean value");
         }
 
+        /// <summary>
+        /// Gets or sets the standard deviation value.
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Users not allowed to define continuous uniform random variable by setting standard deviation value
+        /// </exception>
+        public double StandardDeviation
+        {
+            get => std;
+            set => throw new ArgumentException("Users not allowed to define continuous uniform random variable by setting standard deviation value");
+        }
+
+        /// <summary>
+        /// Samples the specified random generator.
+        /// </summary>
+        /// <param name="rs">The random generator.</param>
+        /// <returns>Sample value</returns>
         public double Sample(Random rs)
         {
-            return LowerBound + (UpperBound - LowerBound) * rs.NextDouble();
+            return lowerBound + (upperBound - lowerBound) * rs.NextDouble();
         }
     }
 }

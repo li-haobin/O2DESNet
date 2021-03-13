@@ -2,69 +2,91 @@
 
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class LogNormal : IRandomVariable
+    public class LogNormal : IContinuousRandomVariable
     {
+        private double mean = Math.Exp(0.5d);                       // value: 1.6487212707001281941643355821...
+        private double std = Math.Sqrt(Math.E * Math.E - Math.E);   // value: 2.1611974158950877367146858887...
+        private double cv = Math.Sqrt(Math.E - 1);                  // value: 1.3108324944320861593638483100...
+        private double mu = 0d;
+        private double sigma = 1d;
+
         /// <summary>
-        /// Expectation of LogNormal random variable
+        /// Gets or sets the mean value.
+        /// Expectation of LogNormal random variable.
         /// </summary>
-        private double _mean = Math.Exp(0.5);
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// None positive mean value is not applicable for beta distribution
+        /// </exception>
         public double Mean
         {
             get
             {
-                return _mean;
+                return mean;
             }
             set
             {
-                if (value <= 0) throw new Exception("None positive mean value not applicable for beta distribution");
-                _mean = value;
-                var muTemp = Math.Log(_mean) - 0.5 * Math.Log(1 + _std * _std / _mean / _mean);
-                var sigmaTemp = Math.Sqrt(Math.Log(1 + _std * _std / _mean / _mean));
-                _mu = muTemp;
-                _sigma = sigmaTemp;
-                if (value == 0) _cv = double.MaxValue;
-                else _cv = _std / _mean;
+                if (value <= 0d)
+                    throw new ArgumentOutOfRangeException("None positive mean value is not applicable for beta distribution");
+
+                mean = value;
+                mu = Math.Log(mean) - 0.5d * Math.Log(1d + std * std / mean / mean);
+                sigma = Math.Sqrt(Math.Log(1d + std * std / mean / mean));
+
+                if (value == 0d)
+                    cv = double.MaxValue;
+                else
+                    cv = std / mean;
             }
         }
+
         /// <summary>
-        /// standard deviation
+        /// Gets or sets the standard deviation value.
         /// </summary>
-        private double _std = Math.Sqrt(Math.E * Math.E - Math.E);
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// A negative standard deviation is not applicable
+        /// </exception>
         public double StandardDeviation
         {
             get
             {
-                return _std;
+                return std;
             }
             set
             {
-                if (value < 0) throw new Exception("Negative standard deviation not applicable");
-                _std = value;
-                var muTemp = Math.Log(_mean) - 0.5 * Math.Log(1 + _std * _std / _mean / _mean);
-                var sigmaTemp = Math.Sqrt(Math.Log(1 + _std * _std / _mean / _mean));
-                _mu = muTemp;
-                _sigma = sigmaTemp;
-                if (_mean != 0) _cv = _std / _mean;
+                if (value < 0d)
+                    throw new ArgumentOutOfRangeException("A negative standard deviation is not applicable");
+
+                std = value;
+                mu = Math.Log(mean) - 0.5d * Math.Log(1d + std * std / mean / mean);
+                sigma = Math.Sqrt(Math.Log(1d + std * std / mean / mean));
+
+                if (mean != 0d)
+                    cv = std / mean;
             }
         }
+
         /// <summary>
-        /// coefficient variation
+        /// Gets or sets the Coefficient of Variation.
         /// </summary>
-        private double _cv = Math.Sqrt(Math.E - 1);
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// A negative coefficient of variation is not applicable for log normal distribution
+        /// </exception>
         public double CV
         {
             get
             {
-                return _cv;
+                return cv;
             }
             set
             {
-                if (value < 0) throw new Exception("Negative coefficient of variation not applicable for log normal distribution");
-                _cv = value;
-                _std = _cv * _mean;
+                if (value < 0d)
+                    throw new ArgumentOutOfRangeException("A negative coefficient of variation is not applicable for log normal distribution");
+
+                cv = value;
+                std = cv * mean;
             }
         }
-        private double _mu = 0;
+
         /// <summary>
         /// The log-scale(mu) of the distribution
         /// </summary>
@@ -72,50 +94,50 @@ namespace O2DESNet.RandomVariables.Continuous
         {
             get
             {
-                return _mu;
+                return mu;
             }
             set
             {
-                _mu = value;
-                var meanTemp = Math.Exp(_mu + _sigma * _sigma / 2);
-                var stdTemp = Math.Sqrt((Math.Exp(_sigma * _sigma) - 1) * Math.Exp(2 * _mu + _sigma * _sigma));
-                _mean = meanTemp;
-                _std = stdTemp;
-                _cv = _std / _mean;
+                mu = value;
+                mean = Math.Exp(mu + sigma * sigma / 2d);
+                std = Math.Sqrt((Math.Exp(sigma * sigma) - 1) * Math.Exp(2d * mu + sigma * sigma));
+                cv = std / mean;
             }
         }
+
+
         /// <summary>
-        /// The shape of the distribution
+        /// Gets or sets the sigma.
         /// </summary>
-        private double _sigma = 1;
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// A negative shape parameter is not applicable
+        /// </exception>
         public double Sigma
         {
             get
             {
-                return _sigma;
+                return sigma;
             }
             set
             {
-                if (value < 0) throw new Exception("Negative shape parameter not applicable");
-                _sigma = value;
-                var meanTemp = Math.Exp(_mu + _sigma * _sigma / 2);
-                var stdTemp = Math.Sqrt((Math.Exp(_sigma * _sigma) - 1) * Math.Exp(2 * _mu + _sigma * _sigma));
-                _mean = meanTemp;
-                _std = stdTemp;
-                _cv = _std / _mean;
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("A negative shape parameter is not applicable");
+
+                sigma = value;
+                mean = Math.Exp(mu + sigma * sigma / 2d);
+                std = Math.Sqrt((Math.Exp(sigma * sigma) - 1d) * Math.Exp(2d * mu + sigma * sigma));
+                cv = std / mean;
             }
         }
-        /// <summary>
-        /// coefficient variation
-        /// </summary>
 
+        /// <summary>
+        /// Samples the specified random generator.
+        /// </summary>
+        /// <param name="rs">The random generator.</param>
+        /// <returns>Sample value</returns>
         public double Sample(Random rs)
         {
             return MathNet.Numerics.Distributions.LogNormal.Sample(rs, Mu, Sigma);
-        }
-        public LogNormal()
-        {
-
         }
     }
 }

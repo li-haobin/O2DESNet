@@ -2,87 +2,135 @@
 
 namespace O2DESNet.RandomVariables.Discrete
 {
-    public class Uniform : IRandomVariable
+    public class Uniform : IDiscreteRandomVariable
     {
-        private int _lowerBound = 0;
+        private int lowerBound = 0;
+        private int upperBound = 1;
+        private double mean = 0.5d;
+        private double std = 0.5d;
+
+        /// <summary>
+        /// Gets or sets the lower bound.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Nothing between lower bound and upper bound if IncludeBound property is set to 'false'
+        /// </exception>
         public int LowerBound
         {
-            get { return _lowerBound; }
+            get { return lowerBound; }
             set
             {
-                _lowerBound = value;
+                lowerBound = value;
                 if (value > UpperBound)
                 {
                     UpperBound = value;
-                    _mean = value;
-                    _std = 0;
+                    mean = value;
+                    std = 0d;
                 }
                 else
                 {
-                    _mean = (_lowerBound + _upperBound) / 2;
-                    double tempSquareSum = 0;
-                    var n = _upperBound - _lowerBound + 1;
+                    double tempSquareSum = 0d;
+                    mean = (lowerBound + upperBound) / 2d;
+                    double n = upperBound - lowerBound + 1d;
+
                     if (IncludeBound)
                     {
-                        
-                        for (int i = _lowerBound; i <= _upperBound; i++) tempSquareSum += (i - _mean) * (i - _mean);
-                        _std = Math.Sqrt(tempSquareSum / Convert.ToDouble(n));
+                        for (int i = lowerBound; i <= upperBound; i++)
+                            tempSquareSum += (i - mean) * (i - mean);
+                        std = Math.Sqrt(tempSquareSum / n);
                     }
                     else
                     {
-                        if (_upperBound - _lowerBound <= 1) throw new Exception("nothing between lower bound and upper bound if IncludeBound == fasle");
-                        for (int i = _lowerBound+1; i <= _upperBound-1; i++) tempSquareSum += (i - _mean) * (i - _mean);
-                        _std = Math.Sqrt(tempSquareSum / Convert.ToDouble(n));
+                        if (upperBound - lowerBound <= 1)
+                            throw new ArgumentOutOfRangeException("Nothing between lower bound and upper bound if IncludeBound property is set to 'false'");
+
+                        for (int i = lowerBound+1; i <= upperBound-1; i++) tempSquareSum += (i - mean) * (i - mean);
+                        std = Math.Sqrt(tempSquareSum / n);
                     }
                 }
             }
         }
-        private int _upperBound = 1;
+
+        /// <summary>
+        /// Gets or sets the upper bound.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Nothing between lower bound and upper bound if IncludeBound property is set to 'false'
+        /// </exception>
         public int UpperBound
         {
-            get { return _upperBound; }
+            get { return upperBound; }
             set
             {
-                _upperBound = value;
+                upperBound = value;
                 if (value < LowerBound)
                 { 
                     LowerBound = value;
-                    _mean = value;
-                    _std = 0;
+                    mean = value;
+                    std = 0d;
                 }
                 else
                 {
-                    _mean = (_lowerBound + _upperBound) / 2;
-                    double tempSquareSum = 0;
-                    var n = _upperBound - _lowerBound + 1;
+                    mean = (lowerBound + upperBound) / 2d;
+                    double tempSquareSum = 0d;
+                    double n = upperBound - lowerBound + 1d;
+
                     if (IncludeBound)
                     {
 
-                        for (int i = _lowerBound; i <= _upperBound; i++) tempSquareSum += (i - _mean) * (i - _mean);
-                        _std = Math.Sqrt(tempSquareSum / Convert.ToDouble(n));
+                        for (int i = lowerBound; i <= upperBound; i++)
+                            tempSquareSum += (i - mean) * (i - mean);
+                        std = Math.Sqrt(tempSquareSum / n);
                     }
                     else
                     {
-                        if (_upperBound - _lowerBound <= 1) throw new Exception("nothing between lower bound and upper bound if IncludeBound == fasle");
-                        for (int i = _lowerBound + 1; i <= _upperBound - 1; i++) tempSquareSum += (i - _mean) * (i - _mean);
-                        _std = Math.Sqrt(tempSquareSum / Convert.ToDouble(n));
+                        if (upperBound - lowerBound <= 1)
+                            throw new ArgumentOutOfRangeException("Nothing between lower bound and upper bound if IncludeBound property is set to 'false'");
+
+                        for (int i = lowerBound + 1; i <= upperBound - 1; i++) tempSquareSum += (i - mean) * (i - mean);
+                        std = Math.Sqrt(tempSquareSum / n);
                     }
                 }
             }
         }
-        public bool IncludeBound { get; set; } = true;
-        private double _mean = 0.5;
-        public double Mean 
-        { 
-            get { return _mean; }
-            set => throw new Exception("Users not allowed to define discrete uniform random variable by setting mean value"); 
-        }
-        private double _std = 0.5;
-        public double StandardDeviation 
+
+        /// <summary>
+        /// Gets or sets the mean.
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Users not allowed to define discrete uniform random variable by setting mean value
+        /// </exception>
+        public double Mean
         {
-            get { return _std; }
-            set => throw new Exception("Users not allowed to define discrete uniform random variable by setting standard deviation value");
+            get => mean;
+            set => throw new ArgumentException("Users not allowed to define discrete uniform random variable by setting mean value");
         }
+
+        /// <summary>
+        /// Gets or sets the standard deviation.
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Users not allowed to define discrete uniform random variable by setting standard deviation value
+        /// </exception>
+        public double StandardDeviation
+        {
+            get => std;
+            set => throw new ArgumentException("Users not allowed to define discrete uniform random variable by setting standard deviation value");
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [include bound].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [include bound]; otherwise, <c>false</c>.
+        /// </value>
+        public bool IncludeBound { get; set; } = true;
+
+        /// <summary>
+        /// Samples the specified rs.
+        /// </summary>
+        /// <param name="rs">The rs.</param>
+        /// <returns>Sample value</returns>
         public int Sample(Random rs)
         {
             int temp;
