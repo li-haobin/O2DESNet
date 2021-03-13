@@ -1,112 +1,175 @@
 ﻿using System;
 
+using O2DESNet.RandomVariables.Categorical;
+
 namespace O2DESNet.RandomVariables.Continuous
 {
-    public class Beta : IRandomVariable
+    public class Beta : IContinuousRandomVariable
     {
-        private double _mean = 0.5;
+        private double mean = 0.5d;
+        private double cv = Math.Sqrt(3d) / 3d;    // value: 0.57735026918962573105...
+        private double std = Math.Sqrt(1d / 12d);  // value: 0.28867513459481286552...
+        private double alpha = 1d;
+        private double beta = 1d;
+
+        /// <summary>
+        /// Gets or sets the mean value.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// None positive mean value not applicable for beta distribution
+        /// or
+        /// Mean value of beta distribution should not exceed 1 (one)
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// The setting of mean and standard deviation will derive illegal alpha value
+        /// </exception>
         public double Mean
         {
             get
             {
-                return _mean;
+                return mean;
             }
             set
             {
-                if (value <= 0) throw new Exception("None positive mean value not applicable for beta distribution");
-                if (value > 1) throw new Exception("Mean value of beta distribution should not exceed 1");
-                _mean = value;
-                _cv = _std / _mean;
-                var alphaTemp = _mean * _mean * (1 - _mean) / _std / _std - _mean;
-                var betaTemp = (1 - _mean) * (1 - _mean) * _mean / _std / _std + _mean - 1;
-                if (alphaTemp > 0) _alpha = alphaTemp;
-                else throw new Exception("This setting of mean and standard deviation will derive illegal alpha value");
-                if (betaTemp > 0) _beta = betaTemp;
-                else throw new Exception("This setting of mean and standard deviation will derive illegal beta value");
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException("None positive mean value not applicable for beta distribution");
+
+                if (value > 1)
+                    throw new ArgumentOutOfRangeException("Mean value of beta distribution should not exceed 1 (one)");
+
+                mean = value;
+                cv = std / mean;
+                var alphaTemp = mean * mean * (1d - mean) / std / std - mean;
+                var betaTemp = (1d - mean) * (1d - mean) * mean / std / std + mean - 1d;
+
+                if (alphaTemp > 0d)
+                    alpha = alphaTemp;
+                else
+                    throw new ArgumentException("The setting of mean and standard deviation will derive illegal alpha value");
+
+                if (betaTemp > 0d)
+                    beta = betaTemp;
+                else
+                    throw new ArgumentException("The setting of mean and standard deviation will derive illegal alpha value");
             }
         }
+
         /// <summary>
-        /// standard deviation
+        /// Gets or sets the standard deviation value.
         /// </summary>
-        private double _std = Math.Sqrt(1.0 / 12.0);
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Negative standard deviation not applicable
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// The setting of mean and standard deviation will derive illegal alpha value
+        /// </exception>
         public double StandardDeviation
         {
             get
             {
-                return _std;
+                return std;
             }
             set
             {
-                if (value < 0) throw new Exception("Negative standard deviation not applicable");
-                _std = value;
-                _cv = _std / _mean;
-                var alphaTemp = _mean * _mean * (1 - _mean) / _std / _std - _mean;
-                var betaTemp = (1 - _mean) * (1 - _mean) * _mean / _std / _std + _mean - 1;
-                if (alphaTemp > 0) _alpha = alphaTemp;
-                else throw new Exception("This setting of mean and standard deviation will derive illegal alpha value");
-                if (betaTemp > 0) _beta = betaTemp;
-                else throw new Exception("This setting of mean and standard deviation will derive illegal beta value");
+                if (value < 0d)
+                    throw new ArgumentOutOfRangeException("Negative standard deviation not applicable");
+
+                std = value;
+                cv = std / mean;
+
+                var alphaTemp = mean * mean * (1d - mean) / std / std - mean;
+                var betaTemp = (1 - mean) * (1d - mean) * mean / std / std + mean - 1d;
+
+                if (alphaTemp > 0d)
+                    alpha = alphaTemp;
+                else
+                    throw new ArgumentException("The setting of mean and standard deviation will derive illegal alpha value");
+
+                if (betaTemp > 0d)
+                    beta = betaTemp;
+                else
+                    throw new ArgumentException("The setting of mean and standard deviation will derive illegal alpha value");
             }
         }
+
         /// <summary>
-        /// coefficient variation
+        /// Gets or sets the Coefficient of Variation.
         /// </summary>
-        private double _cv = Math.Sqrt(3) / 3;
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Negative coefficient variation not applicable
+        /// </exception>
         public double CV
         {
             get
             {
-                return _cv;
+                return cv;
             }
             set
             {
-                if (value < 0) throw new Exception("Negative coefficient variation not applicable");
-                _cv = value;
-                _std = _cv * _mean;
+                if (value < 0d)
+                    throw new ArgumentOutOfRangeException("Negative coefficient variation not applicable");
+
+                cv = value;
+                std = cv * mean;
             }
         }
+
         /// <summary>
-        /// parameter alpha
+        /// Gets or sets the alpha value.
         /// </summary>
-        private double _alpha = 1;
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// A (-) negative or (0) zero alpha value not applicable
+        /// </exception>
         public double AlphaValue
         {
             get
             {
-                return _alpha;
+                return alpha;
             }
             set
             {
-                if (value <= 0) throw new Exception("negative or zero alpha value not applicable");
-                _alpha = value;
-                _mean = _alpha / (_alpha + _beta);
-                _std = Math.Sqrt(_alpha * _beta / (_alpha + _beta) * (_alpha + _beta) / (_alpha + _beta + 1));
-                _cv = _std / _mean;
+                if (value <= 0d)
+                    throw new ArgumentOutOfRangeException("A negative or zero alpha value not applicable");
+
+                alpha = value;
+                mean = alpha / (alpha + beta);
+                std = Math.Sqrt(alpha * beta / (alpha + beta) * (alpha + beta) / (alpha + beta + 1));
+                cv = std / mean;
             }
         }
+
         /// <summary>
-        /// parameter beta
+        /// Gets or sets the beta value.
         /// </summary>
-        private double _beta = 1;
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// negative or zero beta value not applicable
+        /// </exception>
         public double BetaValue
         {
             get
             {
-                return _beta;
+                return beta;
             }
             set
             {
-                if (value <= 0) throw new Exception("negative or zero beta value not applicable");
-                _beta = value;
-                _mean = _alpha / (_alpha + _beta);
-                _std = Math.Sqrt(_alpha * _beta / (_alpha + _beta) * (_alpha + _beta) / (_alpha + _beta + 1));
-                _cv = _std / _mean;
+                if (value <= 0d)
+                    throw new ArgumentOutOfRangeException("negative or zero beta value not applicable");
+
+                beta = value;
+                mean = alpha / (alpha + beta);
+                std = Math.Sqrt(alpha * beta / (alpha + beta) * (alpha + beta) / (alpha + beta + 1));
+                cv = std / mean;
             }
         }
 
+        /// <summary>
+        /// Samples the specified random generator.
+        /// </summary>
+        /// <param name="rs">The random generator.</param>
+        /// <returns>Sample Value</returns>
         public double Sample(Random rs)
         {
-            if (CV == 0) return Mean;
+            if (cv == 0d) return Mean;
             return MathNet.Numerics.Distributions.Beta.Sample(rs, AlphaValue, BetaValue);
         }
     }
