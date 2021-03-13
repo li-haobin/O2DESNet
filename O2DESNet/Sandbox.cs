@@ -23,9 +23,14 @@ namespace O2DESNet
         private readonly string _id;
         private readonly Pointer _pointer;
 
+        private DateTime _clockTime = DateTime.MinValue;
+        private DateTime? _realTimeForLastRun;
+
         private int _seed;
         private bool _isDisposed;
-        private Action _onWarmedUp; 
+        private Action _onWarmedUp;
+        private string _logFile;
+        private Random _defaultRS;
         #endregion
 
         /// <summary>
@@ -108,7 +113,7 @@ namespace O2DESNet
                 return headEvent;
             }
         }
-        private DateTime _clockTime = DateTime.MinValue;
+
         public DateTime ClockTime
         {
             get
@@ -136,11 +141,13 @@ namespace O2DESNet
             head.Invoke();
             return true;
         }
+
         public bool Run(TimeSpan duration)
         {
             if (Parent != null) return Parent.Run(duration);
             return Run(ClockTime.Add(duration));
         }
+
         public bool Run(DateTime terminate)
         {
             if (Parent != null) return Parent.Run(terminate);
@@ -155,6 +162,7 @@ namespace O2DESNet
                 }
             }
         }
+
         public bool Run(int eventCount)
         {
             if (Parent != null) return Parent.Run(eventCount);
@@ -162,7 +170,7 @@ namespace O2DESNet
                 if (!Run()) return false;
             return true;
         }
-        private DateTime? _realTimeForLastRun;
+
         public bool Run(double speed)
         {
             if (Parent != null) return Parent.Run(speed);
@@ -269,9 +277,6 @@ namespace O2DESNet
         #endregion
 
         #region For Logging
-        private string _logFile;
-        private Random _defaultRS;
-
         public string LogFile
         {
             get => _logFile;
@@ -321,7 +326,7 @@ namespace O2DESNet
 
                 _isDisposed = true;
             }
-        } 
+        }
         #endregion
     }
 }

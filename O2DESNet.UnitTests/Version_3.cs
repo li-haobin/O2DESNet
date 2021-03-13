@@ -21,6 +21,7 @@ namespace O2DESNet.UnitTests
         {
             var gen = new Generator.Statics { InterArrivalTime = 
                 rs => Exponential.Sample(rs, TimeSpan.FromMinutes(3)) }.Sandbox();
+            gen.DebugMode = true;
             gen.Run(TimeSpan.FromHours(0.5));
             gen.Start();
             gen.Run(TimeSpan.FromHours(2));
@@ -49,9 +50,10 @@ namespace O2DESNet.UnitTests
         [Test]
         public void MMnQueue_Modular()
         {
-            for (var seed = 0; seed < 3; seed++)
-            {
-                var q = new MMnQueueModular(4, 5, 1, seed);
+            //for (var seed = 0; seed < 3; seed++)
+            //{
+                var q = new MMnQueueModular(4, 5, 1, 0);
+            
                 var sw = new Stopwatch();
                 sw.Start();
                 q.WarmUp(TimeSpan.FromHours(1000));
@@ -59,7 +61,7 @@ namespace O2DESNet.UnitTests
                 sw.Stop();
                 Debug.WriteLine("{0:F4}\t{1:F4}\t{2:F4}\t{3}ms", 
                     q.AvgNQueueing, q.AvgNServing, q.AvgHoursInSystem, sw.ElapsedMilliseconds);
-            }
+            //}
         }
 
         private class Assets : IAssets

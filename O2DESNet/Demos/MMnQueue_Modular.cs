@@ -56,7 +56,7 @@ namespace O2DESNet.Demos
                 InterArrivalTime = rs => Exponential.Sample(rs, TimeSpan.FromHours(1 / HourlyArrivalRate))
             }, DefaultRS.Next()));
 
-            _queue = AddChild(new Queue(double.PositiveInfinity, DefaultRS.Next(), id: null));
+            _queue = AddChild(new Queue(double.PositiveInfinity, DefaultRS.Next(), id: null) { DebugMode = true });
 
             _server = AddChild(new Server(new Server.Statics
             {

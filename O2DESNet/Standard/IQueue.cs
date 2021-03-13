@@ -13,7 +13,7 @@ namespace O2DESNet.Standard
         double Vacancy { get; }
         double Utilization { get; }
         /// <summary>
-        /// Average number of loads queueing
+        /// Average number of loads queuing
         /// </summary>
         double AvgNQueueing { get; }
 
