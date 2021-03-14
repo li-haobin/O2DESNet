@@ -56,15 +56,15 @@ namespace O2DESNet.UnitTests.Core
         }
 
         [Test]
-        public void PointerA_Times_PointerB_Deivide_By_PointerA_Should_Return_PointerB()
+        public void PointerA_Times_PointerB_Deivide_By_PointerB_Should_Return_PointerA()
         {
-            Pointer pointerA= new Pointer(1, 2, 45, true);
-            Pointer pointerB = new Pointer(1, 2, 45, true);
+            Pointer pointerA = new Pointer(1, 2, 45, true);
+            Pointer pointerB = new Pointer(2, 3, 45, true);
 
             var mulPointer = pointerA * pointerB;
-            var divpointer = mulPointer / pointerA;
+            var divpointer = mulPointer / pointerB;
 
-            Assert.AreEqual(divpointer, pointerB);
+            Assert.AreEqual(divpointer, pointerA);
         }
 
         [Test]
