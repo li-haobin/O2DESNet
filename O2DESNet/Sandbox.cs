@@ -1,249 +1,252 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+
+using O2DESNet.HourCounters;
+using O2DESNet.Internals;
+
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
-namespace O2DESNet
+namespace O2DESNet;
+
+public abstract class Sandbox<TAssets> : Sandbox where TAssets : IAssets
 {
-    public interface ISandbox : IDisposable
+
+    private readonly TAssets _assets;
+
+    public TAssets Assets => _assets;
+
+    public Sandbox(TAssets assets, string id, int seed) : base(id, seed)
     {
-        int Index { get; }
-        string Id { get; }
-        Pointer Pointer { get; }
-        int Seed { get; }        
-        ISandbox Parent { get; }
-        IReadOnlyList<ISandbox> Children { get; }
-        DateTime ClockTime { get; }
-        DateTime? HeadEventTime { get; }
-        string LogFile { get; set; }
-        bool DebugMode { get; set; }
-        bool Run();
-        bool Run(int eventCount);
-        bool Run(DateTime terminate);
-        bool Run(TimeSpan duration);
-        bool Run(double speed);        
-        bool WarmUp(DateTime till);
-        bool WarmUp(TimeSpan period);        
+        _assets = assets;
     }
 
-    public abstract class Sandbox<TAssets> : Sandbox
-        where TAssets : IAssets
+    public Sandbox(ILogger? logger, TAssets assets, string id, int seed) : base(logger, id, seed)
     {
-        public TAssets Assets { get; private set; }
-        public Sandbox(TAssets assets, int seed = 0, string id = null, Pointer pointer = new Pointer())
-            : base(seed, id, pointer) { Assets = assets; }
+        _assets = assets;
+    }
+}
+
+public abstract class Sandbox : ISandbox
+{
+    #region Private Fields
+    private readonly string _id;
+    private readonly ILogger? _logger;
+    private readonly FutureEventList _futureEventList;
+    private readonly List<ISandbox> _children = [];
+    private readonly List<HourCounter> _hourCounters = [];
+
+    private int _seed;
+    private TimeSpan _clockTime = TimeSpan.Zero;
+    private Stopwatch? _rtStopwatch = null;
+    // Use a private delegate to handle WarmedUp callbacks instead of Action
+    private delegate void WarmUpHandler();
+    private WarmUpHandler? OnWarmedUp;
+    private ISandbox? _parent;
+    private Random _defaultRS;
+    #endregion
+
+    private FutureEventList FutureEventList => _futureEventList;
+
+    /// <summary>
+    /// Tag of the instance of the module
+    /// </summary>
+    public string Id => _id;
+
+    public ILogger? Logger => _logger;
+
+    protected Random DefaultRS => _defaultRS;
+
+    public int Seed => _seed;
+
+    public Sandbox(string id, int seed)
+    {
+        _futureEventList = new FutureEventList(this);
+
+        _seed = seed;
+        _id = id;
+        _defaultRS = new Random(_seed);
+
+        OnWarmedUp += WarmedUpHandler;
     }
 
-    public abstract class Sandbox : ISandbox
+    public Sandbox(ILogger? logger, string id, int seed) : this(id, seed)
     {
-        private static int _count = 0;
-        /// <summary>
-        /// Unique index in sequence for all module instances 
-        /// </summary>
-        public int Index { get; private set; }
-        /// <summary>
-        /// Tag of the instance of the module
-        /// </summary>
-        public string Id { get; private set; }        
-        public Pointer Pointer { get; private set; }
-        protected Random DefaultRS { get; private set; }
-        private int _seed;
-        public int Seed { get { return _seed; } set { _seed = value; DefaultRS = new Random(_seed); } }
-        
-        #region Future Event List
-        internal SortedSet<Event> FutureEventList = new SortedSet<Event>(EventComparer.Instance);        
-        /// <summary>
-        /// Schedule an event to be invoked at the specified clock-time
-        /// </summary>
-        protected void Schedule(Action action, DateTime clockTime, string tag = null)
-        {
-            FutureEventList.Add(new Event(this, action, clockTime, tag));
-        }
-        /// <summary>
-        /// Schedule an event to be invoked after the specified time delay
-        /// </summary>
-        protected void Schedule(Action action, TimeSpan delay, string tag = null)
-        {
-            FutureEventList.Add(new Event(this, action, ClockTime + delay, tag));
-        }
-        /// <summary>
-        /// Schedule an event at the current clock time.
-        /// </summary>
-        protected void Schedule(Action action, string tag = null)
-        {
-            FutureEventList.Add(new Event(this, action, ClockTime, tag));
-        }
-        #endregion
+        _logger = logger;
+    }
 
-        #region Simulation Run Control
-        internal Event HeadEvent
+    private void SetParent(ISandbox parent)
+    {
+        _parent = parent;
+    }
+
+    public void UpdateRandomSeed(int seed)
+    {
+        _seed = seed;
+        _defaultRS = new Random(_seed);
+    }
+
+    /// <summary>
+    /// Schedule an event to be invoked after the specified time delay
+    /// </summary>
+    protected void Schedule(Action action, TimeSpan delay, string? tag = null)
+    {
+        _futureEventList.Add(action, ClockTime + delay, tag);
+    }
+
+    /// <summary>
+    /// Schedule an event at the current clock time.
+    /// </summary>
+    protected void Schedule(Action action, string? tag)
+    {
+        _futureEventList.Add(action, ClockTime, tag);
+    }
+
+    #region Simulation Run Control
+    internal Event GetHeadEvent()
+    {
+        var headEvent = _futureEventList.FirstOrDefault();
+        foreach (Sandbox child in _children.Cast<Sandbox>())
         {
-            get
+            var childHeadEvent = child.GetHeadEvent();
+            if (headEvent is null || (childHeadEvent is not null &&
+                EventComparer.Instance.Compare(childHeadEvent, headEvent) < 0))
+                headEvent = childHeadEvent;
+        }
+
+        return headEvent;
+    }
+
+    public TimeSpan ClockTime
+    {
+        get
+        {
+            if (Parent == null)
+                return _clockTime;
+            return Parent.ClockTime;
+        }
+    }
+
+    public bool Run()
+    {
+        if (Parent is not null)
+            return Parent.Run();
+
+        var head = GetHeadEvent();
+
+        if (head is null)
+            return false;
+
+        head.Owner.FutureEventList.Remove(head);
+
+        _clockTime = head.Timestamp;
+
+        head.Invoke();
+
+        return true;
+    }
+
+    public bool Run(TimeSpan duration)
+    {
+        if (Parent != null)
+            return Parent.Run(duration);
+
+        return RunUntil(ClockTime + duration);
+    }
+
+    private bool RunUntil(TimeSpan terminate)
+    {
+        while (true)
+        {
+            var head = GetHeadEvent();
+
+            if (GetHeadEvent() is not null && GetHeadEvent().Timestamp <= terminate)
             {
-                var headEvent = FutureEventList.FirstOrDefault();
-                foreach(Sandbox child in Children_List)
-                {
-                    var childHeadEvent = child.HeadEvent;
-                    if (headEvent == null || (childHeadEvent != null &&
-                        EventComparer.Instance.Compare(childHeadEvent, headEvent) < 0))
-                        headEvent = childHeadEvent;
-                }
-                return headEvent;
+                Run();
+            }
+            else
+            {
+                _clockTime = terminate;
+                return head != null; /// if the simulation can be continued
             }
         }
-        private DateTime _clockTime = DateTime.MinValue;
-        public DateTime ClockTime
-        {
-            get
-            {
-                if (Parent == null) return _clockTime;
-                return Parent.ClockTime;
-            }
-        }
-        public DateTime? HeadEventTime
-        {
-            get
-            {
-                var head = HeadEvent;
-                if (head == null) return null;
-                return head.ScheduledTime;
-            }
-        }
-        public bool Run()
-        {
-            if (Parent != null) return Parent.Run();
-            var head = HeadEvent;
-            if (head == null) return false;
-            head.Owner.FutureEventList.Remove(head);
-            _clockTime = head.ScheduledTime;
-            head.Invoke();
-            return true;
-        }
-        public bool Run(TimeSpan duration)
-        {
-            if (Parent != null) return Parent.Run(duration);
-            return Run(ClockTime.Add(duration));
-        }
-        public bool Run(DateTime terminate)
-        {
-            if (Parent != null) return Parent.Run(terminate);
-            while (true)
-            {
-                var head = HeadEvent;
-                if (HeadEvent != null && HeadEvent.ScheduledTime <= terminate) Run();
-                else
-                {
-                    _clockTime = terminate;
-                    return head != null; /// if the simulation can be continued
-                }
-            }
-        }
-        public bool Run(int eventCount)
-        {
-            if (Parent != null) return Parent.Run(eventCount);
-            while (eventCount-- > 0)
-                if (!Run()) return false;
-            return true;
-        }
-        private DateTime? _realTimeForLastRun = null;
-        public bool Run(double speed)
-        {
-            if (Parent != null) return Parent.Run(speed);
-            var rtn = true;
-            if (_realTimeForLastRun != null)
-                rtn = Run(terminate: ClockTime.AddSeconds((DateTime.Now - _realTimeForLastRun.Value).TotalSeconds * speed));
-            _realTimeForLastRun = DateTime.Now;
-            return rtn;
-        }
-        #endregion
+    }
 
-        #region Children - Sub-modules
-        public ISandbox Parent { get; private set; } = null;
-        private readonly List<ISandbox> Children_List = new List<ISandbox>();
-        public IReadOnlyList<ISandbox> Children { get { return Children_List.AsReadOnly(); } }
-        protected TSandbox AddChild<TSandbox>(TSandbox child) where TSandbox : Sandbox
+    public bool Run(int eventCount)
+    {
+        if (Parent is not null)
+            return Parent.Run(eventCount);
+
+        while (eventCount-- > 0)
+            if (!Run())
+                return false;
+
+        return true;
+    }
+
+    public bool Run(double speed)
+    {
+        if (Parent is not null)
+            return Parent.Run(speed);
+
+        var rtn = true;
+
+        if (_rtStopwatch is not null)
         {
-            Children_List.Add(child);
-            child.Parent = this;
-            OnWarmedUp += child.OnWarmedUp;
-            return child;
-        }
-        protected IReadOnlyList<HourCounter> HourCounters { get { return HourCounters_List.AsReadOnly(); } }
-        private readonly List<HourCounter> HourCounters_List = new List<HourCounter>();
-        protected HourCounter AddHourCounter(bool keepHistory = false)
-        {
-            var hc = new HourCounter(this, keepHistory);
-            HourCounters_List.Add(hc);
-            OnWarmedUp += () => hc.WarmedUp();
-            return hc;
-        }
-        #endregion
-        
-        public Sandbox(int seed = 0, string id = null, Pointer pointer = new Pointer())
-        {
-            Seed = seed;
-            Index = ++_count;
-            Id = id;
-            Pointer = pointer;
-            OnWarmedUp += WarmedUpHandler;
+            var elapsed = _rtStopwatch.Elapsed.TotalSeconds;
+            rtn = RunUntil(ClockTime + TimeSpan.FromSeconds(elapsed * speed));
         }
 
-        public override string ToString()
-        {
-            var str = Id;
-            if (str == null || str.Length == 0) str = GetType().Name;
-            str += "#" + Index.ToString();
-            return str;
-        }
+        _rtStopwatch = Stopwatch.StartNew();
 
-        #region Warm-Up
-        public bool WarmUp(TimeSpan period)
-        {
-            if (Parent != null) return Parent.WarmUp(period);
-            return WarmUp(ClockTime + period);
-        }
-        public bool WarmUp(DateTime till)
-        {
-            if (Parent != null) return Parent.WarmUp(till);
-            var result = Run(till);
-            OnWarmedUp.Invoke();
-            return result; // to be continued
-        }
-        private Action OnWarmedUp;
-        protected virtual void WarmedUpHandler() { }
-        #endregion
+        return rtn;
+    }
+    #endregion
 
-        #region For Logging
-        private string _logFile;
-        public string LogFile
-        {
-            get { return _logFile; }
-            set
-            {
-                _logFile = value; if (_logFile != null) using (var sw = new StreamWriter(_logFile)) { };
-            }
-        }
-        protected void Log(params object[] args)
-        {
-            var timeStr = ClockTime.ToString("y/M/d H:mm:ss.fff");
-            if (LogFile != null)
-            {
-                using (var sw = new StreamWriter(LogFile, true))
-                {
-                    sw.Write("{0}\t{1}\t", timeStr, Id);
-                    foreach (var arg in args) sw.Write("{0}\t", arg);
-                    sw.WriteLine();
-                }
-            }
-        }
+    #region Children - Sub-modules
+    public ISandbox? Parent => _parent;
+    public IImmutableList<ISandbox> Children => _children.ToImmutableList();
+    public TSandbox AddChild<TSandbox>(TSandbox child) where TSandbox : Sandbox
+    {
+        _children.Add(child);
+        child.SetParent(this);
+        OnWarmedUp += child.OnWarmedUp;
+        return child;
+    }
 
-        public bool DebugMode { get; set; } = false;
-        #endregion
+    public IImmutableList<HourCounter> HourCounters => _hourCounters.ToImmutableList();
 
-        public virtual void Dispose()
-        {
-            foreach (var child in Children_List) child.Dispose();
-            foreach (var hc in HourCounters_List) hc.Dispose();
-        }
+    protected HourCounter AddHourCounter(bool keepHistory = false)
+    {
+        var hc = new HourCounter(Logger, this, keepHistory);
+        _hourCounters.Add(hc);
+        OnWarmedUp += () => hc.WarmedUp();
+        return hc;
+    }
+    #endregion
+
+    #region Warm-Up
+    public bool WarmUp(TimeSpan duration)
+    {
+        if (Parent != null)
+            return Parent.WarmUp(duration);
+        var result = RunUntil(ClockTime + duration);
+        OnWarmedUp?.Invoke();
+        return result; // to be continued
+    }
+    protected virtual void WarmedUpHandler() { }
+    #endregion
+
+    public override string ToString() =>
+        string.IsNullOrEmpty(Id) ? GetType().Name : Id;
+
+    public virtual void Dispose()
+    {
+        foreach (var child in _children)
+            child.Dispose();
+        foreach (var hc in _hourCounters)
+            hc.Dispose();
     }
 }

@@ -1,22 +1,21 @@
-﻿using System.Diagnostics;
+﻿using NUnit.Framework;
 
-namespace O2DESNet.UnitTests.RandomVariableTests
+namespace O2DESNet.UnitTests.RandomVariableTests;
+
+public static class PrintResult
 {
-    public static class PrintResult
+    public static void CompareMeanAndVariance
+    (
+        string name,
+        double expectedMean,
+        double expectedVariance,
+        double computedMean,
+        double computedVariance
+    )
     {
-        public static void CompareMeanAndVariance
-        (
-            string name,
-            double expectedMean,
-            double expectedVariance,
-            double computedMean,
-            double computedVariance
-        )
-        {
-            Debug.WriteLine("Testing {0}", name);
-            Debug.WriteLine("Expected mean:     {0}, computed mean:     {1}", expectedMean, computedMean);
-            Debug.WriteLine("Expected variance: {0}, computed variance: {1}", expectedVariance, computedVariance);
-            Debug.WriteLine("");
-        }
+        TestContext.Out.WriteLine("Testing {0}", name);
+        TestContext.Out.WriteLine("Expected mean:     {0}, computed mean:     {1}", expectedMean, computedMean);
+        TestContext.Out.WriteLine("Expected variance: {0}, computed variance: {1}", expectedVariance, computedVariance);
+        TestContext.Out.WriteLine("");
     }
 }

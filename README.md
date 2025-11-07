@@ -1,23 +1,30 @@
 # O²DES.NET
-O²DES.NET is a framework for object-oriented discrete event simulation.
+O²DES.NET is a framework for Object-Oriented Discrete Event Simulation.
 
 It hybrids both event-based and state-based formalism, and implement them in an object-oriented programming language. As it is event-based in the kernel, O²DES.NET is able to model the structure and behaviors of a system precisely. On top of it, the state-based formalism enables modularization and hierarchical modeling. Besides, the object-oriented paradigm abstracts the model definitions and makes them seamless to interact with analytical functionalities, regardless of their fidelity levels.
 
-It is developed and used by C#, which facilitates flexible integration with the latest academic research in simulation analytics and enables the connection to a variety of industrial-standard modern developments from the .NET ecosystem, including mobile applications, enterprise software, Mix-Reality, and Artificial Intelligence.
+It is developed and used .NET with C# programming language. O2DES.NET library facilitates flexible integration with the latest academic research in simulation analytics and enables the connection to a variety of industrial-standard modern developments within the .NET ecosystem, including .NET Aspire to host as distributed applications, web API applications, mobile applications, enterprise software, Mix-Reality, and for Artificial Intelligence.
 
 ## Supported .NET Version
-- .NET Standard 2.0 (Recommended)
-- .NET Framework 4.7.2 (Minimum Version)
+- .NET Standard 2.1
+- .NET 9 (Minimum Version)
 
-## Setup Options for .NET Core 2.2/3.0 (Windows/Linux/MacOS)
-- Option 1: Install [.NET Core SDK](https://dotnet.microsoft.com/download).
-- Option 2: From Visual Studio Installer, enable Cross-Platform Development.
-
-## Setup Options for .NET Framework 4.7.2 (Windows Only)
-- Option 1: Install [.NET Framework 4.7.2](https://dotnet.microsoft.com/download).
-- Option 2: From Visual Studio Installer, go to components and checked option to install .NET Framework 4.7.2.
+## Setup Options for .NET 9 (Windows/Linux/MacOS)
+- Option 1: Install [.NET 9 SDK](https://dotnet.microsoft.com/download).
+- Option 2: From [VS Code](https://code.visualstudio.com/download), then install [.NET Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.vscode-dotnet-pack).
+- Option 3: From [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/), enable the ASP.NET Core or .NET Desktop Development option when installing.
 
 # Change Log
+
+## Version 4.0 (Breaking Changes)
+### New Features
+- All time based types is now using `TimeSpan` instead of `DateTime`. The `ClockTime` is also now using `TimeSpan`.
+- Reorganizing constructor parameters for `Sandbox` and `HourCounter` to improve usability.
+- Using built-in Microsoft logging framework for logging. The `LogFile` and other debugging methods are removed.
+- Updated Unit Tests method names and structure to improve clarity and organization.
+- Unit Tests for logging example using `Serilog` added.
+- Added `GetStatistics` method to `HourCounter` to retrieve statistics such as mean, standard deviation, min, max, and percentiles.
+- The `MathNET.Numerics` library is now included in the solution.
 
 ## Version 3.6
 - Improvement of HourCounter to synchronize with simulator ClockTime

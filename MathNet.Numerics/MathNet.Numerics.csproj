@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<OutputType>Library</OutputType>
+		<AssemblyName>MathNet.Numerics</AssemblyName>
+		<RootNamespace>MathNet.Numerics</RootNamespace>
+		<LangVersion>latest</LangVersion>
+		<ServerGarbageCollection>false</ServerGarbageCollection>
+		<IsPackable>true</IsPackable>
+		<NoPackageAnalysis>false</NoPackageAnalysis>
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<IncludeContentInPack>false</IncludeContentInPack>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+		<NoWarn>1701;1702;1705;1591;1573</NoWarn>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+
+  <PropertyGroup>
+    <!-- 👇─— shorten the output path -->
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <AppendPlatformToOutputPath>false</AppendPlatformToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- 👇─— Tell the runtime that the neutral resources are in the main assembly -->
+    <NeutralResourcesLanguage>en-US</NeutralResourcesLanguage>
+    <!-- 👇─— Prevent generating satellite assemblies -->
+    <GenerateSatelliteAssemblies>false</GenerateSatelliteAssemblies>
+    <!-- 👇─— Remove any UICulture settings if present -->
+    <UICulture></UICulture>
+    <!-- 👇─— Use default en-US localization -->
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+</Project>
