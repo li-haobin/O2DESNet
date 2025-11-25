@@ -13,10 +13,12 @@ namespace O2DESNet.UnitTests
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2));
             pr.UpdPhase("Idle", DateTime.MinValue.AddMinutes(2.5));
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2.9));
-            if (Diff(pr.GetProportion("Idle", DateTime.MinValue.AddMinutes(3)), 1.6 / 3)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy1", DateTime.MinValue.AddMinutes(3)), 0.8 / 3)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy2", DateTime.MinValue.AddMinutes(3)), 0.6 / 3)) Assert.Fail();
-            if (Diff(pr.GetProportion("Other", DateTime.MinValue.AddMinutes(3)), 0)) Assert.Fail();
+
+            var checkpoint = DateTime.MinValue.AddMinutes(3);
+            AssertProportion(pr, "Idle", checkpoint, 1.6 / 3);
+            AssertProportion(pr, "Busy1", checkpoint, 0.8 / 3);
+            AssertProportion(pr, "Busy2", checkpoint, 0.6 / 3);
+            AssertProportion(pr, "Other", checkpoint, 0);
         }
 
         [Test]
@@ -27,9 +29,11 @@ namespace O2DESNet.UnitTests
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2));
             pr.UpdPhase("Idle", DateTime.MinValue.AddMinutes(2.5));
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2.9));
-            if (Diff(pr.GetProportion("Idle", DateTime.MinValue.AddMinutes(3)), 0.6 / 2)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy1", DateTime.MinValue.AddMinutes(3)), 0.8 / 2)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy2", DateTime.MinValue.AddMinutes(3)), 0.6 / 2)) Assert.Fail();
+
+            var checkpoint = DateTime.MinValue.AddMinutes(3);
+            AssertProportion(pr, "Idle", checkpoint, 0.6 / 2);
+            AssertProportion(pr, "Busy1", checkpoint, 0.8 / 2);
+            AssertProportion(pr, "Busy2", checkpoint, 0.6 / 2);
         }
 
         [Test]
@@ -41,14 +45,18 @@ namespace O2DESNet.UnitTests
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2));
             pr.UpdPhase("Idle", DateTime.MinValue.AddMinutes(2.5));
             pr.UpdPhase("Busy2", DateTime.MinValue.AddMinutes(2.9));
-            if (Diff(pr.GetProportion("Idle", DateTime.MinValue.AddMinutes(3)), 0.4 / 1.5)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy1", DateTime.MinValue.AddMinutes(3)), 0.5 / 1.5)) Assert.Fail();
-            if (Diff(pr.GetProportion("Busy2", DateTime.MinValue.AddMinutes(3)), 0.6 / 1.5)) Assert.Fail();
+
+            var checkpoint = DateTime.MinValue.AddMinutes(3);
+            AssertProportion(pr, "Idle", checkpoint, 0.4 / 1.5);
+            AssertProportion(pr, "Busy1", checkpoint, 0.5 / 1.5);
+            AssertProportion(pr, "Busy2", checkpoint, 0.6 / 1.5);
         }
 
-        private static bool Diff(double x1, double x2, int decimals = 12)
+        private static void AssertProportion(PhaseTracer tracer, string phase, DateTime checkpoint, double expected)
         {
-            return Math.Round(x1, decimals) != Math.Round(x2, decimals);
+            var actual = tracer.GetProportion(phase, checkpoint);
+            const double tolerance = 1e-9;
+            Assert.That(actual, Is.EqualTo(expected).Within(tolerance), $"{phase} proportion mismatch");
         }
     }
 }
