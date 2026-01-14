@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/copilot-instructions.md" />
+    <File Path="O2DESNet.nuspec" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="MathNet.Numerics/MathNet.Numerics.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+  <Project Path="O2DESNet.UnitTests/O2DESNet.UnitTests.csproj" />
+  <Project Path="O2DESNet/O2DESNet.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>

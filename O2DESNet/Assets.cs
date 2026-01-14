@@ -1,7 +1,6 @@
-﻿namespace O2DESNet
+﻿namespace O2DESNet;
+
+public interface IAssets
 {
-    public interface IAssets
-    {
-        string Id { get; }
-    }
+    string Id { get; }
 }
