@@ -19,6 +19,9 @@ It is developed and used by C#, which facilitates flexible integration with the 
 
 # Change Log
 
+## Version 3.7.2
+- Remove unnecessary package.
+
 ## Version 3.6
 - Improvement of HourCounter to synchronize with simulator ClockTime
 https://github.com/li-haobin/O2DESNet/issues/1
