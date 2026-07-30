@@ -56,14 +56,14 @@ namespace O2DESNet
         public int Seed { get => _seed; set { _seed = value; DefaultRS = new Random(_seed); } }
 
         #region Future Event List
-        internal SortedSet<Event> FutureEventList = new(EventComparer.Instance);
+        internal MinHeap FutureEventList = new();
 
         /// <summary>
         /// Schedule an event to be invoked at the specified clock-time
         /// </summary>
         protected void Schedule(Action action, DateTime clockTime, string? tag = null)
         {
-            FutureEventList.Add(new Event(this, action, clockTime, tag));
+            FutureEventList.Push(new Event(this, action, clockTime, tag));
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace O2DESNet
         /// </summary>
         protected void Schedule(Action action, TimeSpan delay, string? tag = null)
         {
-            FutureEventList.Add(new Event(this, action, ClockTime + delay, tag));
+            FutureEventList.Push(new Event(this, action, ClockTime + delay, tag));
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace O2DESNet
         /// </summary>
         protected void Schedule(Action action, string? tag = null)
         {
-            FutureEventList.Add(new Event(this, action, ClockTime, tag));
+            FutureEventList.Push(new Event(this, action, ClockTime, tag));
         }
         #endregion
 
@@ -88,7 +88,7 @@ namespace O2DESNet
         {
             get
             {
-                var headEvent = FutureEventList.FirstOrDefault();
+                var headEvent = FutureEventList.PeekMin();
                 foreach (Sandbox child in Children_List)
                 {
                     var childHeadEvent = child.HeadEvent;

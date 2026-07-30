@@ -12,6 +12,13 @@ namespace O2DESNet
         internal DateTime ScheduledTime { get; }
         internal Action Action { get; }
 
+        /// <summary>
+        /// True after this event has been removed from a heap via lazy deletion.
+        /// Heap consumers skip such events on Peek/Pop. Preserved across all
+        /// public inspection (kept internal so externally observable state matches SortedSet).
+        /// </summary>
+        internal bool IsInvalid { get; set; }
+
         internal Event(Sandbox owner, Action action, DateTime scheduledTime, string? tag = null)
         {
             Owner = owner;
