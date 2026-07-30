@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Continuous;
 using System;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
-    [TestClass]
+    [TestFixture]
     public class NormalTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency_Std()
         {
             const int numSamples = 100000;
@@ -26,7 +26,7 @@ namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
             }
             PrintResult.CompareMeanAndVariance("normal", mean, stdev * stdev, rs.Mean(), rs.Variance());
         }
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency_CV()
         {
             const int numSamples = 100000;

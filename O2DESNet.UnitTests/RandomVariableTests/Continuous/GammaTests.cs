@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System;
 using O2DESNet.RandomVariables.Continuous;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
-    [TestClass]
+    [TestFixture]
     public class GammaTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             const int numSamples = 100000;
@@ -25,7 +25,7 @@ namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
             }
             PrintResult.CompareMeanAndVariance("gamma", mean, stdev * stdev, rs.Mean(), rs.Variance()); // TODO: result not consistent need to fix the bug
         }
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency_Shape()
         {
             const int numSamples = 100000;

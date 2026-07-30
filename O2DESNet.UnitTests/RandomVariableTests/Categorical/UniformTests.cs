@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Categorical;
 using System;
 using System.Collections.Generic;
@@ -6,10 +6,10 @@ using System.Diagnostics;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Categorical
 {
-    [TestClass]
+    [TestFixture]
     public class UniformTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             List<int> numList = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -27,7 +27,7 @@ namespace O2DESNet.UnitTests.RandomVariableTests.Categorical
             }
             PrintResult.CompareMeanAndVariance("uniform categorical", mean, stdev * stdev, rs.Mean(), rs.Variance());
         }
-        [TestMethod]
+        [Test]
         public void TestUniformRVCategoricalGenericObjectSampleMethod()
         {
             List<int> numList = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -40,32 +40,28 @@ namespace O2DESNet.UnitTests.RandomVariableTests.Categorical
                 Debug.WriteLine(tmep);
             }
         }
-        [TestMethod]
+        [Test]
         public void TestUniformRVCategoricalCostumizedObjectSampleMethod()
         {
             Random rs = new Random();
-            List<student> students = new List<student>();
+            var students = new List<Student>();
             for (int i = 0; i < 20; i++)
             {
-                var s = new student();
-                s.id = i + 1;
-                s.name = "a" + Convert.ToString(i);
+                var s = new Student { Id = i + 1, Name = "a" + i };
                 students.Add(s);
             }
-            Uniform<student> uniform = new Uniform<student>();
-            uniform.Candidates = students;
+            var uniform = new Uniform<Student> { Candidates = students };
             for (int i = 0; i < 20; i++)
             {
                 var temp = uniform.Sample(rs);
-                Debug.WriteLine(temp.name + " " + temp.id);
+                Debug.WriteLine(temp.Name + " " + temp.Id);
             }
         }
     }
 }
 
-public class student
+public class Student
 {
-    public int id { get; set; }
-    public string name { get; set; }
-
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

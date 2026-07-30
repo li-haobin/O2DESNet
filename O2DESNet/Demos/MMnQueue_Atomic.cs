@@ -1,4 +1,3 @@
-﻿using O2DESNet;
 using O2DESNet.Distributions;
 using System;
 
@@ -7,15 +6,15 @@ namespace O2DESNet.Demos
     public class MMnQueue_Atomic : Sandbox, IMMnQueue
     {
         #region Static Properties
-        public double HourlyArrivalRate { get; private set; }
-        public double HourlyServiceRate { get; private set; }
-        public int NServers { get; private set; }
+        public double HourlyArrivalRate { get; }
+        public double HourlyServiceRate { get; }
+        public int NServers { get; }
         #endregion
 
-        #region Dynamic Properties / Methods
-        public double AvgNQueueing { get { return HC_InQueue.AverageCount; } }
-        public double AvgNServing { get { return HC_InServer.AverageCount; } }
-        public double AvgHoursInSystem { get { return HC_InSystem.AverageDuration.TotalHours; } }
+        #region Dynamic Properties
+        public double AvgNQueueing => HC_InQueue.AverageCount;
+        public double AvgNServing => HC_InServer.AverageCount;
+        public double AvgHoursInSystem => HC_InSystem.AverageDuration.TotalHours;
 
         private HourCounter HC_InServer { get; set; }
         private HourCounter HC_InQueue { get; set; }
@@ -70,7 +69,7 @@ namespace O2DESNet.Demos
             HC_InQueue = AddHourCounter();
             HC_InSystem = AddHourCounter();
 
-            /// Initial event
+            // Initial event
             Arrive();
         }
     }

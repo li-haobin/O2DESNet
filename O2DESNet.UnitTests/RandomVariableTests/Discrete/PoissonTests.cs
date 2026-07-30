@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Discrete;
 using System;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Discrete
 {
-    [TestClass]
+    [TestFixture]
     public class PoissonTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             const int numSamples = 100000;
