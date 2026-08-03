@@ -1,4 +1,8 @@
 // Custom min-heap for O2DESNet FutureEventList replacement
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 // Determinism-safe: preserves insertion order on tie via Event.Index
 using System;
 using System.Collections;
@@ -29,6 +33,7 @@ namespace O2DESNet
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(Event e)
         {
             if (e == null) throw new ArgumentNullException(nameof(e));
@@ -39,6 +44,7 @@ namespace O2DESNet
         }
 
         /// <summary>Peek the smallest valid event, or null if empty.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Event? PeekMin()
         {
             SkipInvalidAtRoot();
@@ -46,6 +52,7 @@ namespace O2DESNet
         }
 
         /// <summary>Pop the smallest valid event. Returns null if empty.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Event? PopMin()
         {
             SkipInvalidAtRoot();
@@ -65,6 +72,7 @@ namespace O2DESNet
 
         /// <summary>Remove a specific event. O(log n) using the index dict.
         /// Marks the event as invalid; lazy cleanup on next peek/pop.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(Event e)
         {
             if (e == null) return false;
@@ -104,6 +112,7 @@ namespace O2DESNet
         }
 
         // --- private ---
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SiftUp(int pos)
         {
             while (pos > 0)
@@ -115,6 +124,7 @@ namespace O2DESNet
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SiftDown(int pos)
         {
             int count = _items.Count;
@@ -132,6 +142,7 @@ namespace O2DESNet
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Swap(int a, int b)
         {
             Event tmp = _items[a]!;
@@ -142,6 +153,7 @@ namespace O2DESNet
         }
 
         /// <summary>Walk root, skip any invalidated items until we hit a valid one (or empty).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SkipInvalidAtRoot()
         {
             while (_items.Count > 0 && (_items[0] == null || _items[0]!.IsInvalid))

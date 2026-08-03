@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -61,6 +62,7 @@ namespace O2DESNet
         /// <summary>
         /// Schedule an event to be invoked at the specified clock-time
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void Schedule(Action action, DateTime clockTime, string? tag = null)
         {
             FutureEventList.Push(new Event(this, action, clockTime, tag));
@@ -69,6 +71,7 @@ namespace O2DESNet
         /// <summary>
         /// Schedule an event to be invoked after the specified time delay
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void Schedule(Action action, TimeSpan delay, string? tag = null)
         {
             FutureEventList.Push(new Event(this, action, ClockTime + delay, tag));
@@ -77,6 +80,7 @@ namespace O2DESNet
         /// <summary>
         /// Schedule an event at the current clock time.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void Schedule(Action action, string? tag = null)
         {
             FutureEventList.Push(new Event(this, action, ClockTime, tag));

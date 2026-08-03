@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace O2DESNet
 {
@@ -19,6 +20,7 @@ namespace O2DESNet
         /// </summary>
         internal bool IsInvalid { get; set; }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Event(Sandbox owner, Action action, DateTime scheduledTime, string? tag = null)
         {
             Owner = owner;
