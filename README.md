@@ -19,6 +19,10 @@ It is developed and used by C#, which facilitates flexible integration with the 
 
 # Change Log
 
+## Version 3.8.3
+- Reimplemented FutureEventList using a min-heap, improving overall simulation performance by 25–30%.
+- update icon and README following NuGet new guideline.
+
 ## Version 3.7.2
 - Remove unnecessary package.
 
