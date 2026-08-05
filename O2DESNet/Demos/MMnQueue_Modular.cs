@@ -1,4 +1,3 @@
-﻿using O2DESNet;
 using O2DESNet.Distributions;
 using O2DESNet.Standard;
 using System;
@@ -8,15 +7,15 @@ namespace O2DESNet.Demos
     public class MMnQueue_Modular : Sandbox, IMMnQueue
     {
         #region Static Properties
-        public double HourlyArrivalRate { get; private set; }
-        public double HourlyServiceRate { get; private set; }
-        public int NServers { get { return (int)Server.Capacity; } }
+        public double HourlyArrivalRate { get; }
+        public double HourlyServiceRate { get; }
+        public int NServers => (int)Server.Capacity;
         #endregion
 
         #region Dynamic Properties
-        public double AvgNQueueing { get { return Queue.AvgNQueueing; } }
-        public double AvgNServing { get { return Server.AvgNServing; } }
-        public double AvgHoursInSystem { get { return HC_InSystem.AverageDuration.TotalHours; } }
+        public double AvgNQueueing => Queue.AvgNQueueing;
+        public double AvgNServing => Server.AvgNServing;
+        public double AvgHoursInSystem => HC_InSystem.AverageDuration.TotalHours;
 
         private IGenerator Generator { get; set; }
         private IQueue Queue { get; set; }
@@ -24,7 +23,7 @@ namespace O2DESNet.Demos
         private HourCounter HC_InSystem { get; set; }
         #endregion
 
-        #region Events / Methods
+        #region Events
         private void Arrive()
         {
             Log("Arrive");
@@ -64,11 +63,11 @@ namespace O2DESNet.Demos
             Server.OnStarted += Queue.Dequeue;
 
             Server.OnReadyToDepart += Server.Depart;
-            Server.OnReadyToDepart += load => Depart();
+            Server.OnReadyToDepart += _ => Depart();
 
             HC_InSystem = AddHourCounter();
 
-            /// Initial event
+            // Initial event
             Generator.Start();
         }
 

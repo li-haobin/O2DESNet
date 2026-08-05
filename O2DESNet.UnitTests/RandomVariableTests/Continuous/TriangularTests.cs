@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Continuous;
 using System;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
-    [TestClass]
+    [TestFixture]
     public class TriangularTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             const int numSamples = 100000;

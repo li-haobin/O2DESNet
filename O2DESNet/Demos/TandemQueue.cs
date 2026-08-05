@@ -1,4 +1,3 @@
-﻿using O2DESNet;
 using O2DESNet.Distributions;
 using O2DESNet.Standard;
 using System;
@@ -8,18 +7,18 @@ namespace O2DESNet.Demos
     public class TandemQueue : Sandbox
     {
         #region Static Properties
-        public double HourlyArrivalRate { get; private set; }
-        public double HourlyServiceRate1 { get; private set; }
-        public double HourlyServiceRate2 { get; private set; }
-        public int BufferQueueSize { get { return (int)Queue2.Capacity; } }
+        public double HourlyArrivalRate { get; }
+        public double HourlyServiceRate1 { get; }
+        public double HourlyServiceRate2 { get; }
+        public int BufferQueueSize => (int)Queue2.Capacity;
         #endregion
 
         #region Dynamic Properties
-        public double AvgNQueueing1 { get { return Queue1.AvgNQueueing; } }
-        public double AvgNQueueing2 { get { return Queue2.AvgNQueueing; } }
-        public double AvgNServing1 { get { return Server1.AvgNServing; } }        
-        public double AvgNServing2 { get { return Server2.AvgNServing; } }
-        public double AvgHoursInSystem { get { return HcInSystem.AverageDuration.TotalHours; } }
+        public double AvgNQueueing1 => Queue1.AvgNQueueing;
+        public double AvgNQueueing2 => Queue2.AvgNQueueing;
+        public double AvgNServing1 => Server1.AvgNServing;
+        public double AvgNServing2 => Server2.AvgNServing;
+        public double AvgHoursInSystem => HcInSystem.AverageDuration.TotalHours;
 
         private readonly IGenerator Generator;
         private readonly IQueue Queue1;
@@ -29,7 +28,7 @@ namespace O2DESNet.Demos
         private readonly HourCounter HcInSystem;
         #endregion
 
-        #region Events / Methods
+        #region Events
         private void Arrive()
         {
             Log("Arrive");
@@ -64,7 +63,7 @@ namespace O2DESNet.Demos
             Server1 = AddChild(new Server(new Server.Statics
             {
                 Capacity = 1,
-                ServiceTime = (rs, load) => Exponential.Sample(rs, TimeSpan.FromHours(1 / HourlyServiceRate1)),
+                ServiceTime = (rs, _) => Exponential.Sample(rs, TimeSpan.FromHours(1 / HourlyServiceRate1)),
             }, DefaultRS.Next(), id: "Server1"));
 
             Queue2 = AddChild(new Queue(bufferQSize, DefaultRS.Next(), id: "Queue2"));
@@ -72,7 +71,7 @@ namespace O2DESNet.Demos
             Server2 = AddChild(new Server(new Server.Statics
             {
                 Capacity = 1,
-                ServiceTime = (rs, load) => Exponential.Sample(rs, TimeSpan.FromHours(1 / HourlyServiceRate2)),
+                ServiceTime = (rs, _) => Exponential.Sample(rs, TimeSpan.FromHours(1 / HourlyServiceRate2)),
             }, DefaultRS.Next(), id: "Server2"));
 
             Generator.OnArrive += () => Queue1.RqstEnqueue(new Load());
@@ -88,11 +87,11 @@ namespace O2DESNet.Demos
             Server2.OnStarted += Queue2.Dequeue;
 
             Server2.OnReadyToDepart += Server2.Depart;
-            Server2.OnReadyToDepart += load => Depart();
+            Server2.OnReadyToDepart += _ => Depart();
 
             HcInSystem = AddHourCounter();
 
-            /// Initial event
+            // Initial event
             Generator.Start();
         }
 

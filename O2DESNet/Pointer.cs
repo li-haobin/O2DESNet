@@ -1,41 +1,39 @@
-﻿using System;
+using System;
 
 namespace O2DESNet
 {
-    public struct Pointer
+    /// <summary>
+    /// Immutable 2D spatial transform with position, rotation, and flip state.
+    /// Supports composition via * and decomposition via / operators.
+    /// </summary>
+    public readonly record struct Pointer(
+        double X = 0,
+        double Y = 0,
+        double Angle = 0,
+        bool Flipped = false)
     {
-        public double X { get; }
-        public double Y { get; }
-        public double Angle { get; }
-        public bool Flipped { get; }
-        public Pointer(double x = 0, double y = 0, double angle = 0, bool flipped = false)
+        /// <summary>
+        /// Super-position of two pointers (inner * outer).
+        /// Applies inner's local transform on top of outer's world transform.
+        /// </summary>
+        public static Pointer operator *(Pointer inner, Pointer outer)
         {
-            X = x;
-            Y = y;
-            Angle = angle;
-            Flipped = flipped;
+            var radians = outer.Angle / 180 * Math.PI;
+            return new Pointer(
+                X: inner.X * Math.Cos(radians) - inner.Y * Math.Sin(radians) + outer.X,
+                Y: inner.Y * Math.Cos(radians) + inner.X * Math.Sin(radians) + outer.Y,
+                Angle: (outer.Angle + inner.Angle) % 360,
+                Flipped: outer.Flipped ^ inner.Flipped
+            );
         }
 
         /// <summary>
-        /// Super position of two pointer
+        /// Get the inner pointer by removing outer's transform from the product.
         /// </summary>
-        public static Pointer operator *(Pointer inner, Pointer outter)
+        public static Pointer operator /(Pointer product, Pointer outer)
         {
-            var radius = outter.Angle / 180 * Math.PI;
-            return new Pointer(
-                x: inner.X * Math.Cos(radius) - inner.Y * Math.Sin(radius) + outter.X,
-                y: inner.Y * Math.Cos(radius) + inner.X * Math.Sin(radius) + outter.Y,
-                angle: (outter.Angle + inner.Angle) % 360,
-                flipped: outter.Flipped ^ inner.Flipped
-            );
-        }
-        /// <summary>
-        /// Get the inner pointer
-        /// </summary>
-        public static Pointer operator /(Pointer product, Pointer outter)
-        {
-            return product * new Pointer(x: -outter.X, y: -outter.Y)
-                * new Pointer(angle: -outter.Angle, flipped: outter.Flipped);
+            return product * new Pointer(X: -outer.X, Y: -outer.Y)
+                * new Pointer(Angle: -outer.Angle, Flipped: outer.Flipped);
         }
     }
 }

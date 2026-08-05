@@ -1,19 +1,14 @@
-﻿using MathNet.Numerics.Distributions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Bson;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Discrete;
-using RDotNet;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Discrete
 {
-    [TestClass]
+    [TestFixture]
     public class UniformTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             const int numSamples = 100000;
@@ -36,7 +31,7 @@ namespace O2DESNet.UnitTests.RandomVariableTests.Discrete
             Assert.IsTrue(Math.Abs(stdev * stdev - rs.Variance()) < 0.1);
         }
 
-        [TestMethod]
+        [Test]
         public void TestGetterOfMeanAndVariance()
         {
             Uniform uniform = new Uniform();

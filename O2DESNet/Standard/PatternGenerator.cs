@@ -1,4 +1,4 @@
-﻿using O2DESNet.Distributions;
+using O2DESNet.Distributions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,57 +10,35 @@ namespace O2DESNet.Standard
     {
         public class Statics : IAssets
         {
-            public string Id { get { return GetType().Name; } }
-            /// <summary>
-            /// By default it follow exponential distribution
-            /// </summary>
+            public string Id => GetType().Name;
             public double MeanHourlyRate { get; set; }
-            /// <summary>
-            /// A list of 24 seasonal factors, to be filled with 0s if not full
-            /// All 0s or null means no seasonal effect
-            /// </summary>
-            public List<double> SeasonalFactors_HoursOfDay { get; set; }
-            /// <summary>
-            /// A list of 7 seasonal factors, to be filled with 0s if not full
-            /// All 0s or null means no seasonal effect
-            /// </summary>
-            public List<double> SeasonalFactors_DaysOfWeek { get; set; }
-            /// <summary>
-            /// A list of 31 seasonal factors, to be filled with 0s if not full
-            /// All 0s or null means no seasonal effect
-            /// </summary>
-            public List<double> SeasonalFactors_DaysOfMonth { get; set; }
-            /// <summary>
-            /// A list of 12 seasonal factors, to be filled with 0s if not full
-            /// All 0s or null means no seasonal effect
-            /// </summary>
-            public List<double> SeasonalFactors_MonthsOfYear { get; set; }
-            /// <summary>
-            /// All 0s or null means no seasonal effect
-            /// </summary>
-            public List<double> SeasonalFactors_Years { get; set; }
-            public List<(TimeSpan, List<double>)> CustomizedSeasonalFactors { get; set; }
-            public PatternGenerator Sandbox(int seed = 0) { return new PatternGenerator(this, seed); }
+            public List<double>? SeasonalFactors_HoursOfDay { get; set; }
+            public List<double>? SeasonalFactors_DaysOfWeek { get; set; }
+            public List<double>? SeasonalFactors_DaysOfMonth { get; set; }
+            public List<double>? SeasonalFactors_MonthsOfYear { get; set; }
+            public List<double>? SeasonalFactors_Years { get; set; }
+            public List<(TimeSpan, List<double>)>? CustomizedSeasonalFactors { get; set; }
+            public PatternGenerator Sandbox(int seed = 0) => new(this, seed);
         }
 
-        #region Dyanmic Properties
+        #region Dynamic Properties
         public DateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
         public int Count { get; private set; }
         private double PeakHourlyRate { get; set; }
-        private List<double> Adjusted_SeasonalFactors_HoursOfDay { get; set; }
-        private List<double> Adjusted_SeasonalFactors_DaysOfWeek { get; set; }
-        private List<double> Adjusted_SeasonalFactors_DaysOfMonth { get; set; }
-        private List<double> Adjusted_SeasonalFactors_MonthsOfYear { get; set; }
-        private List<double> Adjusted_SeasonalFactors_Years { get; set; }
-        private List<(TimeSpan Interval, List<double> SeasonalFactors)> Adjusted_CustomizedSeasonalFactors { get; set; }
+        private List<double> Adjusted_SeasonalFactors_HoursOfDay { get; set; } = [];
+        private List<double> Adjusted_SeasonalFactors_DaysOfWeek { get; set; } = [];
+        private List<double> Adjusted_SeasonalFactors_DaysOfMonth { get; set; } = [];
+        private List<double> Adjusted_SeasonalFactors_MonthsOfYear { get; set; } = [];
+        private List<double> Adjusted_SeasonalFactors_Years { get; set; } = [];
+        private List<(TimeSpan Interval, List<double> SeasonalFactors)> Adjusted_CustomizedSeasonalFactors { get; set; } = [];
         private double AdjMax_SeasonalFactor_HoursOfDay { get; set; }
         private double AdjMax_SeasonalFactor_DaysOfWeek { get; set; }
         private double AdjMax_SeasonalFactor_DaysOfMonth { get; set; }
         private double AdjMax_SeasonalFactor_MonthsOfYear { get; set; }
         private double AdjMax_SeasonalFactor_Years { get; set; }
-        private List<double> AdjMax_CustomizedSeasonalFactors { get; set; }
-        private List<TimeSpan> CustomizedSeasonalRemainders { get; set; }
+        private List<double> AdjMax_CustomizedSeasonalFactors { get; set; } = [];
+        private List<TimeSpan> CustomizedSeasonalRemainders { get; set; } = [];
         #endregion
 
         #region Events
@@ -78,11 +56,7 @@ namespace O2DESNet.Standard
 
         public void End()
         {
-            if (IsOn)
-            {
-                Log("End");
-                IsOn = false;
-            }
+            if (IsOn) { Log("End"); IsOn = false; }
         }
 
         private void ScheduleToArrive()
@@ -106,6 +80,7 @@ namespace O2DESNet.Standard
                 if (DefaultRS.NextDouble() > Adjusted_SeasonalFactors_DaysOfMonth[time.Day - 1] * 31 / DateTime.DaysInMonth(time.Year, time.Month) / AdjMax_SeasonalFactor_DaysOfMonth) continue;
                 if (DefaultRS.NextDouble() > Adjusted_SeasonalFactors_MonthsOfYear[time.Month - 1] / AdjMax_SeasonalFactor_MonthsOfYear) continue;
                 if (DefaultRS.NextDouble() > Adjusted_SeasonalFactors_Years[(time.Year - 1) % Adjusted_SeasonalFactors_Years.Count] / AdjMax_SeasonalFactor_Years) continue;
+
                 #region For customized seasonality
                 bool reject = false;
                 for (int i = 0; i < Adjusted_CustomizedSeasonalFactors.Count; i++)
@@ -120,6 +95,7 @@ namespace O2DESNet.Standard
                 }
                 if (reject) continue;
                 #endregion
+
                 Schedule(Arrive, time);
                 break;
             }
@@ -140,34 +116,34 @@ namespace O2DESNet.Standard
 
         public event Action OnArrive = () => { };
         #endregion
-        
-        public PatternGenerator(Statics assets, int seed = 0, string tag = null)
+
+        public PatternGenerator(Statics assets, int seed = 0, string? tag = null)
             : base(assets, seed, tag)
         {
             IsOn = false;
             Count = 0;
 
             #region Normalize seasonal factors
-            List<double> normalize(List<double> factors, int? nIntervals = null)
+            List<double> normalize(List<double>? factors, int? nIntervals = null)
             {
-                /// return default if undefined
+                // return default if undefined
                 if (factors == null || factors.Sum() == 0)
                 {
                     if (nIntervals != null) return Enumerable.Repeat(1d, nIntervals.Value).ToList();
-                    else return new List<double> { 1 };
+                    else return [1];
                 }
 
-                /// remove the negative part, replace with 0
+                // remove the negative part, replace with 0
                 factors = factors.Select(f => Math.Max(0, f)).ToList();
 
-                /// adjust the lenghth
+                // adjust the length
                 if (nIntervals != null)
                 {
                     factors = factors.Take(nIntervals.Value).ToList();
                     while (factors.Count < nIntervals.Value) factors.Add(0);
                 }
 
-                /// standardize
+                // standardize
                 var sum = factors.Sum();
                 return factors.Select(f => f / sum * factors.Count).ToList();
             }
@@ -177,7 +153,7 @@ namespace O2DESNet.Standard
             Adjusted_SeasonalFactors_DaysOfMonth = normalize(Assets.SeasonalFactors_DaysOfMonth, 31);
             Adjusted_SeasonalFactors_MonthsOfYear = normalize(Assets.SeasonalFactors_MonthsOfYear, 12);
             Adjusted_SeasonalFactors_Years = normalize(Assets.SeasonalFactors_Years);
-            Adjusted_CustomizedSeasonalFactors = new List<(TimeSpan Interval, List<double> SeasonalFactors)>();
+            Adjusted_CustomizedSeasonalFactors = [];
             if (Assets.CustomizedSeasonalFactors != null)
                 foreach (var (interval, factors) in Assets.CustomizedSeasonalFactors)
                     Adjusted_CustomizedSeasonalFactors.Add((interval, normalize(factors)));
@@ -199,7 +175,7 @@ namespace O2DESNet.Standard
             foreach (var max in AdjMax_CustomizedSeasonalFactors) PeakHourlyRate *= max;
             #endregion
 
-            CustomizedSeasonalRemainders = Adjusted_CustomizedSeasonalFactors.Select(t => new TimeSpan()).ToList();
+            CustomizedSeasonalRemainders = Adjusted_CustomizedSeasonalFactors.Select(_ => TimeSpan.Zero).ToList();
         }
 
         protected override void WarmedUpHandler()
@@ -211,6 +187,5 @@ namespace O2DESNet.Standard
         {
             foreach (Action i in OnArrive.GetInvocationList()) OnArrive -= i;
         }
-
     }
 }

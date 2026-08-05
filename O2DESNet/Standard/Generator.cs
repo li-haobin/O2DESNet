@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace O2DESNet.Standard
@@ -7,15 +7,15 @@ namespace O2DESNet.Standard
     {
         public class Statics : IAssets
         {
-            public string Id { get { return GetType().Name; } }
-            public Func<Random, TimeSpan> InterArrivalTime { get; set; }
-            public Generator Sandbox(int seed = 0) { return new Generator(this, seed); }
+            public string Id => GetType().Name;
+            public Func<Random, TimeSpan>? InterArrivalTime { get; set; }
+            public Generator Sandbox(int seed = 0) => new(this, seed);
         }
 
-        #region Dyanmic Properties
+        #region Dynamic Properties
         public DateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
-        public int Count { get; private set; } // number of loads generated   
+        public int Count { get; private set; }
         #endregion
 
         #region Events
@@ -45,7 +45,7 @@ namespace O2DESNet.Standard
 
         private void ScheduleToArrive()
         {
-            Schedule(Arrive, Assets.InterArrivalTime(DefaultRS));
+            Schedule(Arrive, Assets.InterArrivalTime!(DefaultRS));
         }
 
         private void Arrive()
@@ -64,7 +64,7 @@ namespace O2DESNet.Standard
         public event Action OnArrive = () => { };
         #endregion
 
-        public Generator(Statics assets, int seed = 0, string id = null)
+        public Generator(Statics assets, int seed = 0, string? id = null)
             : base(assets, seed, id)
         {
             IsOn = false;
@@ -80,6 +80,5 @@ namespace O2DESNet.Standard
         {
             foreach (Action i in OnArrive.GetInvocationList()) OnArrive -= i;
         }
-
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using O2DESNet.RandomVariables.Continuous;
 using System;
 using System.Collections.Generic;
@@ -7,10 +7,10 @@ using System.Text;
 
 namespace O2DESNet.UnitTests.RandomVariableTests.Continuous
 {
-    [TestClass]
+    [TestFixture]
     public class ExponentialTests
     {
-        [TestMethod]
+        [Test]
         public void TestMeanAndVariacneConsistency()
         {
             const int numSamples = 100000;

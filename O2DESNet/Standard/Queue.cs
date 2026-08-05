@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,23 +8,23 @@ namespace O2DESNet.Standard
     public class Queue : Sandbox, IQueue
     {
         #region Static Properties
-        public double Capacity { get; private set; }
+        public double Capacity { get; }
         #endregion
 
-        #region Dynamic Properties        
-        public IReadOnlyList<ILoad> PendingToEnqueue { get { return List_PendingToEnqueue.AsReadOnly(); } }
-        public IReadOnlyList<ILoad> Queueing { get { return List_Queueing.AsReadOnly(); } }
-        public int Occupancy { get { return List_Queueing.Count; } }
-        public double Vacancy { get { return Capacity - Occupancy; } }
-        public double Utilization { get { return AvgNQueueing / Capacity; } }
-        public double AvgNQueueing { get{ return HC_Queueing.AverageCount; } }
+        #region Dynamic Properties
+        public IReadOnlyList<ILoad> PendingToEnqueue => List_PendingToEnqueue.AsReadOnly();
+        public IReadOnlyList<ILoad> Queueing => List_Queueing.AsReadOnly();
+        public int Occupancy => List_Queueing.Count;
+        public double Vacancy => Capacity - Occupancy;
+        public double Utilization => AvgNQueueing / Capacity;
+        public double AvgNQueueing => HC_Queueing.AverageCount;
 
-        private readonly List<ILoad> List_Queueing = new List<ILoad>();
-        private readonly List<ILoad> List_PendingToEnqueue = new List<ILoad>();
+        private readonly List<ILoad> List_Queueing = [];
+        private readonly List<ILoad> List_PendingToEnqueue = [];
         private HourCounter HC_Queueing { get; set; }
         #endregion
 
-        #region  Methods / Events
+        #region Methods / Events
         public void RqstEnqueue(ILoad load)
         {
             Log("RqstEnqueue");
@@ -32,6 +32,7 @@ namespace O2DESNet.Standard
             List_PendingToEnqueue.Add(load);
             AtmptEnqueue();
         }
+
         public void Dequeue(ILoad load)
         {
             if (List_Queueing.Contains(load))
@@ -43,10 +44,11 @@ namespace O2DESNet.Standard
                 AtmptEnqueue();
             }
         }
+
         private void AtmptEnqueue()
         {
             if (List_PendingToEnqueue.Count > 0 && List_Queueing.Count < Capacity)
-            {                
+            {
                 var load = List_PendingToEnqueue.First();
                 Log("Enqueue", load);
                 if (DebugMode) Debug.WriteLine("{0}:\t{1}\tEnqueue\t{2}", ClockTime, this, load);
@@ -60,7 +62,7 @@ namespace O2DESNet.Standard
         public event Action<ILoad> OnEnqueued = load => { };
         #endregion
 
-        public Queue(double capacity, int seed = 0, string id = null) 
+        public Queue(double capacity, int seed = 0, string? id = null)
             : base(seed, id)
         {
             Capacity = capacity;
@@ -70,6 +72,6 @@ namespace O2DESNet.Standard
         public override void Dispose()
         {
             foreach (Action<ILoad> i in OnEnqueued.GetInvocationList()) OnEnqueued -= i;
-        }        
+        }
     }
 }
